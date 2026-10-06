@@ -8,6 +8,9 @@ import { redirect, routing, type AppLocale } from "@/i18n/routing";
 const ALLOWED_ROLES = ["SCHOOL_ADMIN", "TEACHER", "PARENT"] as const;
 type IssuableRole = (typeof ALLOWED_ROLES)[number];
 
+const CHANNELS = ["EMAIL", "TELEGRAM"] as const;
+type Channel = (typeof CHANNELS)[number];
+
 export type IssueActionState = {
   error?:
     | "invalid"
@@ -22,7 +25,24 @@ export type IssueActionState = {
     displayName?: string;
     role?: string;
     preferredLocale?: string;
+    deliveryChannel?: string;
   };
+  /**
+   * Set (instead of redirecting) after a TELEGRAM invite is issued: the
+   * backend sends no email for that channel, so the admin has to forward the
+   * bot deeplink themselves. It's shown once — the raw token isn't stored
+   * anywhere, and we deliberately don't round-trip it through a URL query.
+   */
+  issued?: {
+    email: string;
+    deeplink: string;
+  };
+};
+
+type IssuedView = {
+  id: string;
+  deliveryChannel?: string;
+  botDeeplink?: string;
 };
 
 function normalizeLocale(value: FormDataEntryValue | null): AppLocale {
@@ -36,6 +56,10 @@ function isRole(value: string): value is IssuableRole {
   return (ALLOWED_ROLES as readonly string[]).includes(value);
 }
 
+function isChannel(value: string): value is Channel {
+  return (CHANNELS as readonly string[]).includes(value);
+}
+
 export async function issueInvitationAction(
   _prev: IssueActionState,
   formData: FormData,
@@ -45,10 +69,11 @@ export async function issueInvitationAction(
   const displayName = String(formData.get("displayName") ?? "").trim();
   const role = String(formData.get("role") ?? "");
   const preferredLocale = String(formData.get("preferredLocale") ?? "").trim();
+  const deliveryChannel = String(formData.get("deliveryChannel") ?? "EMAIL");
 
-  const values = { email, displayName, role, preferredLocale };
+  const values = { email, displayName, role, preferredLocale, deliveryChannel };
 
-  if (!email || !displayName || !isRole(role)) {
+  if (!email || !displayName || !isRole(role) || !isChannel(deliveryChannel)) {
     return { error: "invalid", values };
   }
 
@@ -57,7 +82,7 @@ export async function issueInvitationAction(
     return { error: "unauthorised", values };
   }
 
-  const result = await apiFetch<{ id: string }>("/api/v1/admin/invitations", {
+  const result = await apiFetch<IssuedView>("/api/v1/admin/invitations", {
     method: "POST",
     accessToken: access,
     body: JSON.stringify({
@@ -65,6 +90,7 @@ export async function issueInvitationAction(
       displayName,
       role,
       preferredLocale: preferredLocale || undefined,
+      deliveryChannel,
     }),
   });
 
@@ -81,8 +107,14 @@ export async function issueInvitationAction(
     return { error: "unknown", values };
   }
 
-  // Nudge the list route to re-render with the new row before we redirect.
+  // Nudge the list route to re-render with the new row.
   revalidatePath(`/${locale}/admin/invitations`);
+
+  // Jackson drops nulls, so a missing deeplink arrives as undefined.
+  if (deliveryChannel === "TELEGRAM" && result.data.botDeeplink != null) {
+    return { issued: { email, deeplink: result.data.botDeeplink } };
+  }
+
   redirect({
     href: { pathname: "/admin/invitations", query: { sent: email } },
     locale,

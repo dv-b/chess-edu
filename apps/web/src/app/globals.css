@@ -904,6 +904,16 @@ button {
   border-color: color-mix(in oklch, var(--ink-muted), transparent 70%);
 }
 
+/* Secondary line under a .pill (e.g. the Telegram bot-funnel step in the
+   invitations list). Plain small muted text — deliberately NOT the
+   uppercase, letter-spaced .auth-meta, which is too loud inside a table cell. */
+.pill-note {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
 /* --- Filter bar (members, future admin lists) --- */
 
 .filter-bar {

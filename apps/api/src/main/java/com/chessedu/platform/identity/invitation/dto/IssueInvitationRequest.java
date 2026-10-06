@@ -32,6 +32,15 @@ public record IssueInvitationRequest(
         UUID schoolId,
 
         @Pattern(regexp = "uz|ru|en")
-        String preferredLocale
+        String preferredLocale,
+
+        /**
+         * How the invite reaches the person. {@code EMAIL} (default, null = EMAIL)
+         * sends the accept link by mail; {@code TELEGRAM} sends nothing and instead
+         * returns a {@code t.me/<bot>?start=INV_<token>} deeplink in the response
+         * for the admin to forward. Telegram is for non-student roles only.
+         */
+        @Pattern(regexp = "EMAIL|TELEGRAM")
+        String deliveryChannel
 ) {
 }

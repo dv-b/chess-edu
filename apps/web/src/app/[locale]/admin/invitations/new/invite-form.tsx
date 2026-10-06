@@ -1,11 +1,59 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { issueInvitationAction, type IssueActionState } from "./actions";
 
 const INITIAL: IssueActionState = {};
+
+/**
+ * Shown instead of the form once a TELEGRAM invite is issued. The deeplink
+ * is the invitee's only way in (no email is sent for this channel), so it
+ * gets a copy button and stays on screen until the admin navigates away.
+ */
+function IssuedTelegramCard({
+  email,
+  deeplink,
+  t,
+}: {
+  email: string;
+  deeplink: string;
+  t: ReturnType<typeof useTranslations<"admin.invitations.new">>;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(deeplink);
+      setCopied(true);
+    } catch {
+      // Clipboard can be unavailable (http origin, permissions) — the
+      // read-only input below is still selectable by hand.
+    }
+  }
+
+  return (
+    <div className="auth-card">
+      <h1>{t("issuedTitle")}</h1>
+      <p className="auth-meta">{t("issuedTelegram", { email })}</p>
+
+      <div className="field">
+        <label htmlFor="deeplink">{t("deeplinkLabel")}</label>
+        <input id="deeplink" type="text" readOnly value={deeplink} onFocus={(e) => e.currentTarget.select()} />
+      </div>
+
+      <div className="auth-actions">
+        <button className="btn btn--primary" type="button" onClick={copy}>
+          {copied ? t("copied") : t("copy")}
+        </button>
+        <Link href="/admin/invitations" className="btn btn--ghost">
+          {t("backToList")}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 /**
  * "Invite someone new" form. The role dropdown only offers the three roles
@@ -20,6 +68,16 @@ export function InviteForm({ locale }: { locale: string }) {
     INITIAL,
   );
   const v = state.values ?? {};
+
+  if (state.issued) {
+    return (
+      <IssuedTelegramCard
+        email={state.issued.email}
+        deeplink={state.issued.deeplink}
+        t={t}
+      />
+    );
+  }
 
   return (
     <form className="auth-card" action={formAction} noValidate>
@@ -84,6 +142,19 @@ export function InviteForm({ locale }: { locale: string }) {
           <option value="ru">Русский</option>
           <option value="en">English</option>
         </select>
+      </div>
+
+      <div className="field">
+        <label htmlFor="deliveryChannel">{t("channelLabel")}</label>
+        <select
+          id="deliveryChannel"
+          name="deliveryChannel"
+          defaultValue={v.deliveryChannel ?? "EMAIL"}
+        >
+          <option value="EMAIL">{t("channel.EMAIL")}</option>
+          <option value="TELEGRAM">{t("channel.TELEGRAM")}</option>
+        </select>
+        <p className="auth-meta">{t("channelHint")}</p>
       </div>
 
       <div className="auth-actions">

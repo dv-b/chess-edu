@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { setSession } from "@/lib/session";
+import { homeForRole } from "@/lib/home-for-role";
 import { routing, type AppLocale } from "@/i18n/routing";
 
 type TokenResponse = {
@@ -16,27 +17,6 @@ type MeResponse = {
   role: string | null;
   platformRole: string | null;
 };
-
-/**
- * Roles are typed as loose strings since we only care about a small set of
- * routing branches; anything unknown falls through to the admin shell by
- * default (which has its own role guards).
- */
-function homeForRole(role: string | null, platformRole: string | null): string {
-  if (platformRole === "PLATFORM_ADMIN") return "admin";
-  switch (role) {
-    case "PARENT":
-      return "parent";
-    case "STUDENT":
-      return "student";
-    case "SCHOOL_ADMIN":
-      return "admin";
-    // Teachers don't have their own shell yet; they land on /admin for now
-    // (which has its own role gate). Add branches here as those ship.
-    default:
-      return "admin";
-  }
-}
 
 /**
  * Shape returned to the client form via `useActionState`. We deliberately

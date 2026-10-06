@@ -17,6 +17,9 @@ type InvitationView = {
   expiresAt: string;
   acceptedAt: string | null;
   expired: boolean;
+  deliveryChannel?: "EMAIL" | "TELEGRAM";
+  /** Bot-funnel state for TELEGRAM invites; absent (Jackson drops nulls) for EMAIL. */
+  botState?: "PENDING" | "STARTED" | "AWAITING_CONTACT" | "COMPLETED" | "CANCELLED";
 };
 
 type PageProps = {
@@ -82,6 +85,7 @@ export default async function AdminInvitationsPage({ params }: PageProps) {
                 <th>{t("table.email")}</th>
                 <th>{t("table.name")}</th>
                 <th>{t("table.role")}</th>
+                <th>{t("table.channel")}</th>
                 <th>{t("table.issued")}</th>
                 <th>{t("table.expires")}</th>
                 <th>{t("table.status")}</th>
@@ -96,10 +100,14 @@ export default async function AdminInvitationsPage({ params }: PageProps) {
                     <td>{inv.email}</td>
                     <td>{inv.displayName}</td>
                     <td>{translateRole(t, inv.role)}</td>
+                    <td>{t(`channel.${inv.deliveryChannel ?? "EMAIL"}`)}</td>
                     <td>{dateFmt.format(new Date(inv.issuedAt))}</td>
                     <td>{dateFmt.format(new Date(inv.expiresAt))}</td>
                     <td>
                       <span className={`pill pill--${status}`}>{t(`status.${status}`)}</span>
+                      {funnelOf(inv, status) ? (
+                        <span className="pill-note">{t(`botState.${funnelOf(inv, status)}`)}</span>
+                      ) : null}
                     </td>
                     <td className="data-table__actions">
                       {status === "pending" ? (
@@ -125,6 +133,21 @@ export default async function AdminInvitationsPage({ params }: PageProps) {
       </p>
     </main>
   );
+}
+
+/**
+ * Which bot-funnel step to show under the status pill. Only meaningful while
+ * a TELEGRAM invite is still pending — once accepted/expired the pill says
+ * it all, except CANCELLED (the invitee backed out mid-flow), which is worth
+ * surfacing so the admin knows to nudge them.
+ */
+function funnelOf(
+  inv: InvitationView,
+  status: "accepted" | "expired" | "pending",
+): InvitationView["botState"] | null {
+  if (inv.deliveryChannel !== "TELEGRAM" || inv.botState == null) return null;
+  if (status === "pending" || inv.botState === "CANCELLED") return inv.botState;
+  return null;
 }
 
 function statusOf(inv: InvitationView): "accepted" | "expired" | "pending" {

@@ -30,6 +30,126 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Telegram Auth D — `/auth/accept` page + admin channel picker & funnel state
+
+Fourth slice of the Telegram-auth umbrella: the frontend, plus the small
+backend piece it needed. The bot's deeplink now lands on a real page
+that signs the user in, and school admins can issue Telegram
+invitations (and watch the bot funnel) from the existing invitations
+screens. Login-Widget button still deferred (needs a prod domain).
+
+Backend (invitation issue/list, no schema change — V012 already had
+the columns):
+
+- `apps/api/.../identity/invitation/dto/IssueInvitationRequest.java` —
+  optional `deliveryChannel` (`@Pattern EMAIL|TELEGRAM`, null = EMAIL).
+- `apps/api/.../identity/invitation/dto/InvitationView.java` — adds
+  `deliveryChannel`, `botState` (null for EMAIL), and `botDeeplink`
+  (`https://t.me/<bot>?start=INV_<token>`; **only in the issue response
+  of a TELEGRAM invite, never in list views** — the raw token isn't
+  stored, so it can't be re-shown).
+- `apps/api/.../identity/invitation/InvitationService.java` — injects
+  `TelegramProperties`; on `TELEGRAM`: 400 if `bot-username` is blank,
+  sets `delivery_channel=TELEGRAM` + `bot_state=PENDING`, **skips the
+  email** and returns the deeplink via a new `toView(…, botDeeplink)`
+  overload. EMAIL path unchanged. (Student invites were already 403 on
+  every channel via `enforceCallerAuthority` — no extra guard.)
+- `apps/api/src/test/.../invitation/TelegramInvitationIssueIntegrationTest.java`
+  — 4 tests (pins `chessedu.telegram.bot-username` via
+  `@SpringBootTest(properties=…)`): TELEGRAM issue → deeplink whose
+  token hashes to the row, `PENDING`, list shows channel+state but no
+  deeplink; EMAIL default unchanged; STUDENT+TELEGRAM 403; bogus
+  channel 400.
+
+Frontend:
+
+- `apps/web/src/app/[locale]/auth/accept/{page,accept-form,actions}.tsx|ts`
+  — new. Page reads `?ott=`; missing → error card. Otherwise a client
+  form with hidden `ott` **auto-submits once on mount** (ref-guarded —
+  the OTT is single-use, so a strict-mode double effect must not fire
+  twice) to `acceptTelegramAction`: `POST /auth/telegram/accept` →
+  `setSession` cookies → `/auth/me` → `homeForRole` redirect
+  (parent/student/admin), identical tail to the password login. 401/400
+  → "expired" state (ask the bot `/start` again, or email/password
+  login); network/unknown → retry button. It stays a real `<form>` so a
+  blocked auto-submit leaves a working button.
+- `apps/web/src/lib/home-for-role.ts` — `homeForRole` extracted from
+  `auth/login/actions.ts` (a `"use server"` module can't export a sync
+  helper) and shared by both flows.
+- `apps/web/src/app/[locale]/admin/invitations/new/invite-form.tsx` +
+  `actions.ts` — "Send via" select (Email / Telegram bot) with a hint;
+  `deliveryChannel` validated + posted. On a TELEGRAM success the
+  action **returns `{issued:{email,deeplink}}` instead of redirecting**
+  (deliberately not round-tripping the token through a URL query); the
+  form swaps to an "Invitation ready" card with a read-only link input,
+  Copy button (clipboard API, graceful no-op if unavailable) and
+  back-to-list. EMAIL success redirects as before.
+- `apps/web/src/app/[locale]/admin/invitations/page.tsx` — new
+  "Channel" column; under the status pill a muted `.pill-note` with the
+  bot funnel step (`botState.*`) while a TELEGRAM invite is pending, or
+  if it was `CANCELLED` in the bot. `funnelOf()` helper.
+- `apps/web/src/app/globals.css` — `.pill-note` (small, muted, normal
+  case) next to the `.pill` block.
+- i18n: `auth.telegramAccept.*` (11 keys) and
+  `admin.invitations.{table.channel, channel.*, botState.*(5),
+  new.{channelLabel,channelHint,channel.*,issuedTitle,issuedTelegram,
+  deeplinkLabel,copy,copied,backToList}}` in en/ru/uz. **en=ru=uz=946**
+  leaf keys (was 917).
+
+Build verify: `./gradlew :api:compileJava :api:compileTestJava` clean;
+`:api:test --tests '*TelegramInvitationIssue*' --tests '*InvitationFlow*'
+--tests '*TelegramAccept*' --tests '*AuthFlow*'` all green (15 tests).
+`npx tsc --noEmit` clean. CSS braces balanced. Walked through in the
+browser against the running stack (accept page happy + used-token
+paths, Telegram invite issue → deeplink card, list columns).
+
+Deliberately scoped out:
+
+- **Login-Widget button** on `/auth/login` + its endpoint — domain-ready
+  phase.
+- **Re-showing a Telegram deeplink** — the raw token isn't stored, so
+  an admin who loses it must revoke + re-issue (same as email).
+- **Distinct "bot not configured" error in the admin form** — the
+  backend returns 400 with a clear message, but the form maps every
+  400 to the generic `invalid` copy. Fine for v1 (it's an operator
+  misconfiguration, and the backend log says exactly what's missing).
+- **Mock-Telegram end-to-end test** (bot `/start` → contact →
+  deeplink → accept page) — Task E.
+
+How to check as a user:
+
+Needs Postgres + backend (Java 21, `.env` sourced if you want the real
+bot) + web (`pnpm --filter web dev`, port 3100). API is on **7373**.
+
+1. Sign in as `admin@demo.local / admin12345` → `/<locale>/admin/invitations`
+   → "New invitation". Fill an email + name, role Teacher or Parent,
+   **Send via: Telegram bot** → submit.
+   Expected: no redirect — an "Invitation ready" card with a
+   `https://t.me/<bot>?start=INV_…` link, a working Copy button, and
+   "Back to invitations". (With `CHESSEDU_TELEGRAM_BOT_USERNAME` unset
+   you get the generic "check the form" error instead — set it in
+   `.env`.) Mailpit (`localhost:8125`) gets **no** new message.
+2. "Back to invitations": the new row shows Channel = Telegram, status
+   Pending, and "Link not opened yet" under the pill. Email rows show
+   Channel = Email and nothing extra.
+3. Send the link to yourself in Telegram and tap through the bot (see
+   Telegram Auth B's walkthrough). After the contact share, the list
+   row's note becomes "Signed up via bot" on refresh; the bot's reply
+   contains `http://localhost:3100/<locale>/auth/accept?ott=…`.
+4. Open that link in the browser where the web app runs.
+   Expected: a brief "Signing you in…" card, then a redirect to
+   `/<locale>/admin` (teacher/admin) or `/<locale>/parent` (parent),
+   logged in — no password ever set.
+5. Edge cases worth eyeballing:
+   - Open the same accept link again → "This link has expired" card
+     with "Back to login". Same for `/auth/accept?ott=garbage`.
+   - `/auth/accept` with no `ott` → the "link is incomplete" card.
+   - Without the bot: mint an OTT by SQL (see Telegram Auth C, step 2)
+     and open `/en/auth/accept?ott=<raw>` — same happy path.
+   - Issue a Telegram invite as a Parent role, tap through, and confirm
+     the accept redirect lands on `/parent`, not `/admin`.
+   - `/cancel` in the bot mid-flow → list note "Cancelled in the bot".
+
 ### Telegram Auth C — OTT redemption endpoint (`POST /api/v1/auth/telegram/accept`)
 
 Third slice of the Telegram-auth umbrella: the web-side half of the
