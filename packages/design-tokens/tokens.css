@@ -1,0 +1,145 @@
+/*
+ * chess-edu design tokens.
+ *
+ * Ported from the prototype styles.css. The aesthetic is "scholarly paper":
+ * warm off-white background, deep ink text, a restrained green accent, and
+ * the classic tournament board colours. Typography pairs Newsreader (serif
+ * display) with Inter (sans for UI) and JetBrains Mono for move notation.
+ *
+ * All colours are oklch for perceptual uniformity across light/dark.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* --- Surfaces (paper) --- */
+  --paper:          oklch(96% 0.01 80);      /* #f5f1e8-ish */
+  --paper-elevated: oklch(99% 0.01 80);
+  --paper-sunken:   oklch(92% 0.02 80);
+  --paper-edge:     oklch(85% 0.02 80);
+
+  /* --- Ink (text) --- */
+  --ink:            oklch(18% 0.01 90);      /* near-black warm */
+  --ink-soft:       oklch(35% 0.01 90);
+  --ink-muted:      oklch(55% 0.01 90);
+  --ink-faint:      oklch(75% 0.01 90);
+
+  /* --- Accent: scholar green --- */
+  --accent:         oklch(45% 0.08 140);
+  --accent-hover:   oklch(40% 0.09 140);
+  --accent-soft:    oklch(94% 0.04 140);
+  --accent-ink:     oklch(22% 0.08 140);
+
+  /* --- Semantic --- */
+  --danger:         oklch(50% 0.18 25);
+  --danger-soft:    oklch(94% 0.04 25);
+  --warn:           oklch(70% 0.14 80);
+  --warn-soft:      oklch(95% 0.04 80);
+  --success:        var(--accent);
+  --success-soft:   var(--accent-soft);
+  --info:           oklch(55% 0.09 240);
+  --info-soft:      oklch(94% 0.03 240);
+
+  /* --- Chess board (classic tournament) --- */
+  --board-light:    #eeeed2;
+  --board-dark:     #769656;
+  --board-border:   oklch(30% 0.03 95);
+  --board-coord:    oklch(40% 0.02 95);
+  --board-highlight:oklch(80% 0.14 100 / 0.55);
+  --board-lastmove: oklch(80% 0.18 95  / 0.45);
+
+  /* --- Typography --- */
+  --font-display: "Newsreader", "Georgia", serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  --fs-xs:   0.75rem;
+  --fs-sm:   0.875rem;
+  --fs-base: 1rem;
+  --fs-md:   1.125rem;
+  --fs-lg:   1.25rem;
+  --fs-xl:   1.5rem;
+  --fs-2xl:  2rem;
+  --fs-3xl:  2.75rem;
+  --fs-4xl:  3.5rem;
+
+  /* --- Spacing & radius --- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.06);
+  --shadow:    0 4px 12px oklch(0% 0 0 / 0.08);
+  --shadow-lg: 0 16px 40px oklch(0% 0 0 / 0.12);
+
+  /* --- Motion --- */
+  --ease-out:  cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in:   cubic-bezier(0.55, 0, 0.68, 0.53);
+  --dur-fast:  120ms;
+  --dur:       220ms;
+  --dur-slow:  420ms;
+}
+
+/* Dark theme — tokens are re-pointed, components don't know about either. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper:          oklch(18% 0.01 80);
+  --paper-elevated: oklch(22% 0.01 80);
+  --paper-sunken:   oklch(14% 0.01 80);
+  --paper-edge:     oklch(30% 0.02 80);
+
+  --ink:            oklch(95% 0.01 90);
+  --ink-soft:       oklch(80% 0.01 90);
+  --ink-muted:      oklch(60% 0.01 90);
+  --ink-faint:      oklch(40% 0.01 90);
+
+  --accent:         oklch(72% 0.10 140);
+  --accent-hover:   oklch(78% 0.11 140);
+  --accent-soft:    oklch(30% 0.05 140);
+  --accent-ink:     oklch(95% 0.05 140);
+
+  --danger:         oklch(70% 0.18 25);
+  --danger-soft:    oklch(28% 0.08 25);
+  --warn:           oklch(80% 0.14 80);
+  --warn-soft:      oklch(30% 0.06 80);
+  --info:           oklch(72% 0.10 240);
+  --info-soft:      oklch(28% 0.05 240);
+
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.5);
+  --shadow:    0 4px 12px oklch(0% 0 0 / 0.55);
+  --shadow-lg: 0 16px 40px oklch(0% 0 0 / 0.7);
+}
+
+/* Respect system preference if user hasn't forced a theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --paper:          oklch(18% 0.01 80);
+    --paper-elevated: oklch(22% 0.01 80);
+    --paper-sunken:   oklch(14% 0.01 80);
+    --paper-edge:     oklch(30% 0.02 80);
+
+    --ink:            oklch(95% 0.01 90);
+    --ink-soft:       oklch(80% 0.01 90);
+    --ink-muted:      oklch(60% 0.01 90);
+    --ink-faint:      oklch(40% 0.01 90);
+
+    --accent:         oklch(72% 0.10 140);
+    --accent-hover:   oklch(78% 0.11 140);
+    --accent-soft:    oklch(30% 0.05 140);
+    --accent-ink:     oklch(95% 0.05 140);
+  }
+}

@@ -1,0 +1,30 @@
+# Tests use Testcontainers to spin up real Postgres — no in-memory fakery.
+# The TestPostgresInitializer registers the container and points Spring at it.
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16-alpine:///chessedu_test?TC_DAEMON=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6370        # unreachable by default; tests mock or skip redis
+      timeout: 500ms
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
+
+management:
+  health:
+    redis:
+      enabled: false
+    mail:
+      enabled: false

@@ -1,0 +1,86 @@
+# Local development infrastructure for the chess-edu platform.
+# Start with:   docker compose up -d
+# Tear down:    docker compose down
+# Nuke data:    docker compose down -v
+#
+# All services bind to localhost only. Host ports are shifted off defaults
+# (5433 instead of 5432, etc.) so they don't collide with anything you've
+# already got installed. Override via env vars if those are also taken:
+#
+#   POSTGRES_HOST_PORT=5434 docker compose up -d
+
+name: chess-edu
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chess-edu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chessedu
+      POSTGRES_USER: chessedu
+      POSTGRES_PASSWORD: chessedu
+      POSTGRES_INITDB_ARGS: "--locale=en_US.UTF-8 --encoding=UTF-8"
+      TZ: Asia/Tashkent
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - ./.docker-data/postgres:/var/lib/postgresql/data
+      - ./infra/docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chessedu -d chessedu"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: chess-edu-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6380}:6379"
+    volumes:
+      - ./.docker-data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    # Object storage for uploads (PGNs, avatars, generated invoices).
+    image: minio/minio:latest
+    container_name: chess-edu-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: chessedu
+      MINIO_ROOT_PASSWORD: chessedu-dev-secret
+    ports:
+      - "127.0.0.1:${MINIO_API_HOST_PORT:-9010}:9000"        # S3 API
+      - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-9011}:9001"    # Web console
+    volumes:
+      - ./.docker-data/minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    # Captures outgoing SMTP for local inspection.
+    # Mailpit is the actively-maintained successor to MailHog: same SMTP/UI
+    # contract, nicer web UI, and multi-arch images (works natively on ARM).
+    image: axllent/mailpit:latest
+    container_name: chess-edu-mailpit
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "127.0.0.1:${MAIL_HOST_PORT:-2525}:1025"       # SMTP
+      - "127.0.0.1:${MAIL_UI_HOST_PORT:-8125}:8025"    # Web UI
+    volumes:
+      - ./.docker-data/mailpit:/data

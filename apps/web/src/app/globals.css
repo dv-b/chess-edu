@@ -1,0 +1,8259 @@
+@import "@chess-edu/design-tokens/tokens.css";
+
+/*
+ * Bridge the next/font CSS variables (injected on <html> by
+ * apps/web/src/app/[locale]/layout.tsx) onto the design-tokens
+ * font-family custom properties. Falls back to the tokens.css defaults
+ * ("Newsreader", "Inter", "JetBrains Mono") when the next/font
+ * variables are absent — e.g. on the root layout rendered by the
+ * not-found page, which doesn't sit under [locale].
+ */
+:root {
+  --font-display: var(--font-newsreader, "Newsreader"), "Georgia", serif;
+  --font-body: var(--font-inter, "Inter"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains, "JetBrains Mono"), "SF Mono", "Consolas", monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Layout helpers used by the landing page --- */
+
+.container {
+  width: min(1120px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: var(--sp-3) 0;
+  background: color-mix(in oklch, var(--paper), transparent 12%);
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.landing .topbar {
+  border-bottom: 0;
+  padding-bottom: var(--sp-6);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.brand .brand__mark {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--paper);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+
+.brand .brand__mark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.brand__name {
+  line-height: 1;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+}
+
+.locale-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--paper-edge);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--paper-elevated), transparent 20%);
+  gap: 0;
+}
+
+.locale-switch a {
+  display: inline-block;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 999px;
+  color: var(--ink-muted);
+  transition: color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+
+.locale-switch a:hover {
+  color: var(--ink);
+}
+
+.locale-switch a[aria-current="page"] {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.locale-switch a[aria-current="page"]:hover {
+  color: var(--paper);
+}
+
+/* --- Theme switch (floating pill, top-left) --- */
+
+.theme-switch {
+  position: fixed;
+  top: 14px;
+  left: 20px;
+  z-index: 100;
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid color-mix(in oklch, var(--ink) 10%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--paper-sunken) 85%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+.theme-switch__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+
+.theme-switch__btn:hover {
+  color: var(--ink);
+}
+
+.theme-switch__btn[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-switch__label {
+  display: inline;
+}
+
+@media (max-width: 720px) {
+  .theme-switch__label { display: none; }
+  .theme-switch__btn { padding: 6px 10px; }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1;
+  transition: background var(--dur) var(--ease-out), color var(--dur) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  color: var(--paper);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--paper-edge);
+}
+
+.btn--ghost:hover {
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+/* --- Landing page scaffolding --- */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.landing__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing__rule {
+  border: 0;
+  height: 1px;
+  background: var(--paper-edge);
+  margin: var(--sp-2) 0 var(--sp-5);
+  width: 100%;
+}
+
+/* --- Hero --- */
+
+.hero {
+  padding: var(--sp-6) 0 var(--sp-7);
+  display: grid;
+  gap: var(--sp-5);
+  max-width: 780px;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.5rem, 5.4vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.hero__subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin: 0;
+}
+
+.hero__cta {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: var(--sp-2);
+}
+
+/* --- Features --- */
+
+.features {
+  padding: 0 0 var(--sp-7);
+}
+
+.features__title {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin: 0 0 var(--sp-5);
+  letter-spacing: 0;
+}
+
+.feature-grid {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+  .feature-grid { grid-template-columns: 1fr; }
+}
+
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 24px 26px;
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 10px;
+  transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+
+.feature-card:hover {
+  border-color: var(--ink-faint);
+  transform: translateY(-1px);
+}
+
+.feature-card h3 {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.feature-card p {
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.feature-card__num {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+/* --- Footer --- */
+
+.footer {
+  margin-top: auto;
+  padding: var(--sp-5) 0 var(--sp-2);
+  border-top: 1px solid var(--paper-edge);
+  color: var(--ink-faint);
+  font-family: var(--font-body);
+  font-size: 12px;
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.footer__links {
+  margin-left: auto;
+  display: inline-flex;
+  gap: var(--sp-5);
+}
+
+.footer__links a {
+  color: var(--ink-muted);
+  transition: color var(--dur) var(--ease-out);
+}
+
+.footer__links a:hover {
+  color: var(--ink-soft);
+}
+
+/* --- Corner badge (bottom-left) --- */
+
+.landing__badge {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  box-shadow: var(--shadow);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* --- Login card (M1 placeholder) --- */
+
+.auth-shell {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  font-size: var(--fs-xl);
+  margin-bottom: var(--sp-5);
+}
+
+.field {
+  display: grid;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-4);
+}
+
+.field label {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.field input {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out);
+}
+
+.field input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.auth-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  margin-top: var(--sp-4);
+}
+
+.auth-footer a {
+  color: var(--accent);
+}
+
+.form-error {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--danger, #b91c1c), var(--paper) 85%);
+  color: var(--danger, #b91c1c);
+  border: 1px solid color-mix(in oklch, var(--danger, #b91c1c), transparent 70%);
+  font-size: var(--fs-sm);
+}
+
+/* --- Login page (scoped under .auth-page) --- */
+
+.auth-page {
+  /* Reuses .landing scaffolding (min-height flex column, padding). */
+}
+
+.auth-page .topbar {
+  padding-bottom: 0;
+}
+
+.auth-stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 40px 0;
+}
+
+.auth-stack {
+  display: grid;
+  gap: 14px;
+  justify-items: stretch;
+  width: 420px;
+  max-width: 100%;
+}
+
+.auth-page .auth-card {
+  width: 100%;
+  padding: 32px 36px 30px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin: 0;
+}
+
+.auth-card__title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--sp-5);
+  color: var(--ink);
+}
+
+.auth-page .field {
+  display: block;
+  margin-bottom: 16px;
+  gap: 0;
+}
+
+.auth-page .field label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.auth-page .field input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.auth-page .field input::placeholder {
+  color: var(--ink-faint);
+}
+
+.auth-page .field input:focus {
+  border-color: var(--accent);
+  background: var(--paper);
+  outline: none;
+}
+
+.field__input-wrap {
+  position: relative;
+}
+
+.field__reveal {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out);
+}
+
+.field__reveal:hover {
+  color: var(--ink);
+}
+
+.auth-card__submit {
+  width: 100%;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.auth-page .auth-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--ink-muted);
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.auth-page .auth-footer a {
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease-out);
+}
+
+.auth-page .auth-footer a:hover {
+  color: var(--ink);
+}
+
+.auth-footer__noaccount-copy {
+  color: var(--ink-soft);
+}
+
+/* Role strip — dashed tag below the card. */
+.auth-role-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 10px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink-faint);
+}
+
+.auth-role-strip strong {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.auth-role-strip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.auth-meta {
+  text-align: center;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.auth-page__footer {
+  padding: var(--sp-5) 0 var(--sp-2);
+  border-top: 1px solid var(--paper-edge);
+  color: var(--ink-faint);
+  font-size: 12px;
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* --- Admin dashboard (minimal M2 placeholder) --- */
+
+.dashboard-shell {
+  width: min(1440px, calc(100% - 3rem));
+  margin-inline: auto;
+  padding: var(--sp-7) 0 var(--sp-8);
+  display: grid;
+  gap: var(--sp-7);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+
+.dashboard-title {
+  font-size: clamp(1.75rem, 3vw, var(--fs-3xl));
+  line-height: 1.1;
+}
+
+.dashboard-subtitle {
+  margin: var(--sp-1) 0 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.dashboard-card {
+  padding: var(--sp-5);
+  border-radius: var(--radius-lg);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.dashboard-card h2 {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.dashboard-card p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.dashboard-note {
+  padding: var(--sp-5);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--paper-edge);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.dashboard-note p {
+  margin: 0;
+}
+
+/* --- Invitations admin screens --- */
+
+.dashboard-header__actions {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+.auth-meta {
+  margin: calc(-1 * var(--sp-3)) 0 var(--sp-5);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.auth-expires {
+  margin: var(--sp-4) 0 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+  text-align: center;
+}
+
+.auth-actions {
+  display: flex;
+  gap: var(--sp-3);
+  justify-content: flex-end;
+  margin-top: var(--sp-2);
+}
+
+.field-hint {
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+}
+
+.field select {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: var(--sp-7);
+}
+
+.field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.btn--sm {
+  padding: calc(var(--sp-2) - 1px) var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
+.table-card {
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.data-table thead th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: var(--fs-xs);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--paper-edge);
+  background: color-mix(in oklch, var(--paper), transparent 60%);
+}
+
+.data-table tbody td {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--paper-edge);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table__actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.pill--pending {
+  background: color-mix(in oklch, var(--accent, #6f4e1a), var(--paper) 85%);
+  color: var(--accent, #6f4e1a);
+  border-color: color-mix(in oklch, var(--accent, #6f4e1a), transparent 70%);
+}
+
+.pill--accepted {
+  background: color-mix(in oklch, #2f7d4d, var(--paper) 85%);
+  color: #2f7d4d;
+  border-color: color-mix(in oklch, #2f7d4d, transparent 70%);
+}
+
+.pill--expired {
+  background: color-mix(in oklch, var(--ink-muted), var(--paper) 85%);
+  color: var(--ink-muted);
+  border-color: color-mix(in oklch, var(--ink-muted), transparent 70%);
+}
+
+/* --- Filter bar (members, future admin lists) --- */
+
+.filter-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  gap: var(--sp-4);
+  align-items: end;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.filter-bar__field label {
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-bar__field input,
+.filter-bar__field select {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out);
+  width: 100%;
+}
+
+.filter-bar__field input:focus,
+.filter-bar__field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.filter-bar__field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: var(--sp-7);
+  background-color: var(--paper);
+}
+
+.filter-bar__actions {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .filter-bar__actions {
+    justify-content: flex-end;
+  }
+}
+
+.admin-back {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+
+.admin-back a {
+  color: var(--ink-muted);
+}
+
+.admin-back a:hover {
+  color: var(--accent);
+}
+
+/* --- Class detail roster panels --- */
+
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+}
+
+@media (max-width: 820px) {
+  .roster-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.roster-panel {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--radius-lg);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  box-shadow: var(--shadow-sm);
+  align-content: start;
+}
+
+h2.roster-panel__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--paper-edge);
+}
+
+ul.roster-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.roster-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.roster-list__item strong {
+  font-weight: 500;
+}
+
+.roster-add {
+  display: grid;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.roster-add__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.roster-add select {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out);
+  min-width: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: var(--sp-7);
+  background-color: var(--paper);
+}
+
+.roster-add select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* --- Class detail schedule panels --- */
+
+/*
+ * Two-column layout on wide screens (patterns narrower, sessions wider) so
+ * a typical 1080p / 4k display actually uses the available width. Falls
+ * back to a single stacked column below 1080px where the sessions panel
+ * needs the room for the session date badge + actions row.
+ */
+.schedule-section {
+  display: grid;
+  gap: var(--sp-6);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .schedule-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sched-card {
+  display: grid;
+  gap: var(--sp-5);
+  padding: var(--sp-6);
+  border-radius: var(--radius-lg);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  box-shadow: var(--shadow-sm);
+}
+
+.sched-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--paper-edge);
+}
+
+.sched-card > .sched-card__header {
+  margin-bottom: 0;
+}
+
+.sched-card h2.sched-card__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.sched-empty {
+  margin: 0;
+  padding: var(--sp-5) var(--sp-4);
+  border: 1px dashed var(--paper-edge);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+/* -- Patterns -- */
+
+ul.sched-pattern-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+}
+
+.sched-pattern {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.sched-day-chip {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent), transparent 85%);
+  border: 1px solid color-mix(in oklch, var(--accent), transparent 65%);
+}
+
+.sched-pattern__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sched-pattern__time {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sched-pattern__meta {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+/* -- Forms -- */
+
+.sched-form {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.sched-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-4);
+}
+
+.sched-form__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.sched-form__error {
+  margin: 0;
+  color: var(--danger, #d33);
+  font-size: var(--fs-sm);
+}
+
+.sched-field-error {
+  color: var(--danger, #d33);
+  font-size: var(--fs-xs);
+}
+
+.sched-field {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.sched-field__label {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+
+.sched-field input,
+.sched-field select {
+  padding: 10px 14px;
+  height: 40px;
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out);
+  min-width: 0;
+  width: 100%;
+}
+
+.sched-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: var(--sp-7);
+}
+
+.sched-field input:focus,
+.sched-field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* -- Sessions -- */
+
+.sched-weeks {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.sched-week h3.sched-week__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 var(--sp-2) 0;
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--paper-edge);
+}
+
+ul.sched-session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.sched-session {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.sched-date-badge {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  width: 58px;
+  padding: 8px 0;
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  line-height: 1;
+}
+
+.sched-date-badge__dow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.sched-date-badge__day {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sched-date-badge__mon {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.sched-session__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sched-session__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sched-session__time {
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sched-session__notes {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.sched-session__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: flex-end;
+}
+
+.sched-inline-form {
+  margin: 0;
+  display: inline-flex;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+/* -- Status pill -- */
+
+.sched-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.sched-status--scheduled {
+  border-color: color-mix(in oklch, var(--accent), transparent 50%);
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent), transparent 85%);
+}
+
+.sched-status--cancelled {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+  background: color-mix(in oklch, var(--ink-muted), transparent 88%);
+  border-color: color-mix(in oklch, var(--ink-muted), transparent 70%);
+}
+
+.sched-status--completed {
+  color: var(--ink-soft);
+  background: color-mix(in oklch, var(--accent), transparent 78%);
+  border-color: color-mix(in oklch, var(--accent), transparent 55%);
+}
+
+.sched-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  background: color-mix(in oklch, var(--ink-muted), transparent 85%);
+}
+
+@media (max-width: 640px) {
+  .sched-session {
+    grid-template-columns: auto 1fr;
+  }
+  .sched-session__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* --- Parent dashboard --- */
+
+/*
+ * Two-column layout on wide screens: list wider than the add form.
+ * Collapses to a single stacked column below 1080px so the form stays
+ * comfortable on tablet/phone.
+ */
+.children-section {
+  display: grid;
+  gap: var(--sp-6);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .children-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.children-card {
+  display: grid;
+  gap: var(--sp-5);
+  padding: var(--sp-6);
+  border-radius: var(--radius-lg);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  box-shadow: var(--shadow-sm);
+}
+
+.children-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--paper-edge);
+}
+
+.children-card h2.children-card__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.children-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: color-mix(in oklch, var(--ink-muted), transparent 85%);
+  border: 1px solid var(--paper-edge);
+  font-variant-numeric: tabular-nums;
+}
+
+.children-subtitle {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+
+.children-empty {
+  margin: 0;
+  padding: var(--sp-5) var(--sp-4);
+  border: 1px dashed var(--paper-edge);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+
+ul.children-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+}
+
+.child-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.child-row__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.child-row__name {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.child-row__meta {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.child-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.child-status--active {
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent), transparent 85%);
+  border: 1px solid color-mix(in oklch, var(--accent), transparent 65%);
+}
+
+.child-status--muted {
+  color: var(--ink-muted);
+  background: color-mix(in oklch, var(--ink-muted), transparent 85%);
+  border: 1px solid var(--paper-edge);
+}
+
+.child-error {
+  display: inline-block;
+  margin-left: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--danger, #b02a2a);
+}
+
+/* -- Add form -- */
+
+.children-card--form {
+  align-self: start;
+}
+
+.child-form {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.child-form__field {
+  display: grid;
+  gap: 6px;
+}
+
+.child-form__label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.child-form__field input[type="text"],
+.child-form__field select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+}
+
+.child-form__field input[type="text"]:focus,
+.child-form__field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.child-form__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.child-form__error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--danger, #b02a2a);
+}
+
+@media (max-width: 640px) {
+  .child-row {
+    grid-template-columns: 1fr;
+  }
+  .child-row form {
+    justify-self: flex-start;
+  }
+}
+
+/* --- Attendance panel (inlined per session) --- */
+
+/*
+ * The attendance panel lives inside a SessionRow — which is already a
+ * three-column grid. We span the full width of that grid so the expanded
+ * roster reads as a subordinate section rather than a fourth column.
+ */
+.sched-session__attendance {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.att-panel {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.att-panel__toggle {
+  align-self: flex-start;
+}
+
+.att-panel__body {
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.att-loading,
+.att-empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.att-note {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  background: color-mix(in oklch, var(--danger, #b02a2a), transparent 90%);
+  border: 1px solid color-mix(in oklch, var(--danger, #b02a2a), transparent 70%);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+}
+
+ul.att-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2, 8px);
+}
+
+.att-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2, 8px) var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+}
+
+.att-row__name {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.att-row__status {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.att-row__note {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+}
+
+.att-row__note:disabled {
+  color: var(--ink-muted);
+  background: color-mix(in oklch, var(--paper-edge), transparent 70%);
+}
+
+/* -- Status chips -- */
+
+.att-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 26px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--paper-edge);
+  cursor: pointer;
+  transition: background-color 80ms ease, border-color 80ms ease, color 80ms ease;
+}
+
+.att-chip:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+}
+
+.att-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.att-chip--active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.att-chip--active.att-chip--present {
+  background: color-mix(in oklch, var(--accent), transparent 82%);
+  border-color: color-mix(in oklch, var(--accent), transparent 55%);
+  color: var(--accent);
+}
+
+.att-chip--active.att-chip--absent {
+  background: color-mix(in oklch, var(--danger, #b02a2a), transparent 82%);
+  border-color: color-mix(in oklch, var(--danger, #b02a2a), transparent 55%);
+  color: var(--danger, #b02a2a);
+}
+
+.att-chip--active.att-chip--late {
+  background: color-mix(in oklch, #c67c00, transparent 82%);
+  border-color: color-mix(in oklch, #c67c00, transparent 55%);
+  color: #8a5700;
+}
+
+.att-chip--active.att-chip--excused {
+  background: color-mix(in oklch, var(--ink-muted), transparent 82%);
+  border-color: color-mix(in oklch, var(--ink-muted), transparent 55%);
+  color: var(--ink-soft);
+}
+
+/* -- Footer (save + error) -- */
+
+.att-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.att-error {
+  font-size: var(--fs-sm);
+  color: var(--danger, #b02a2a);
+}
+
+@media (max-width: 720px) {
+  .att-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .att-row__status {
+    justify-self: flex-start;
+  }
+}
+
+/* ==================================================================
+   Homework (admin) panel on class detail page
+   ================================================================== */
+
+.hw-card {
+  /* inherits from .sched-card; nothing special */
+}
+
+.hw-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2, 8px);
+  flex-wrap: wrap;
+}
+
+.hw-form {
+  /* inherits base form styling from .sched-form */
+}
+
+.hw-form--edit {
+  border-color: color-mix(in oklch, var(--accent), transparent 70%);
+  background: color-mix(in oklch, var(--accent), var(--paper) 96%);
+}
+
+.hw-field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-2, 8px);
+  align-self: end;
+  padding-bottom: var(--sp-1);
+}
+
+.hw-field--check input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+.hw-field-hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+ul.hw-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.hw-row {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.hw-row__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-3);
+  align-items: start;
+}
+
+.hw-row__main {
+  display: grid;
+  gap: var(--sp-2, 8px);
+  min-width: 0;
+}
+
+.hw-row__title {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2, 8px);
+  flex-wrap: wrap;
+}
+
+.hw-archived-pill {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+}
+
+.hw-row__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.hw-meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hw-meta-item--due {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.hw-meta-item--nodue {
+  font-style: italic;
+}
+
+.hw-meta-item--session {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* -- One-line instructions preview on the row -- */
+
+.hw-row__instructions {
+  margin: 6px 0 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95em;
+  line-height: 1.35;
+  /* Single-line ellipsis fallback; truncation also done in JS for non-CSS
+     consumers (screen readers, copy-paste). title attr holds the full text. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60ch;
+}
+
+.hw-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2, 8px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* -- Tally -- */
+
+.hw-tally {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hw-tally__item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  color: var(--ink-soft);
+}
+
+.hw-tally__item--done {
+  background: color-mix(in oklch, var(--accent), transparent 85%);
+  border-color: color-mix(in oklch, var(--accent), transparent 60%);
+  color: var(--accent);
+}
+
+.hw-tally__item--skipped {
+  background: color-mix(in oklch, #c67c00, transparent 85%);
+  border-color: color-mix(in oklch, #c67c00, transparent 60%);
+  color: #8a5700;
+}
+
+.hw-tally__item--unmarked {
+  background: color-mix(in oklch, var(--ink-muted), transparent 88%);
+  border-color: color-mix(in oklch, var(--ink-muted), transparent 65%);
+  color: var(--ink-muted);
+}
+
+/* -- Submission sheet -- */
+
+.hw-sheet {
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.hw-sheet--loading,
+.hw-sheet--empty {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+  font-style: italic;
+}
+
+.hw-sheet--error {
+  color: var(--danger, #b02a2a);
+  font-size: var(--fs-sm);
+}
+
+.hw-sheet__instructions {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  background: color-mix(in oklch, var(--accent), var(--paper-elevated) 92%);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+}
+
+ul.hw-sheet__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2, 8px);
+}
+
+.hw-sheet__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2, 8px) var(--sp-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.hw-sheet__name {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-sheet__chips {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.hw-sheet__when {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  justify-self: end;
+  text-align: right;
+}
+
+.hw-sheet__error {
+  margin: 0;
+  color: var(--danger, #b02a2a);
+  font-size: var(--fs-sm);
+}
+
+/* -- Submission chips (DONE / SKIPPED / clear) --
+ * Scoped under `.hw-sheet__chips` so these admin-side button chips don't
+ * collide with the student-side `.hw-chip` status badge pill declared
+ * later in the file (Task #47 student shell). Both name the class
+ * `.hw-chip` but they're different primitives — one is a clickable
+ * submission control, the other is a read-only list-card badge. */
+
+.hw-sheet__chips .hw-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 26px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--paper-edge);
+  cursor: pointer;
+  transition: background-color 80ms ease, border-color 80ms ease, color 80ms ease;
+}
+
+.hw-sheet__chips .hw-chip:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+}
+
+.hw-sheet__chips .hw-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.hw-sheet__chips .hw-chip--active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hw-sheet__chips .hw-chip--active.hw-chip--done {
+  background: color-mix(in oklch, var(--accent), transparent 82%);
+  border-color: color-mix(in oklch, var(--accent), transparent 55%);
+  color: var(--accent);
+}
+
+.hw-sheet__chips .hw-chip--active.hw-chip--skipped {
+  background: color-mix(in oklch, #c67c00, transparent 82%);
+  border-color: color-mix(in oklch, #c67c00, transparent 55%);
+  color: #8a5700;
+}
+
+.hw-sheet__chips .hw-chip--clear {
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 720px) {
+  .hw-row__head {
+    grid-template-columns: 1fr;
+  }
+  .hw-row__actions {
+    justify-content: flex-start;
+  }
+  .hw-sheet__row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .hw-sheet__when {
+    justify-self: flex-start;
+    text-align: left;
+  }
+}
+
+/* --- Board blocks editor --------------------------------------- */
+
+.hw-boards {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px dashed color-mix(in oklch, var(--line), transparent 30%);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in oklch, var(--paper), transparent 50%);
+}
+
+.hw-boards__header {
+  display: grid;
+  gap: 2px;
+}
+
+.hw-boards__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.hw-boards__hint,
+.hw-boards__empty,
+.hw-boards__loading {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+}
+
+ol.hw-boards__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.hw-boards__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Up/Down reorder toolbar at the top-right of every block card.
+ * Authors can shuffle adjacent blocks without delete/re-add. */
+.hw-boards__reorder {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.hw-boards__reorder-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.hw-boards__reorder-btn:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--paper) 92%, var(--accent) 8%);
+  color: var(--ink);
+  border-color: color-mix(in oklch, var(--paper-edge) 60%, var(--accent) 40%);
+}
+
+.hw-boards__reorder-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hw-boards__reorder-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* PROSE block card — Edit / Preview tab strip + preview surface.
+ * Mounted inside the card head between the kind tag and the remove
+ * button; the preview pane reuses the .lesson-prose typography so
+ * authors see the exact same render the student gets. */
+.lesson-prose__tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px;
+  background: var(--paper-sunken);
+  border-radius: 8px;
+}
+
+.lesson-prose__tab {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.lesson-prose__tab:hover:not(.lesson-prose__tab--on) {
+  color: var(--ink);
+}
+
+.lesson-prose__tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.lesson-prose__tab--on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.lesson-prose__preview {
+  min-height: 120px;
+  padding: 14px 16px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+}
+
+[data-theme="dark"] .lesson-prose__preview {
+  background: color-mix(in oklch, var(--paper) 88%, var(--ink) 12%);
+}
+
+[data-theme="dark"] .lesson-prose__tab--on {
+  background: color-mix(in oklch, var(--paper) 80%, var(--ink) 20%);
+}
+
+/* VIDEO block — Preview pane wrapper. The iframe sits inside a
+ * fixed 16:9 aspect-ratio container so the preview render matches
+ * the student-side embed shape exactly. */
+.lesson-video__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-video__preview-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper-sunken);
+}
+
+.lesson-video__preview-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* MCQ block — Preview pane. Non-interactive render: question, options
+ * with the correct one tinted accent-green, optional explanation. */
+.lesson-mcq__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+}
+
+.lesson-mcq__preview-question {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.lesson-mcq__preview-options {
+  list-style: decimal;
+  padding-left: 28px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lesson-mcq__preview-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.lesson-mcq__preview-option--correct {
+  background: color-mix(in oklch, var(--paper) 90%, var(--accent) 10%);
+  border-color: color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+}
+
+.lesson-mcq__preview-option-text {
+  flex: 1 1 auto;
+  word-break: break-word;
+}
+
+.lesson-mcq__preview-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--accent) 25%, var(--paper));
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lesson-mcq__preview-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border-radius: 6px;
+  border-left: 3px solid color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+}
+
+.lesson-mcq__preview-explanation-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.lesson-mcq__preview-explanation-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+[data-theme="dark"] .lesson-mcq__preview {
+  background: color-mix(in oklch, var(--paper) 88%, var(--ink) 12%);
+}
+
+[data-theme="dark"] .lesson-mcq__preview-option {
+  background: color-mix(in oklch, var(--paper) 92%, var(--ink) 8%);
+}
+
+[data-theme="dark"] .lesson-mcq__preview-option--correct {
+  background: color-mix(in oklch, var(--paper) 80%, var(--accent) 20%);
+  border-color: color-mix(in oklch, var(--paper-edge) 40%, var(--accent) 60%);
+}
+
+.hw-boards__footer {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.hw-board-card {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 8px);
+  background: var(--paper);
+}
+
+.hw-board-card__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: end;
+  gap: var(--sp-2);
+}
+
+.hw-board-card__num {
+  align-self: end;
+  padding-bottom: 10px;
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.hw-board-card__title {
+  min-width: 0;
+}
+
+.hw-board-card__remove {
+  align-self: end;
+}
+
+.hw-board-card__body {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(260px, 360px);
+  gap: var(--sp-3);
+  align-items: start;
+}
+
+.hw-board-card__sidebar {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.hw-board-card__sidebar--solution {
+  padding-top: var(--sp-2);
+}
+
+.hw-board-card__fen {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--fs-xs);
+}
+
+.hw-board-card__fen-actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.hw-board-card__orientation {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.hw-board-card__orientation legend {
+  margin-bottom: 4px;
+}
+
+.hw-board-card__orientation label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+}
+
+.hw-board-card__board {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: center;
+}
+
+.hw-board-card__board-inner {
+  width: 100%;
+  max-width: 360px;
+}
+
+.hw-board-card__side-to-move {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.hw-board-card__moves,
+.hw-board-card__solution {
+  display: grid;
+  gap: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid color-mix(in oklch, var(--line), transparent 40%);
+}
+
+.hw-board-card__moves-head,
+.hw-board-card__solution-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.hw-board-card__moves-heading {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.hw-board-card__count {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  margin-right: auto;
+}
+
+ol.hw-board-card__move-list {
+  list-style: decimal inside;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: var(--fs-xs);
+}
+
+.hw-board-card__move-list code {
+  background: color-mix(in oklch, var(--line), transparent 50%);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.hw-board-card__pgn {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.hw-board-card__pgn-actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.hw-board-card__solution-hint {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+}
+
+@media (max-width: 720px) {
+  .hw-board-card__body {
+    grid-template-columns: 1fr;
+  }
+  .hw-board-card__head {
+    grid-template-columns: auto 1fr;
+  }
+  .hw-board-card__remove,
+  .hw-board-card__head .hw-board-card__orientation {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
+  }
+}
+
+/* -------- Mode tabs (Setup / Moves) -------- */
+
+.hw-board-card__tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-2, var(--paper));
+  width: fit-content;
+}
+
+.hw-board-card__tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  padding: 4px 12px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+}
+
+.hw-board-card__tab:hover {
+  color: var(--ink);
+}
+
+.hw-board-card__tab--active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* -------- Setup panel -------- */
+
+.hw-board-card__setup {
+  display: grid;
+  gap: var(--sp-3);
+  justify-items: center;
+}
+
+.hw-board-card__setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  justify-self: stretch;
+}
+
+.hw-board-card__setup-hint {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  flex: 1;
+  min-width: 200px;
+}
+
+.hw-board-card__palette {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-2, rgba(0, 0, 0, 0.03));
+  width: min(100%, 360px);
+  justify-content: space-between;
+}
+
+.hw-board-card__palette-slot {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  max-width: 52px;
+}
+
+.hw-board-card__palette-slot > * {
+  width: 100%;
+  height: 100%;
+}
+
+.hw-board-card__setup-board {
+  width: min(100%, 360px);
+}
+
+.hw-board-card__setup-remove-hint {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.hw-board-card__setup-meta {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: var(--sp-3);
+  justify-self: stretch;
+}
+
+.hw-board-card__side,
+.hw-board-card__castling {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--sp-2);
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.hw-board-card__side legend,
+.hw-board-card__castling legend {
+  padding: 0 4px;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.hw-board-card__side label,
+.hw-board-card__castling label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.hw-board-card__side label.is-disabled,
+.hw-board-card__castling label.is-disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+
+.hw-board-card__advanced {
+  justify-self: stretch;
+  border-top: 1px solid var(--line);
+  padding-top: var(--sp-2);
+}
+
+.hw-board-card__advanced summary {
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  padding: 2px 0;
+}
+
+.hw-board-card__advanced summary:hover {
+  color: var(--ink);
+}
+
+.hw-board-card__advanced > label.sched-field {
+  margin-top: var(--sp-2);
+}
+
+.hw-board-card__notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--warn-surface, rgba(255, 170, 0, 0.08));
+  color: var(--warn-fg, var(--ink));
+  font-size: var(--fs-xs);
+  border: 1px solid var(--warn-line, rgba(255, 170, 0, 0.25));
+}
+
+@media (max-width: 720px) {
+  .hw-board-card__setup-meta {
+    grid-template-columns: 1fr;
+  }
+  .hw-board-card__palette {
+    width: 100%;
+  }
+  .hw-board-card__setup-board {
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * BoardCardView — shared read-only board viewer (#23 student + #27 admin).
+ * ----------------------------------------------------------------- */
+
+.hw-sheet__boards {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border-radius: 10px;
+}
+
+.hw-sheet__boards-heading {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 12px 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hw-sheet__boards-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.bcv {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bcv__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bcv__title {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.bcv__side {
+  font-size: 0.88em;
+  color: var(--ink-soft);
+}
+
+.bcv__board {
+  max-width: 360px;
+  width: 100%;
+  align-self: center;
+}
+
+.bcv__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bcv__stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bcv__ply {
+  font-size: 0.85em;
+  color: var(--ink-soft);
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.bcv__moves {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bcv__moves-count {
+  font-size: 0.85em;
+  color: var(--ink-soft);
+}
+
+.bcv__move-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bcv__move {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  /*
+   * Padding + min-height bumped from the original 2/8 so the move chips
+   * are thumb-reachable on touch screens. Desktop impact is negligible —
+   * the chips still read as compact tokens next to the move list.
+   */
+  padding: 6px 10px;
+  min-height: 32px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: background 80ms ease, border-color 80ms ease;
+}
+
+.bcv__move:hover {
+  background: var(--surface-subtle);
+}
+
+.bcv__move--active {
+  background: var(--accent-soft, #e7effd);
+  border-color: var(--accent, #3b82f6);
+}
+
+.bcv__move code {
+  font-size: 0.85em;
+}
+
+.bcv__solution {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bcv__solution-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bcv__solution-heading {
+  font-size: 0.9em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.bcv__invalid {
+  color: var(--danger, #b00020);
+  font-size: 0.9em;
+  margin: 0;
+}
+
+/* Student homework list styles live further down (Task #47 rewrite) — the
+   legacy `.student-hw*` list rules that used to sit here were replaced by
+   the `.hw-card*` / `.student-shell*` primitives keyed off
+   `docs/design/mocks/homework-v2.html`. */
+
+/* Student homework detail ---------------------------------------- */
+
+.student-hw-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  margin-top: var(--sp-4);
+}
+
+.student-hw-detail__breadcrumb {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-sm);
+}
+
+.student-hw-detail__meta-item {
+  margin-right: var(--sp-3);
+}
+
+.student-hw-detail__meta-item--due {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.student-hw-detail__status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.student-hw-detail__status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.student-hw-detail__status-label {
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.student-hw-detail__status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface-alt, #f7f7f8);
+  color: var(--ink-soft);
+}
+
+.student-hw-detail__status-pill--done {
+  background: #e7f6ec;
+  border-color: #c5e6d1;
+  color: #1c6b3b;
+}
+
+.student-hw-detail__status-pill--skipped {
+  background: #fdecec;
+  border-color: #f2c8c8;
+  color: #8a2a2a;
+}
+
+.student-hw-detail__status-pill--not_started {
+  background: var(--surface-alt, #f7f7f8);
+  color: var(--ink-muted);
+}
+
+.student-hw-detail__submitted {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.student-hw-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.student-hw-detail__instructions {
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.student-hw-detail__heading {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin: 0 0 var(--sp-2);
+}
+
+.student-hw-detail__instructions p {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--ink-soft);
+}
+
+.student-hw-detail__boards-list {
+  display: grid;
+  gap: var(--sp-4);
+  /*
+   * 280px floor rather than 320 so the grid doesn't force an overflow on
+   * narrow phones (iPhone SE is 375 minus card padding). The one-column
+   * fallback below 560px guarantees a clean stack no matter how tight the
+   * viewport gets — the inner board is already width-responsive via
+   * .student-hw-attempt__board.
+   */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+@media (max-width: 560px) {
+  .student-hw-detail__boards-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .student-hw-detail__submitted {
+    margin-left: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------- *
+ * Student block-attempt panel (#38). One card per authored BOARD block on
+ * the homework detail page. Interactive state renders a draggable board +
+ * move list + action row; submitted/reviewed states fall back to the
+ * shared BoardCardView and just decorate the container with a status pill,
+ * meta line, and (for NEEDS_WORK) a teacher note.
+ * ---------------------------------------------------------------------- */
+.student-hw-attempt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.student-hw-attempt__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.student-hw-attempt__title {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.student-hw-attempt__pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface-alt, #f7f7f8);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.student-hw-attempt__pill--not_attempted {
+  background: var(--surface-alt, #f7f7f8);
+  color: var(--ink-muted);
+}
+
+.student-hw-attempt__pill--submitted {
+  background: #eef2fb;
+  border-color: #cdd7ef;
+  color: #2a3e7a;
+}
+
+.student-hw-attempt__pill--reviewed_ok {
+  background: #e7f6ec;
+  border-color: #c5e6d1;
+  color: #1c6b3b;
+}
+
+.student-hw-attempt__pill--reviewed_needs_work {
+  background: #fdf1e1;
+  border-color: #f2d8ad;
+  color: #8a5a0f;
+}
+
+.student-hw-attempt__pill--solution_revealed {
+  background: #fdecec;
+  border-color: #f2c8c8;
+  color: #8a2a2a;
+}
+
+.student-hw-attempt__meta {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.student-hw-attempt__note {
+  padding: var(--sp-3);
+  border: 1px solid #f2d8ad;
+  background: #fdf7ea;
+  border-radius: 8px;
+  color: #4a3207;
+}
+
+.student-hw-attempt__note-heading {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: #6b4610;
+}
+
+.student-hw-attempt__note p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: var(--fs-sm);
+}
+
+.student-hw-attempt__play {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.student-hw-attempt__play-hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.student-hw-attempt__board {
+  width: 100%;
+  max-width: 360px;
+  align-self: center;
+}
+
+.student-hw-attempt__moves {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.student-hw-attempt__moves-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.student-hw-attempt__moves-heading {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.student-hw-attempt__count {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.student-hw-attempt__move-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  padding: 0;
+  margin: 0;
+}
+
+.student-hw-attempt__move-list li {
+  display: inline-flex;
+}
+
+.student-hw-attempt__move {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  background: var(--surface-alt, #f7f7f8);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-soft);
+}
+
+.student-hw-attempt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.student-hw-attempt__error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: #8a2a2a;
+}
+
+/*
+ * "Show solution" row: sits beneath the submit actions when the block
+ * is in REVIEWED_NEEDS_WORK without a populated solution. Column layout
+ * keeps the button + any 409 copy stacked together so the error reads
+ * as part of the same action, not as a submit failure.
+ */
+.student-hw-attempt__reveal {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--border-subtle, var(--border));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  align-items: flex-start;
+}
+
+/*
+ * Revealed solution panel. Hosts a BoardCardView as-is — we only add the
+ * outer card chrome + heading so it reads as a distinct section below
+ * the interactive play area. Internal stepper styles come from .bcv*.
+ */
+.student-hw-attempt__solution {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted, var(--surface));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.student-hw-attempt__solution-heading {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .student-hw-attempt__board {
+    max-width: 100%;
+  }
+  .student-hw-attempt__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .student-hw-attempt__solution {
+    padding: var(--sp-2);
+  }
+  /*
+   * Moves header reads more naturally stacked on phones — the count is
+   * small but having it wrap awkwardly next to the "Your moves" heading
+   * looks worse than a two-line layout.
+   */
+  .student-hw-attempt__moves-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-1);
+  }
+}
+
+/*
+ * Tightest breakpoint for the student attempt actions. At ~420px wide
+ * (iPhone Mini / narrow Android) the three-button action row + the
+ * "Show solution" escape hatch get cramped, so we stretch each button
+ * to full width and stack them.
+ */
+@media (max-width: 420px) {
+  .student-hw-attempt__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .student-hw-attempt__actions > .btn {
+    width: 100%;
+  }
+  .student-hw-attempt__reveal > .btn {
+    align-self: stretch;
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Admin block-review surface (Task #40)
+ * ------------------------------------------------------------------ */
+
+.hw-sheet__review {
+  margin: 16px 0 0 0;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hw-sheet__review-heading {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hw-review-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-review-block__heading {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+
+.hw-review-block__empty {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--ink-muted, var(--ink-soft));
+  font-style: italic;
+}
+
+.hw-review-block__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-review-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-review-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hw-review-card__student {
+  font-size: 0.92em;
+  color: var(--ink-soft);
+}
+
+.hw-review-card__reviewed {
+  color: var(--ink-muted, var(--ink-soft));
+}
+
+.hw-review-card__pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.hw-review-card__pill--submitted {
+  background: #fff6da;
+  color: #7a5a00;
+  border-color: #e8d49a;
+}
+
+.hw-review-card__pill--reviewed_ok {
+  background: #e3f5e5;
+  color: #1f6a2a;
+  border-color: #b6e0bc;
+}
+
+.hw-review-card__pill--reviewed_needs_work {
+  background: #fde0de;
+  color: #852020;
+  border-color: #f0b6b2;
+}
+
+.hw-review-card__pill--solution_revealed {
+  background: #e2e6f5;
+  color: #2a3a7a;
+  border-color: #b7bfe0;
+}
+
+.hw-review-card__note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hw-review-card__note-label {
+  font-size: 0.85em;
+  color: var(--ink-soft);
+}
+
+.hw-review-card__note-input {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  font: inherit;
+  /*
+   * Explicit 16px on the textarea — iOS Safari auto-zooms any input
+   * whose font-size resolves to <16px on focus, which jumps the whole
+   * sheet around mid-review. The note is the only free-text input on
+   * the review surface so we set it here rather than globally.
+   */
+  font-size: 16px;
+  padding: var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.hw-review-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.hw-review-card__error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: #8a2a2a;
+}
+
+@media (max-width: 640px) {
+  .hw-review-card__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hw-review-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /*
+   * Stretch buttons to the card width on narrow screens — the
+   * {@code align-items: stretch} above only hands each child the
+   * cross-axis space, which for .btn still respects its intrinsic
+   * width. Explicit width ensures Mark OK / Mark needs work are
+   * equally sized in the stacked layout.
+   */
+  .hw-review-card__actions > .btn {
+    width: 100%;
+  }
+  /*
+   * Tighten the review card padding on narrow viewports so the nested
+   * BoardCardView has a touch more room to render a readable board.
+   */
+  .hw-review-card {
+    padding: 10px;
+  }
+}
+
+/* ====================================================================
+ * KINGSIDE KIT PRIMITIVES (Task #43–#45)
+ * --------------------------------------------------------------------
+ * Reusable surface / typography / component primitives ported from
+ * docs/design/mocks/kingside-kit.css. Namespaced with `kit-` so they
+ * don't collide with the legacy `sched-*` / `dashboard-*` classes that
+ * the admin + parent surfaces still use. Tokens map onto the
+ * design-tokens package already imported at the top of this file.
+ * ==================================================================== */
+
+/* Serif display headings (scholarly paper) */
+.kit-h-display {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.2vw + 1rem, 2.6rem);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.kit-h-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.6vw + 1rem, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.kit-h-section {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 var(--sp-3);
+}
+
+.kit-eyebrow {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/*
+ * Italic serif subtitle ("deck"). Used below the h-display on the
+ * dashboard. Capped at 60ch so the reading column stays comfortable
+ * even on an ultrawide monitor.
+ */
+.kit-deck {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.0625rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  max-width: 60ch;
+  margin: 0;
+}
+
+/* Plain card surface, matching the kit's rule + paper-elevated look */
+.kit-card {
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  padding: var(--sp-5);
+}
+
+.kit-card--flush { padding: 0; overflow: hidden; }
+
+/*
+ * Pill chips — used for status / metadata / filters. Four semantic
+ * variants echo the kit: green (success / assigned), amber (awaiting),
+ * rust (needs work), ink (prominent/dark). Each variant drops the
+ * border in favour of a soft tinted background so they feel like
+ * highlighted copy rather than buttons.
+ */
+.kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.kit-chip--green {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+.kit-chip--amber {
+  background: oklch(94% 0.05 75);
+  border-color: transparent;
+  color: oklch(35% 0.10 75);
+}
+
+.kit-chip--rust {
+  background: oklch(94% 0.04 30);
+  border-color: transparent;
+  color: oklch(40% 0.14 30);
+}
+
+.kit-chip--ink {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: transparent;
+}
+
+.kit-chip .kit-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+[data-theme="dark"] .kit-chip--amber {
+  background: oklch(28% 0.06 75);
+  color: oklch(85% 0.10 75);
+}
+
+[data-theme="dark"] .kit-chip--rust {
+  background: oklch(28% 0.07 30);
+  color: oklch(82% 0.12 30);
+}
+
+/*
+ * "Banner" hero — dark scholarly green panel used for weekly
+ * highlights on the student dashboard. The diagonal stripe pattern is
+ * kept from the kit because it reads as "scholarly poster" without
+ * trading much bytes — rendered inline in CSS.
+ */
+.kit-banner {
+  background: linear-gradient(135deg, #1d2817, #2f3f20);
+  color: #eee9d4;
+  border-radius: 12px;
+  padding: var(--sp-5) var(--sp-6);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #26361a;
+}
+
+.kit-banner::before {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  bottom: -40px;
+  width: 280px;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.04) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 28px 28px;
+  opacity: 0.5;
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+
+.kit-banner__flag {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+
+.kit-banner__head {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.6vw + 1rem, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin: 4px 0 2px;
+  line-height: 1.15;
+  position: relative;
+  z-index: 1;
+}
+
+.kit-banner__body {
+  display: flex;
+  gap: var(--sp-6);
+  align-items: flex-end;
+  margin-top: var(--sp-4);
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.kit-banner__stat {
+  font-family: var(--font-mono);
+  font-size: 2.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.kit-banner__stat-suffix {
+  opacity: 0.5;
+  font-size: 0.6em;
+  margin-left: 2px;
+}
+
+.kit-banner__stat-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.kit-banner__progress-wrap {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.kit-banner__progress {
+  background: rgba(255, 255, 255, 0.15);
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kit-banner__progress > div {
+  height: 100%;
+  background: oklch(82% 0.14 140);
+}
+
+.kit-banner__progress-label {
+  font-size: 0.75rem;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+/*
+ * Assignment-style row. Three-column grid: a small date block, the
+ * middle content column, and a trailing chip / action area. Matches
+ * the dashboard's "Due this week" rows from the kit.
+ */
+.kit-assign {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: var(--sp-4);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px dashed var(--paper-edge);
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.kit-assign:last-child { border-bottom: none; }
+.kit-assign:hover { background: var(--paper-sunken); }
+
+.kit-assign__date {
+  text-align: center;
+  border: 1px solid var(--paper-edge);
+  border-radius: 6px;
+  padding: 4px 0 6px;
+  background: var(--paper-elevated);
+}
+
+.kit-assign__date-dow {
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.kit-assign__date-d {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.kit-assign__title {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.kit-assign__meta {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kit-assign__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .kit-assign {
+    grid-template-columns: 52px 1fr;
+  }
+  .kit-assign__status {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+    padding-left: calc(52px + var(--sp-4));
+  }
+}
+
+/*
+ * Subtle progress bar. Sized to live inline with metadata text.
+ * Variants drop the ink fill in favour of the accent green.
+ */
+.kit-progress {
+  height: 6px;
+  background: var(--paper-sunken);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kit-progress > div {
+  height: 100%;
+  background: var(--ink);
+  transition: width 200ms ease;
+}
+
+.kit-progress--green > div { background: var(--accent); }
+
+/* Task #44 list chrome (`.student-dash*`, `.student-hw__*`) removed on
+ * #47 — replaced by the `.student-shell` / `.hw-card*` primitives that
+ * match the `homework-v2.html` mock (keyed off the persistent sidebar +
+ * deadline pill / progress bar / chip grid). Detail-page overrides
+ * (Task #45) follow below — they still apply to the `/student/
+ * homework/[id]` route. */
+
+/* ====================================================================
+ * STUDENT HOMEWORK DETAIL — redesigned (Task #45)
+ * ==================================================================== */
+
+.student-hw-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  margin-top: var(--sp-4);
+}
+
+.student-hw-detail__breadcrumb {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-hw-detail__breadcrumb .link {
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.student-hw-detail__breadcrumb .link:hover {
+  color: var(--ink);
+}
+
+.student-hw-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.student-hw-detail__meta-item { white-space: nowrap; }
+
+.student-hw-detail__meta-item--due {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.student-hw-detail__status {
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.student-hw-detail__status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+.student-hw-detail__status-label {
+  color: var(--ink-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.student-hw-detail__status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+}
+
+.student-hw-detail__status-pill--done {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+.student-hw-detail__status-pill--skipped {
+  background: oklch(94% 0.04 30);
+  border-color: transparent;
+  color: oklch(40% 0.14 30);
+}
+
+.student-hw-detail__status-pill--not_started {
+  background: var(--paper-sunken);
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+
+.student-hw-detail__submitted {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+.student-hw-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.student-hw-detail__instructions {
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  border-left: 3px solid var(--accent);
+}
+
+.student-hw-detail__heading {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 var(--sp-2);
+}
+
+.student-hw-detail__instructions p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.student-hw-detail__boards {
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+}
+
+/* Student attempt card — warmer chrome --------------------------- */
+
+.student-hw-attempt {
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+  padding: var(--sp-5);
+}
+
+.student-hw-attempt__title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.student-hw-attempt__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  white-space: nowrap;
+}
+
+.student-hw-attempt__pill--not_attempted {
+  background: var(--paper-sunken);
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+
+.student-hw-attempt__pill--submitted {
+  background: oklch(94% 0.03 240);
+  border-color: transparent;
+  color: oklch(38% 0.10 240);
+}
+
+.student-hw-attempt__pill--reviewed_ok {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+.student-hw-attempt__pill--reviewed_needs_work {
+  background: oklch(94% 0.05 75);
+  border-color: transparent;
+  color: oklch(35% 0.10 75);
+}
+
+.student-hw-attempt__pill--solution_revealed {
+  background: oklch(94% 0.04 30);
+  border-color: transparent;
+  color: oklch(40% 0.14 30);
+}
+
+[data-theme="dark"] .student-hw-attempt__pill--submitted {
+  background: oklch(28% 0.06 240);
+  color: oklch(82% 0.10 240);
+}
+[data-theme="dark"] .student-hw-attempt__pill--reviewed_needs_work {
+  background: oklch(28% 0.06 75);
+  color: oklch(85% 0.10 75);
+}
+[data-theme="dark"] .student-hw-attempt__pill--solution_revealed {
+  background: oklch(28% 0.07 30);
+  color: oklch(82% 0.12 30);
+}
+
+.student-hw-attempt__meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+/*
+ * Teacher note reimagined as a left-border-accent scholarly quote
+ * — matches the kit's annotation panel on the lesson viewer.
+ */
+.student-hw-attempt__note {
+  background: var(--accent-soft);
+  border: none;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  color: var(--accent-ink);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.student-hw-attempt__note-heading {
+  color: var(--accent-ink);
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+}
+
+.student-hw-attempt__note p {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.student-hw-attempt__play-hint {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.student-hw-attempt__moves-heading {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.student-hw-attempt__count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.student-hw-attempt__move {
+  font-family: var(--font-mono);
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  color: var(--ink-soft);
+}
+
+.student-hw-attempt__reveal {
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.student-hw-attempt__solution {
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+}
+
+.student-hw-attempt__solution-heading {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/*
+ * Board-wrap backdrop — only applied to the interactive student board
+ * so the draggable piece layer sits on the classic wood-frame tone the
+ * kit uses ("#e0d9c5" on light, darker paper on dark). react-chessboard
+ * renders its own board + pieces inside this wrapper, so we only
+ * control the padding + backdrop.
+ */
+.student-hw-attempt__board {
+  background: var(--paper-sunken);
+  padding: var(--sp-2);
+  border-radius: 8px;
+  box-shadow: var(--shadow-1, 0 1px 0 rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.04));
+}
+
+/* ====================================================================
+ * STUDENT SHELL — Task #47, keyed off docs/design/mocks/homework-v2.html
+ *
+ * Two-column app shell: fixed 220px sidebar on the left (live on every
+ * `/student/*` route via layout.tsx), 1fr main column on the right. The
+ * full mock has a "Learn / Play" nav with only Homework live — the other
+ * slots render as disabled placeholders so the chrome reads as a polished
+ * frame while the routes catch up.
+ *
+ * Variable bridge (mock → design-tokens):
+ *   --card / --card-2 → --paper / --paper-elevated / --paper-sunken
+ *   --ink / --ink-2 / --ink-3 / --ink-4 → --ink / --ink-soft / --ink-muted / --ink-faint
+ *   --rule / --rule-2 → --paper-edge (+ darker for hover)
+ *   --green / --green-soft / --green-ink → --accent / --accent-soft / --accent-ink
+ *   --amber / --amber-soft → --warn / --warn-soft
+ *   --danger / --danger-soft → --danger / --danger-soft
+ *   --blue / --blue-soft → --info / --info-soft
+ * ==================================================================== */
+
+.student-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  /* `dvh` hugs the *dynamic* viewport (iOS Safari's collapsing URL bar
+   * respects it); fall back to `vh` for older WebKit builds. Print
+   * overrides kick in below — paginated output has no sensible vh. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Sidebar ------------------------------------------------------------ */
+
+.student-sidebar {
+  background: var(--paper-elevated);
+  border-right: 1px solid var(--paper-edge);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 0;
+  /* Same dvh / vh pairing as .student-shell. `align-self: start` is the
+   * critical bit for Safari — without it, the sticky child's computed
+   * height confuses the grid track sizing under certain pagination
+   * paths and the whole column collapses. */
+  height: 100vh;
+  height: 100dvh;
+  align-self: start;
+  overflow-y: auto;
+}
+
+.student-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 16px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.student-sidebar__brand:hover {
+  color: var(--ink);
+}
+
+.student-sidebar__brand-tile {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  display: grid;
+  place-items: center;
+  color: var(--accent-ink);
+}
+
+.student-sidebar__brand-tile svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.student-sidebar__brand-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.student-sidebar__group-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 14px 10px 6px;
+}
+
+.student-sidebar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+/*
+ * Link-variant ("live" nav row) reacts to hover, while the disabled
+ * placeholder variant stays muted and un-clickable — matches the
+ * "only Homework is live" constraint.
+ */
+a.student-sidebar__item:hover {
+  background: var(--paper-sunken);
+  color: var(--ink);
+}
+
+.student-sidebar__item--on {
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.student-sidebar__item--disabled {
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+.student-sidebar__count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-muted);
+}
+
+.student-sidebar__user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 8px 8px;
+  border-top: 1px solid var(--paper-edge);
+}
+
+.student-sidebar__avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.student-sidebar__who {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.student-sidebar__who-name {
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-sidebar__who-meta {
+  font-size: 11px;
+  color: var(--ink-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-sidebar__logout {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.student-sidebar__logout-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--ink-muted);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.student-sidebar__logout-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.student-sidebar__logout-btn:hover {
+  background: var(--paper-sunken);
+  color: var(--ink);
+}
+
+/* Main column ------------------------------------------------------- */
+
+.student-main {
+  padding: 22px 28px 32px;
+  min-width: 0;
+}
+
+.student-main__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.student-main__head-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-main__title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.student-main__sub {
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+/*
+ * Detail-page header variant — sits above the existing
+ * `.student-hw-detail*` chrome. Adds a breadcrumb row + meta line while
+ * keeping the same serif title rhythm as the list header.
+ */
+.student-main__head--detail {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-main__crumb {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  width: 100%;
+}
+
+.student-main__crumb-link {
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.student-main__crumb-link:hover {
+  color: var(--ink);
+}
+
+.student-main__meta {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.student-main__meta-item {
+  white-space: nowrap;
+}
+
+.student-main__meta-item--due {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* Segmented Active / Finished toggle -------------------------------- */
+
+.student-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 3px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.student-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 120ms ease, background 120ms ease;
+  white-space: nowrap;
+}
+
+.student-tabs__tab:hover {
+  color: var(--ink);
+}
+
+.student-tabs__tab--on {
+  background: var(--paper-sunken);
+  color: var(--ink);
+}
+
+.student-tabs__count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: inherit;
+  opacity: 0.7;
+}
+
+/* Homework card list ------------------------------------------------ */
+
+.hw-cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-card {
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.hw-card:hover {
+  border-color: color-mix(in oklch, var(--paper-edge), var(--ink) 25%);
+}
+
+.hw-card__link {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.hw-card__link:hover {
+  color: inherit;
+}
+
+.hw-card__icon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  max-width: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  border-radius: 8px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.hw-card__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hw-card__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hw-card__meta {
+  font-size: 12px;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hw-card__sep {
+  color: var(--ink-faint);
+}
+
+.hw-card__deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.hw-card__deadline svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.hw-card__deadline--tight {
+  color: var(--warn);
+}
+
+.hw-card__deadline--overdue {
+  color: var(--danger);
+}
+
+.hw-card__status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+/* Finish micro-action sits below the clickable card link ------------ */
+
+.hw-card__finish {
+  padding: 0 20px 14px;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.hw-card__finish-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--paper-edge);
+  border-radius: 7px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.hw-card__finish-btn:hover {
+  border-color: color-mix(in oklch, var(--paper-edge), var(--ink) 25%);
+  background: var(--paper-sunken);
+}
+
+/* Chip palette ------------------------------------------------------ */
+
+.hw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-family: var(--font-body);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.hw-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.hw-chip--neutral {
+  background: var(--paper-sunken);
+  color: var(--ink-muted);
+  border-color: var(--paper-edge);
+}
+
+.hw-chip--ghost {
+  background: transparent;
+  color: var(--ink-muted);
+  border-color: var(--paper-edge);
+}
+
+.hw-chip--progress {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.hw-chip--submitted {
+  background: var(--info-soft);
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.hw-chip--ok {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.hw-chip--needs {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Progress bar — colour follows the card's dominant chip ------------ */
+
+.hw-progress {
+  width: 70px;
+  height: 4px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hw-progress__fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--ink-muted);
+  border-radius: 999px;
+  transition: width 300ms ease;
+}
+
+.hw-progress--ok .hw-progress__fill,
+.hw-progress--progress .hw-progress__fill {
+  background: var(--accent);
+}
+
+.hw-progress--submitted .hw-progress__fill {
+  background: var(--info);
+}
+
+.hw-progress--needs .hw-progress__fill {
+  background: var(--danger);
+}
+
+.hw-progress--ghost .hw-progress__fill,
+.hw-progress--neutral .hw-progress__fill {
+  background: var(--ink-faint);
+}
+
+/* Empty state ------------------------------------------------------- */
+
+.hw-empty {
+  background: var(--paper-elevated);
+  border: 1px dashed var(--paper-edge);
+  border-radius: 10px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.hw-empty__copy {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-muted);
+}
+
+/* Responsive -------------------------------------------------------- */
+
+@media (max-width: 820px) {
+  .student-shell {
+    grid-template-columns: 1fr;
+  }
+  .student-sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 10px 14px;
+    border-right: none;
+    border-bottom: 1px solid var(--paper-edge);
+  }
+  .student-sidebar__brand {
+    padding: 0;
+  }
+  .student-sidebar__group-head {
+    display: none;
+  }
+  .student-sidebar__list {
+    flex-direction: row;
+    gap: 4px;
+    margin-left: 4px;
+  }
+  .student-sidebar__list li {
+    display: inline-flex;
+  }
+  .student-sidebar__item {
+    padding: 6px 10px;
+  }
+  .student-sidebar__item--disabled {
+    display: none;
+  }
+  .student-sidebar__user {
+    margin-left: auto;
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+  }
+  .student-sidebar__who {
+    display: none;
+  }
+  .student-main {
+    padding: 18px 20px 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .student-main__head {
+    gap: 12px;
+  }
+  .student-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+  .hw-card__link {
+    grid-template-columns: 46px 1fr;
+    row-gap: 10px;
+  }
+  .hw-card__status {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .hw-card__finish {
+    justify-content: flex-start;
+  }
+}
+
+/* Dark-mode dial-ins: the chips lean on accent-soft / warn-soft /
+ * danger-soft / info-soft tokens, which already flip under the dark
+ * theme. The only polish needed is slightly warmer chip borders so they
+ * stay visible against the darker paper-elevated surface. */
+[data-theme="dark"] .hw-chip--progress,
+[data-theme="dark"] .hw-chip--submitted,
+[data-theme="dark"] .hw-chip--ok,
+[data-theme="dark"] .hw-chip--needs {
+  border-color: color-mix(in oklch, currentColor, transparent 55%);
+}
+
+[data-theme="dark"] .hw-card:hover {
+  border-color: color-mix(in oklch, var(--paper-edge), var(--ink) 35%);
+}
+
+/* ====================================================================
+ * PRINT STYLESHEET — targeted at Safari "Export as PDF"
+ *
+ * Safari's paginated rendering has long-standing trouble with this mix:
+ *   (a) a grid parent whose track is sized by `100vh` (no sensible vh
+ *       in a multi-page printout — Safari falls back to 0 and the grid
+ *       collapses to block flow),
+ *   (b) a sticky child with `height: 100vh` inside that grid (same
+ *       collapse, this time for the sidebar column),
+ *   (c) list-reset + flex layouts on elements that WebKit's print
+ *       engine sometimes forces back to block-with-markers for
+ *       pagination.
+ *
+ * Rather than fight WebKit's pagination heuristics, serve a clean
+ * single-column document tailored for printing. The sidebar nav is
+ * unnecessary in a printout (it's navigation chrome, not content), so
+ * hide it; let the main column flow naturally as block content; keep
+ * the list-style + flex resets on the card list explicitly so the
+ * output doesn't regress to bullets + plain text.
+ *
+ * This also doubles as a graceful degradation path for older Safari
+ * builds that don't support `100dvh` — the shell still renders, just
+ * without the 2-column chrome.
+ * ==================================================================== */
+@media print {
+  /* Global paper: no coloured backgrounds, no shadows, no unneeded ink. */
+  html,
+  body {
+    background: #fff;
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Shell: collapse the 2-column grid and any vh-based heights. */
+  .student-shell {
+    display: block;
+    min-height: 0;
+  }
+
+  /* Sidebar: pure navigation chrome — hide it entirely. The logout
+   * button inside it is also pointless in a printout. */
+  .student-sidebar {
+    display: none !important;
+  }
+
+  /* Main column: widen to the page, trim padding so the content isn't
+   * doubly-padded (the print margin already exists at the page level). */
+  .student-main {
+    padding: 0;
+  }
+
+  /* Defensively re-assert the list / tab resets that Safari's print
+   * engine tends to flatten. The !important keeps them applied even if
+   * the user-agent print sheet reintroduces default list-item chrome. */
+  .hw-cards,
+  .student-sidebar__list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .hw-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* Keep the segmented toggle visible in print — it conveys which tab
+   * the student was looking at when they exported. Force flex back. */
+  .student-tabs {
+    display: inline-flex !important;
+  }
+  .student-tabs__tab {
+    display: inline-flex !important;
+  }
+
+  /* Cards: reassert the grid layout and per-element chrome. */
+  .hw-card {
+    border: 1px solid #ccc;
+    background: #fff;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .hw-card__link {
+    display: grid !important;
+    grid-template-columns: 46px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 14px 16px;
+  }
+  .hw-card__icon {
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+  }
+  .hw-card__status {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 6px;
+  }
+
+  /* Finish micro-action: pull the button chrome back. Never important
+   * enough to force a page break around it, so let it flow. */
+  .hw-card__finish-btn {
+    display: inline-block;
+    padding: 5px 12px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    background: #fff;
+    color: #000;
+  }
+
+  /* Chips + progress: hide interactive hover chrome that reads oddly
+   * on paper, but keep the pill shape so the status is scannable. */
+  .hw-chip {
+    border: 1px solid currentColor;
+  }
+  .hw-progress {
+    border: 1px solid #ccc;
+  }
+
+  /* Drop box-shadows, transitions, and sticky positioning across the
+   * student surface — none of them survive paper meaningfully. */
+  .student-shell,
+  .student-shell * {
+    box-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Class detail: sticky sub-nav, anchor margins, per-panel search, and
+ * temporal bucket rhythm. Phase 1 of the Option 4 UX overhaul — the
+ * sub-nav and buckets are the "cheap wins" that give the page an IA
+ * before the full tab + calendar layer lands in Phase 2.
+ * ------------------------------------------------------------------ */
+
+/* Scroll margin on the panel anchors keeps the heading clear of the
+ * sticky sub-nav after a hash-link jump. The value must match the
+ * sub-nav's effective height (padding + content + border). */
+.class-detail__anchor {
+  scroll-margin-top: 80px;
+}
+
+/* Sticky jump-nav. Renders as a single horizontal bar that stays
+ * pinned when the user scrolls past it. */
+.class-subnav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  background: var(--color-paper-elevated, #fffaf2);
+  border: 1px solid var(--color-paper-border, rgba(60, 40, 10, 0.12));
+  border-radius: 12px;
+  backdrop-filter: saturate(1.05) blur(3px);
+  -webkit-backdrop-filter: saturate(1.05) blur(3px);
+}
+
+.class-subnav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.class-subnav__item {
+  display: inline-flex;
+}
+
+.class-subnav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.class-subnav__link:hover {
+  background: var(--color-paper-sunken, rgba(80, 50, 10, 0.06));
+  border-color: var(--color-paper-border, rgba(60, 40, 10, 0.12));
+}
+
+.class-subnav__link:focus-visible {
+  outline: 2px solid var(--color-accent, #3d8f5f);
+  outline-offset: 2px;
+}
+
+.class-subnav__label {
+  font-weight: 600;
+}
+
+.class-subnav__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted, #6b5a3d);
+  background: var(--color-paper-sunken, rgba(80, 50, 10, 0.08));
+  border-radius: 999px;
+}
+
+.class-subnav__hint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-ink-muted, #6b5a3d);
+  white-space: nowrap;
+}
+
+.class-subnav__hint--due {
+  color: var(--color-rust, #a15b2e);
+}
+
+/* Panel search toolbar. One row that hosts the search input (and, in
+ * future phases, filters / sort). Sits between the card header and
+ * the list itself — compact enough not to compete with either. */
+.hw-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+
+.hw-search {
+  flex: 1 1 auto;
+  display: block;
+  position: relative;
+}
+
+.hw-search__input {
+  width: 100%;
+  padding: 7px 12px;
+  font-size: 14px;
+  color: inherit;
+  background: var(--color-paper-elevated, #fffaf2);
+  border: 1px solid var(--color-paper-border, rgba(60, 40, 10, 0.18));
+  border-radius: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.hw-search__input:focus-visible {
+  outline: 2px solid var(--color-accent, #3d8f5f);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+/* Visually-hidden label helper. Used by the search field so AT users
+ * hear a proper label without the page showing one. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Temporal buckets. One section per non-empty bucket; the "past"
+ * bucket renders inside <details> so it stays collapsed by default. */
+.hw-buckets {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hw-bucket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-bucket__header,
+.hw-bucket__summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+.hw-bucket__summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px dashed var(--color-paper-border, rgba(60, 40, 10, 0.2));
+  background: var(--color-paper-sunken, rgba(80, 50, 10, 0.04));
+}
+
+.hw-bucket__summary::-webkit-details-marker {
+  display: none;
+}
+
+.hw-bucket--past .hw-bucket__summary:hover {
+  background: var(--color-paper-sunken, rgba(80, 50, 10, 0.08));
+}
+
+.hw-bucket__heading {
+  font-family: var(--font-display, var(--font-newsreader, serif));
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0;
+  color: var(--color-ink, inherit);
+}
+
+.hw-bucket__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted, #6b5a3d);
+  background: var(--color-paper-sunken, rgba(80, 50, 10, 0.08));
+  border-radius: 999px;
+}
+
+/* "This week" gets a subtle accent tint so a scanning teacher lands
+ * there instead of the top of the page. "Next week" is toned down
+ * one step; "later" and "noDate" stay neutral. */
+.hw-bucket--this-week .hw-bucket__heading {
+  color: var(--color-accent, #3d8f5f);
+}
+
+.hw-bucket--next-week .hw-bucket__heading {
+  color: var(--color-ink, inherit);
+}
+
+.hw-bucket--past .hw-bucket__heading {
+  color: var(--color-ink-muted, #6b5a3d);
+  font-weight: 500;
+}
+
+/* Nested list inside a bucket: drop the list-card's outer chrome so
+ * the bucket header reads as the card boundary and rows stack
+ * tightly underneath. */
+.hw-list--bucket {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Schedule week-grain highlighting. "This week" picks up the same
+ * accent tint as the homework/lesson bucket so the page reads
+ * consistently; everything else keeps its plain chrome. */
+.sched-week--this-week .sched-week__title {
+  color: var(--color-accent, #3d8f5f);
+}
+
+.sched-week--next-week .sched-week__title {
+  color: var(--color-ink, inherit);
+}
+
+.sched-week__sub {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-ink-muted, #6b5a3d);
+}
+
+/* Narrow-viewport tweaks. The sub-nav wraps naturally on phones;
+ * collapse hint labels so the count + item label stay legible. */
+@media (max-width: 560px) {
+  .class-subnav {
+    padding: 8px 10px;
+  }
+  .class-subnav__link {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .class-subnav__hint {
+    display: none;
+  }
+  .class-detail__anchor {
+    scroll-margin-top: 96px;
+  }
+}
+
+/* Dark-mode polish. The paper tokens already flip; this tunes the
+ * count badge + hint so they don't wash out. */
+[data-theme="dark"] .class-subnav {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .class-subnav__count,
+[data-theme="dark"] .hw-bucket__count {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .class-subnav__hint--due {
+  color: #e79b6f;
+}
+
+[data-theme="dark"] .hw-bucket--this-week .hw-bucket__heading,
+[data-theme="dark"] .sched-week--this-week .sched-week__title {
+  color: #7cc79a;
+}
+
+/* ------------------------------------------------------------------
+ * Class detail: Overview widget (Phase 2a of the Option 4 UX overhaul).
+ * Two-column hero card above the sticky sub-nav that answers the two
+ * "what's on my plate?" questions: next session + homework this week.
+ * Data is computed server-side from the rows the panels already fetch;
+ * the widget is pure presentation.
+ * ------------------------------------------------------------------ */
+
+.class-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 0 0 12px;
+  padding: 18px 20px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+}
+
+.class-overview__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Second column gets a soft divider on wider screens; stacks cleanly
+ * on mobile via the narrow-viewport rule below. */
+.class-overview__cell--homework {
+  padding-left: 20px;
+  border-left: 1px dashed var(--paper-edge);
+}
+
+.class-overview__eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.class-overview__headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.class-overview__headline--empty {
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.class-overview__sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.class-overview__link {
+  color: var(--accent-ink);
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 120ms ease;
+}
+
+.class-overview__link:hover,
+.class-overview__link:focus-visible {
+  border-bottom-color: var(--accent-ink);
+  color: var(--accent);
+}
+
+/* Narrow viewport: stack the two cells, drop the divider. */
+@media (max-width: 560px) {
+  .class-overview {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .class-overview__cell--homework {
+    padding-left: 0;
+    padding-top: 14px;
+    border-left: 0;
+    border-top: 1px dashed var(--paper-edge);
+  }
+  .class-overview__headline {
+    font-size: 20px;
+  }
+}
+
+/* Dark-mode treatment mirrors the sub-nav's darker paper surface so the
+ * hero doesn't float with the wrong temperature above the sticky bar. */
+[data-theme="dark"] .class-overview {
+  background: var(--paper-elevated);
+  border-color: var(--paper-edge);
+}
+
+[data-theme="dark"] .class-overview__link {
+  color: var(--accent);
+}
+
+[data-theme="dark"] .class-overview__link:hover,
+[data-theme="dark"] .class-overview__link:focus-visible {
+  border-bottom-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Class detail: weekly 7-day calendar strip (Phase 2b of the Option 4 UX
+ * overhaul). Sits between the Overview widget and the sticky sub-nav. Shows
+ * a horizontal row of 7 day cells with per-day tallies rendered as coloured
+ * dots (session / lesson / homework), prev/next-week arrows, a range label,
+ * and a "Jump to today" button that appears whenever the viewer navigates
+ * away from the current week.
+ * ------------------------------------------------------------------------- */
+
+.cal-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 12px;
+  background: var(--paper-elevated);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+}
+
+.cal-strip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cal-strip__nav-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-strip__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid var(--paper-edge);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.cal-strip__nav:hover,
+.cal-strip__nav:focus-visible {
+  color: var(--ink);
+  background: var(--paper-sunken);
+  border-color: var(--ink-muted);
+  outline: none;
+}
+
+.cal-strip__range {
+  min-width: 11ch;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+}
+
+.cal-strip__today {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-ink);
+  background: transparent;
+  border: 1px dashed color-mix(in oklch, var(--accent-ink) 60%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.cal-strip__today:hover,
+.cal-strip__today:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent-ink);
+  outline: none;
+}
+
+/* Placeholder keeps the head row height stable while on the current week
+ * (no "Jump to today" affordance needed) so prev/next arrow nav doesn't
+ * visibly shift the header's vertical rhythm. */
+.cal-strip__today--placeholder {
+  display: inline-block;
+  width: 1px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.cal-strip__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cal-strip__day-wrap {
+  display: flex;
+}
+
+.cal-strip__day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 8px 4px 10px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease,
+    color 120ms ease;
+}
+
+.cal-strip__day:hover,
+.cal-strip__day:focus-visible {
+  background: var(--paper-sunken);
+  border-color: var(--paper-edge);
+  outline: none;
+}
+
+.cal-strip__day--empty {
+  color: var(--ink-muted);
+}
+
+.cal-strip__day--today {
+  border-color: color-mix(in oklch, var(--accent-ink) 40%, transparent);
+  background: color-mix(in oklch, var(--accent-soft) 60%, transparent);
+}
+
+.cal-strip__day--today .cal-strip__weekday,
+.cal-strip__day--today .cal-strip__daynum {
+  color: var(--accent-ink);
+}
+
+.cal-strip__day--selected {
+  background: var(--accent-soft);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+.cal-strip__day--selected .cal-strip__weekday,
+.cal-strip__day--selected .cal-strip__daynum {
+  color: var(--accent-ink);
+}
+
+.cal-strip__weekday {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.cal-strip__daynum {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.cal-strip__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 8px;
+  margin-top: 2px;
+}
+
+.cal-strip__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-muted);
+}
+
+/* Three dot variants — distinct hues so a day with all three reads as a
+ * mini chord of surfaces rather than a single colour. Session picks up the
+ * page's accent green to match Phase 1's "this week" bucket heading; lesson
+ * sits on a cool blue; homework on a warm amber so "due date" always reads
+ * as the most urgent colour of the three. */
+.cal-strip__dot--session {
+  background: var(--accent);
+}
+
+.cal-strip__dot--lesson {
+  background: oklch(0.62 0.13 245);
+}
+
+.cal-strip__dot--homework {
+  background: oklch(0.72 0.14 75);
+}
+
+.cal-strip__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--paper-edge);
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.cal-strip__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- Narrow viewport: compact the strip so it still fits 7 cells --------
+ * At <=560px the range label trims to a min 9ch, the day cells drop the
+ * weekday letter-spacing, and the legend row hides — the dot colours are
+ * self-explanatory in context and the row chews screen height. */
+@media (max-width: 560px) {
+  .cal-strip {
+    padding: 12px 14px 10px;
+  }
+  .cal-strip__range {
+    min-width: 9ch;
+    font-size: 14px;
+  }
+  .cal-strip__days {
+    gap: 4px;
+  }
+  .cal-strip__day {
+    min-height: 64px;
+    padding: 6px 2px 8px;
+  }
+  .cal-strip__weekday {
+    letter-spacing: 0.04em;
+    font-size: 10px;
+  }
+  .cal-strip__daynum {
+    font-size: 17px;
+  }
+  .cal-strip__legend {
+    display: none;
+  }
+}
+
+/* ---- Dark-mode overrides ----
+ * Surface, dots, and selection states tuned for the dark paper. Selection
+ * keeps accent-soft as the fill so the dark accent-ink reads against it
+ * with enough contrast. */
+[data-theme="dark"] .cal-strip {
+  background: var(--paper-elevated);
+  border-color: var(--paper-edge);
+}
+
+[data-theme="dark"] .cal-strip__day:hover,
+[data-theme="dark"] .cal-strip__day:focus-visible {
+  background: var(--paper-sunken);
+  border-color: var(--paper-edge);
+}
+
+[data-theme="dark"] .cal-strip__dot--lesson {
+  background: oklch(0.72 0.13 245);
+}
+
+[data-theme="dark"] .cal-strip__dot--homework {
+  background: oklch(0.8 0.14 75);
+}
+
+[data-theme="dark"] .cal-strip__today {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 55%, transparent);
+}
+
+[data-theme="dark"] .cal-strip__today:hover,
+[data-theme="dark"] .cal-strip__today:focus-visible {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+}
+
+/* -------------------------------------------------------------------------
+ * Class detail: day-filter banner (Phase 2d of the Option 4 UX overhaul).
+ *
+ * Rendered above the Homework / Lessons / Schedule panel toolbars whenever
+ * the class detail page's ?day=YYYY-MM-DD query param is active. The copy
+ * column ("Filtered to Fri · 24 Apr" + item count) sits on the left with
+ * the "Clear filter" ghost button on the right. Tinted with accent-soft so
+ * it reads as a pressed-state echo of the calendar strip's selected day
+ * cell — same palette, same semantic weight.
+ * ------------------------------------------------------------------------- */
+
+.day-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  background: color-mix(in oklch, var(--accent) 10%, var(--paper-elevated));
+  border: 1px solid color-mix(in oklch, var(--accent) 35%, var(--paper-edge));
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.day-filter__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.day-filter__heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.day-filter__count {
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.3;
+}
+
+.day-filter__clear {
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .day-filter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .day-filter__clear {
+    align-self: flex-start;
+  }
+}
+
+[data-theme="dark"] .day-filter {
+  background: color-mix(in oklch, var(--accent) 14%, var(--paper-elevated));
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--paper-edge));
+}
+
+/* ------------------------------------------------------------------ */
+/* Lesson blocks editor (Task #54 — PROSE + BOARD_WALKTHROUGH).       */
+/*                                                                     */
+/* Extends the existing `.hw-boards` / `.hw-board-card` primitives     */
+/* rather than duplicating them. The editor reuses those classes on   */
+/* its outer scaffolding, then layers `.lesson-*` selectors on top for */
+/* the lesson-specific bits: the kind-tag pill, the two-CTA footer,    */
+/* the prose markdown card, and the walkthrough annotations tray.     */
+/* ------------------------------------------------------------------ */
+
+/* Two-CTA footer (Add prose / Add walkthrough). The single-CTA       */
+/* homework footer is a flex column; lessons want both buttons on one  */
+/* row until the viewport collapses, so override flex-direction.       */
+.lesson-blocks__footer {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Pill that identifies the block kind in the card head — lets the    */
+/* author eyeball a packed list ("Study text / Walkthrough / Study    */
+/* text / …") without opening each card. Tuned to sit beside the      */
+/* `.hw-board-card__num` "#1" marker.                                   */
+.lesson-blocks__kind-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+/* PROSE block — much simpler than the walkthrough card: a single     */
+/* markdown textarea with a char-count footer. Keeps the surrounding  */
+/* `.hw-board-card` chrome (head row, remove button, border, padding) */
+/* so the two kinds read as siblings in the editor list.              */
+.lesson-prose__field {
+  margin-top: 4px;
+}
+
+.lesson-prose__textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.lesson-prose__textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
+}
+
+.lesson-prose__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.lesson-prose__char-count--over {
+  color: var(--danger, oklch(0.55 0.2 25));
+  font-weight: 600;
+}
+
+/* Walkthrough annotations — sits below the move list inside the      */
+/* walkthrough card's body. Each annotation is a two-field row (ply + */
+/* text) with a right-aligned delete button. Visually signals its      */
+/* secondary status with a dashed top-border (mirrors the homework    */
+/* solution-section treatment) so it doesn't compete with the moves.  */
+.lesson-walkthrough__annotations {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--paper-edge);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-walkthrough__annotations-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.lesson-walkthrough__annotations-head h5 {
+  margin: 0;
+}
+
+.lesson-walkthrough__annotations-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-walkthrough__annotation-row {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+}
+
+.lesson-walkthrough__ply input {
+  width: 100%;
+}
+
+.lesson-walkthrough__text textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+}
+
+.lesson-walkthrough__annotation-remove {
+  align-self: center;
+}
+
+/* Narrow viewport — stack the annotation row vertically so the ply    */
+/* + text fields don't squeeze past comfort on tablet / phone. The     */
+/* delete button moves to the bottom, left-aligned.                    */
+@media (max-width: 640px) {
+  .lesson-blocks__footer {
+    flex-direction: column;
+  }
+  .lesson-blocks__footer .btn {
+    width: 100%;
+  }
+  .lesson-walkthrough__annotation-row {
+    grid-template-columns: 1fr;
+  }
+  .lesson-walkthrough__annotation-remove {
+    justify-self: start;
+  }
+}
+
+/* Dark-mode polish — the sunken row needs a nudge darker so the      */
+/* nested textarea / input chrome stays visually distinct.             */
+[data-theme="dark"] .lesson-walkthrough__annotation-row {
+  background: color-mix(in oklch, var(--paper) 60%, var(--paper-sunken));
+}
+
+/* ------------------------------------------------------------------ */
+/* Lesson blocks editor — MCQ + VIDEO (Task #55).                      */
+/*                                                                     */
+/* Extends the same `.hw-board-card` scaffold the PROSE and            */
+/* BOARD_WALKTHROUGH cards use, plus reuses `.lesson-prose__meta` +    */
+/* `.lesson-prose__charcount(--over)` for the character-count footer   */
+/* below MCQ question / explanation textareas so the three-kind list   */
+/* reads with a single rhythm. The only kind-tag colour variants that  */
+/* differ from PROSE/WALKTHROUGH are the MCQ amber and VIDEO indigo    */
+/* tints below — lets the author scan a long packed list at a glance. */
+/* ------------------------------------------------------------------ */
+
+/* Char-count selector the PROSE card renders (bare `charcount`, no    */
+/* hyphen). Adding the base rule here also picks up the MCQ card's     */
+/* reuse of the same classname. The --over modifier was already        */
+/* defined above under the Task #54 block but targeted a hyphenated    */
+/* variant that the JSX never actually rendered; we keep both forms    */
+/* for safety.                                                         */
+.lesson-prose__charcount {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.lesson-prose__charcount--over {
+  color: var(--danger, oklch(0.55 0.2 25));
+  font-weight: 600;
+}
+
+/* Kind-tag colour variants — PROSE + WALKTHROUGH keep the default     */
+/* paper-sunken chip; MCQ + VIDEO get accent tints so the four kinds   */
+/* are distinguishable in a tight vertical list without reading text.  */
+.lesson-blocks__kind-tag--mcq {
+  background: color-mix(in oklch, var(--paper-sunken) 70%, oklch(0.8 0.12 75));
+  border-color: color-mix(in oklch, var(--paper-edge) 60%, oklch(0.65 0.14 75));
+  color: oklch(0.42 0.14 75);
+}
+
+.lesson-blocks__kind-tag--video {
+  background: color-mix(in oklch, var(--paper-sunken) 70%, oklch(0.8 0.12 265));
+  border-color: color-mix(in oklch, var(--paper-edge) 60%, oklch(0.6 0.14 265));
+  color: oklch(0.42 0.14 265);
+}
+
+[data-theme="dark"] .lesson-blocks__kind-tag--mcq {
+  color: oklch(0.85 0.14 75);
+}
+
+[data-theme="dark"] .lesson-blocks__kind-tag--video {
+  color: oklch(0.82 0.14 265);
+}
+
+/* -- MCQ block ------------------------------------------------------- */
+
+/* Outer card already has `.hw-board-card` chrome (border, padding,    */
+/* head row). `.lesson-mcq` layers a column-flex rhythm for the four   */
+/* stacked sections (question → options → explanation → footer).       */
+.lesson-mcq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lesson-mcq__question-field,
+.lesson-mcq__explanation-field {
+  margin-top: 4px;
+}
+
+.lesson-mcq__question,
+.lesson-mcq__explanation {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.lesson-mcq__question {
+  min-height: 88px;
+}
+
+.lesson-mcq__explanation {
+  min-height: 76px;
+}
+
+.lesson-mcq__question:focus-visible,
+.lesson-mcq__explanation:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+/* Meta row — mirrors `.lesson-prose__meta` from the Task #54 block.   */
+.lesson-mcq__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* Options fieldset — borderless legend + hint line above the list of  */
+/* option rows. We don't want the browser's default fieldset border    */
+/* competing with the card frame.                                      */
+.lesson-mcq__options {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-mcq__options-legend {
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lesson-mcq__options-hint {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.lesson-mcq__options-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Per-option row: 3-col grid (radio | input | remove) with any error  */
+/* messages wrapping to a second row spanning all three columns.       */
+.lesson-mcq__option-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 10px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+.lesson-mcq__correct-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+}
+
+.lesson-mcq__correct-radio input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.lesson-mcq__correct-text {
+  font-weight: 500;
+}
+
+.lesson-mcq__option-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* The per-option "Option 1 / Option 2 / …" label sits above the       */
+/* input at smaller typographic weight so the radio chooses focus.     */
+.lesson-mcq__option-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.lesson-mcq__option-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.lesson-mcq__option-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.lesson-mcq__option-input--error {
+  border-color: var(--danger, oklch(0.55 0.2 25));
+}
+
+.lesson-mcq__option-remove {
+  align-self: center;
+}
+
+/* Error message span — drop to the next row, span all three columns   */
+/* so the copy lines up under the input rather than squashing next to  */
+/* the remove button.                                                  */
+.lesson-mcq__option-error {
+  grid-column: 1 / -1;
+  margin-left: 0;
+}
+
+.lesson-mcq__options-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.lesson-mcq__options-note {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+/* -- VIDEO block ----------------------------------------------------- */
+
+/* Simplest card of the four — single URL input with a provider hint   */
+/* underneath + an allowed-hosts footer so the author knows which      */
+/* links the server will accept on save.                               */
+.lesson-video {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-video__field {
+  margin-top: 4px;
+}
+
+.lesson-video__input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.lesson-video__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.lesson-video__input--error {
+  border-color: var(--danger, oklch(0.55 0.2 25));
+}
+
+.lesson-video__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.lesson-video__provider {
+  font-weight: 600;
+  color: var(--accent-ink, var(--ink));
+}
+
+.lesson-video__hint {
+  color: var(--ink-soft);
+}
+
+/* Allowed-hosts disclosure — lives under the meta line so the author  */
+/* never has to guess. Code tag renders as inline chips of readable    */
+/* mono without a heavy box treatment.                                 */
+.lesson-video__allowed {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+.lesson-video__allowed-list {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  background: transparent;
+  padding: 0;
+  word-break: break-word;
+}
+
+/* Narrow viewport: the MCQ per-option row's 3-col grid has to         */
+/* collapse or the remove button ends up floating while the input      */
+/* shrinks to nothing. Stack the three columns and let the row         */
+/* breathe; same treatment for the options footer + video meta.        */
+@media (max-width: 640px) {
+  .lesson-mcq__option-row {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
+
+  .lesson-mcq__option-remove {
+    justify-self: start;
+  }
+
+  .lesson-video__meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* =====================================================================
+ * Student lesson detail viewer (Task #57 — PROSE + BOARD_WALKTHROUGH)
+ *
+ * Reuses the existing `.student-hw-detail*` chrome for the breadcrumb /
+ * status card / instructions block so the detail surface reads as a
+ * sibling of the homework detail. Adds a new status-pill variant per
+ * completion state (unmarked / read / not_started), a `.lesson-viewer`
+ * list container, and per-kind block card primitives for the four v1
+ * kinds (PROSE + BOARD_WALKTHROUGH fully rendered here; MCQ + VIDEO
+ * share the same shell with a placeholder body until Task #58).
+ * ===================================================================== */
+
+/* Completion status pill variants — three-way:
+ *   null        → "unmarked"     (student hasn't interacted at all — neutral paper tone)
+ *   READ        → "read"         (student self-marked done — accent green)
+ *   NOT_STARTED → "not_started"  (opened but didn't finish — amber; reuses the
+ *                                 existing definition from the homework detail)
+ * The `--not_started` rule already exists upstream, so we only add the two
+ * new variants here. */
+.student-hw-detail__status-pill--unmarked {
+  background: var(--paper-sunken);
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+
+.student-hw-detail__status-pill--read {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+/* Shell-level variant: keeps the homework-detail margin/gap rhythm but
+ * flags "this is the lesson surface" so future lesson-only overrides
+ * (e.g. a wider content column) can layer on without touching the
+ * homework styles. */
+.student-lesson-detail {
+  /* No overrides yet — purely a semantic hook. */
+}
+
+/* Lesson viewer list container ---------------------------------------- */
+
+.lesson-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.lesson-viewer__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.lesson-viewer__empty {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px dashed var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  color: var(--ink-muted);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.9375rem;
+}
+
+.lesson-viewer__block {
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.lesson-viewer__block-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.lesson-viewer__invalid {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed oklch(70% 0.08 30);
+  background: oklch(97% 0.02 30);
+  color: oklch(40% 0.14 30);
+  font-size: 0.875rem;
+}
+
+/* MCQ + VIDEO placeholder body — see Task #58 for real renderers */
+.lesson-viewer__soon {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--paper-edge);
+  background: color-mix(in oklch, var(--paper) 94%, var(--paper-sunken));
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.lesson-viewer__block--prose {
+  /* body padding handled by the .lesson-prose container below */
+}
+
+.lesson-viewer__block--walkthrough {
+  /* board surface lives inside; leave the card as the chrome wrap */
+}
+
+/* The walkthrough card is `tabIndex=0` so keyboard users can step
+ * through plies via arrow keys. Show a focus ring on keyboard focus
+ * only (no ring for click) so the card doesn't fight with click
+ * navigation. */
+.lesson-viewer__block--walkthrough:focus {
+  outline: none;
+}
+.lesson-viewer__block--walkthrough:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* =====================================================================
+   Attempt history disclosure on the AttemptReviewCard (Lane B / B3).
+   Mounts at the bottom of each per-student review card; expands to
+   show the full attempt chain (oldest first) so the teacher can scroll
+   back through prior submissions without leaving the Submissions sheet.
+   ===================================================================== */
+
+.hw-review-card__history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.hw-review-card__history-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.hw-review-card__history-toggle:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+  color: var(--ink);
+}
+
+.hw-review-card__history-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hw-review-card__history-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-review-card__history-loading,
+.hw-review-card__history-empty {
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.hw-review-card__history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  counter-reset: hw-history;
+}
+
+.hw-review-card__history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+  position: relative;
+  counter-increment: hw-history;
+}
+
+.hw-review-card__history-row::before {
+  content: "#" counter(hw-history);
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hw-review-card__history-row--live {
+  background: color-mix(in oklch, var(--paper) 92%, var(--accent) 8%);
+  border-color: color-mix(in oklch, var(--paper-edge) 60%, var(--accent) 40%);
+}
+
+.hw-review-card__history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.hw-review-card__history-when {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.hw-review-card__history-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hw-review-card__history-tag--live {
+  background: color-mix(in oklch, var(--accent) 22%, var(--paper));
+  color: var(--ink);
+}
+
+.hw-review-card__history-tag--replaced {
+  background: var(--paper-sunken);
+  color: var(--ink-muted);
+}
+
+.hw-review-card__history-moves {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.hw-review-card__history-moves-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  margin-right: 2px;
+}
+
+.hw-review-card__history-empty-moves {
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.hw-review-card__history-uci {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hw-review-card__history-uci-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--paper-sunken);
+  color: var(--ink);
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hw-review-card__history-note {
+  font-size: 13px;
+  color: var(--ink);
+  margin: 0;
+  padding: 8px 10px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+  border-radius: 6px;
+  border-left: 3px solid color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+}
+
+.hw-review-card__history-note-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+
+.hw-review-card__history-reviewed {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+[data-theme="dark"] .hw-review-card__history-row {
+  background: color-mix(in oklch, var(--paper) 92%, var(--ink) 8%);
+}
+
+[data-theme="dark"] .hw-review-card__history-row--live {
+  background: color-mix(in oklch, var(--paper) 80%, var(--accent) 20%);
+  border-color: color-mix(in oklch, var(--paper-edge) 40%, var(--accent) 60%);
+}
+
+/* =====================================================================
+   Student cross-class questions rollup (Lane B / B4). The
+   /student/questions list page renders one row per thread with a
+   compact preview; clicks deep-link to the parent's detail page.
+   ===================================================================== */
+
+.student-questions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-questions-row {
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.student-questions-row:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+  border-color: color-mix(in oklch, var(--paper-edge) 70%, var(--accent) 30%);
+}
+
+.student-questions-row--resolved {
+  opacity: 0.85;
+}
+
+.student-questions-row__link {
+  display: block;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: inherit;
+}
+
+.student-questions-row__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.student-questions-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.student-questions-row__parent {
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.student-questions-row__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: auto;
+}
+
+.student-questions-row__pill--open {
+  background: color-mix(in oklch, var(--accent) 22%, var(--paper));
+  color: var(--ink);
+}
+
+.student-questions-row__pill--resolved {
+  background: var(--paper-sunken);
+  color: var(--ink-muted);
+}
+
+.student-questions-row__body {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.student-questions-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.student-questions-row__meta-item {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .student-questions-row__pill {
+    margin-left: 0;
+  }
+}
+
+[data-theme="dark"] .student-questions-row {
+  background: color-mix(in oklch, var(--paper) 92%, var(--ink) 8%);
+}
+
+.lesson-viewer__block--mcq,
+.lesson-viewer__block--video {
+  /* Placeholder cards share the same chrome as real blocks — the
+   * visual "coming soon" cue lives on .lesson-viewer__soon. */
+}
+
+.lesson-viewer__block--unknown {
+  border-style: dashed;
+  background: color-mix(in oklch, var(--paper-elevated) 92%, var(--paper-sunken));
+}
+
+/* PROSE block — safe markdown renderer --------------------------------- */
+
+.lesson-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.lesson-prose > * + * {
+  margin-top: 0;
+}
+
+.lesson-prose__p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.lesson-prose__h {
+  margin: var(--sp-2) 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.lesson-prose__h:first-child {
+  margin-top: 0;
+}
+
+h3.lesson-prose__h { font-size: 1.125rem; }
+h4.lesson-prose__h { font-size: 1rem; }
+h5.lesson-prose__h { font-size: 0.9375rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+h6.lesson-prose__h { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted); }
+
+.lesson-prose__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lesson-prose__list li {
+  line-height: 1.55;
+}
+
+.lesson-prose__code {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-sunken);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.lesson-prose__empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* BOARD_WALKTHROUGH block ---------------------------------------------- */
+
+.lesson-walkthrough__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-3);
+  justify-content: space-between;
+}
+
+.lesson-walkthrough__side {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--paper-sunken);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Two-column body: board on the left, moves + annotations rail on the
+ * right. Collapses to a single column on narrow viewports. The board
+ * wrap has a paper-sunken pad so the board reads as framed against the
+ * lighter card surface — same rhythm as the homework attempt panel. */
+.lesson-walkthrough__body {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(240px, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.lesson-walkthrough__board-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: 10px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--paper-edge);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--ink) 6%, transparent);
+}
+
+.lesson-walkthrough__stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  justify-content: center;
+}
+
+.lesson-walkthrough__ply-label {
+  min-width: 7rem;
+  text-align: center;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+}
+
+.lesson-walkthrough__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--paper) 94%, var(--paper-sunken));
+  border: 1px solid var(--paper-edge);
+}
+
+.lesson-walkthrough__rail-heading {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.lesson-walkthrough__rail-heading--second {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.lesson-walkthrough__rail-empty {
+  margin: 0;
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 0.8125rem;
+}
+
+.lesson-walkthrough__move-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  counter-reset: wt-move;
+}
+
+.lesson-walkthrough__move-list li {
+  margin: 0;
+}
+
+.lesson-walkthrough__move {
+  appearance: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.lesson-walkthrough__move:hover {
+  background: var(--paper-sunken);
+  color: var(--ink);
+}
+
+.lesson-walkthrough__move:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lesson-walkthrough__move--active {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+
+/* Annotations list — each row is a small card with the ply anchor on
+ * the top line (clickable button that jumps the stepper to that ply)
+ * and the annotation text underneath. Active row (matches current ply)
+ * picks up the accent-soft highlight. */
+.lesson-walkthrough__annotations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-walkthrough__annotation {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.lesson-walkthrough__annotation--active {
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+
+.lesson-walkthrough__annotation-anchor {
+  appearance: none;
+  cursor: pointer;
+  align-self: flex-start;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.lesson-walkthrough__annotation--active .lesson-walkthrough__annotation-anchor {
+  color: var(--accent-ink);
+}
+
+.lesson-walkthrough__annotation-anchor:hover {
+  color: var(--ink);
+}
+
+.lesson-walkthrough__annotation-anchor:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.lesson-walkthrough__annotation-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.lesson-walkthrough__annotation--active .lesson-walkthrough__annotation-text {
+  color: var(--accent-ink);
+}
+
+/* Narrow viewport: stack the walkthrough's two-col body so the board
+ * and rail each get full width. Also tighten the block card padding so
+ * long annotation text has breathing room on phones. */
+@media (max-width: 840px) {
+  .lesson-walkthrough__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .lesson-viewer__block {
+    padding: var(--sp-4);
+  }
+
+  .lesson-walkthrough__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lesson-walkthrough__ply-label {
+    min-width: 6rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark mode: the walkthrough rail's paper-mix background needs to
+ * re-blend against the darker paper surface so the sub-panel still
+ * reads as nested. The annotation-active highlight also bumps one
+ * step so it doesn't wash out. */
+[data-theme="dark"] .lesson-walkthrough__rail {
+  background: color-mix(in oklch, var(--paper) 88%, var(--paper-sunken));
+}
+
+[data-theme="dark"] .lesson-walkthrough__board-wrap {
+  background: color-mix(in oklch, var(--paper) 90%, var(--paper-sunken));
+}
+
+[data-theme="dark"] .lesson-viewer__block--unknown {
+  background: color-mix(in oklch, var(--paper-elevated) 86%, var(--paper-sunken));
+}
+
+/* ---------------------------------------------------------------------------
+ * Student lesson viewer — MCQ + VIDEO interactive renderers (Task #58)
+ *
+ * Paired with the JSX in:
+ *   apps/web/src/app/[locale]/student/lessons/[id]/detail-panels.tsx
+ *
+ * Deliberately uses a distinct `.lesson-mcq-view*` / `.lesson-video-view*`
+ * namespace from the editor side (`.lesson-mcq*` / `.lesson-video*` in
+ * Task #55) so both surfaces can coexist in the build without colliding.
+ * --------------------------------------------------------------------------- */
+
+/* MCQ view — locks on submit, paints correct green + chosen-wrong red,
+ * reveals the author's explanation, offers a "Try again" reset. */
+.lesson-mcq-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lesson-mcq-view__prompt {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.lesson-mcq-view__choices {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lesson-mcq-view__choices:disabled {
+  /* No native greying out — the modifier colours carry the signal. */
+  opacity: 1;
+}
+
+.lesson-mcq-view__choices-legend {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+.lesson-mcq-view__choices-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-mcq-view__choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  background: var(--paper-elevated);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.lesson-mcq-view__choice:hover:not([class*="--correct"]):not([class*="--wrong"]) {
+  background: color-mix(in oklch, var(--paper-elevated) 92%, var(--paper-sunken));
+}
+
+.lesson-mcq-view__choice:focus-within {
+  border-color: var(--accent);
+}
+
+.lesson-mcq-view__choice--correct {
+  background: color-mix(in oklch, var(--paper-elevated) 85%, var(--accent) 15%);
+  border-color: color-mix(in oklch, var(--paper-edge) 55%, var(--accent) 45%);
+}
+
+.lesson-mcq-view__choice--wrong {
+  background: color-mix(in oklch, var(--paper-elevated) 85%, var(--danger) 15%);
+  border-color: color-mix(in oklch, var(--paper-edge) 55%, var(--danger) 45%);
+}
+
+.lesson-mcq-view__radio {
+  /* Inherits the browser's native radio rendering; the surrounding row
+   * supplies the colour cue so we don't need to reskin the radio itself. */
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.lesson-mcq-view__choices:disabled .lesson-mcq-view__radio {
+  cursor: default;
+}
+
+.lesson-mcq-view__label {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  cursor: pointer;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.lesson-mcq-view__choices:disabled .lesson-mcq-view__label {
+  cursor: default;
+}
+
+.lesson-mcq-view__option-index {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lesson-mcq-view__option-text {
+  color: var(--ink);
+}
+
+.lesson-mcq-view__option-tag {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.lesson-mcq-view__option-tag--correct {
+  background: color-mix(in oklch, var(--paper) 70%, var(--accent) 30%);
+  color: color-mix(in oklch, var(--ink) 40%, var(--accent) 60%);
+}
+
+.lesson-mcq-view__option-tag--wrong {
+  background: color-mix(in oklch, var(--paper) 70%, var(--danger) 30%);
+  color: color-mix(in oklch, var(--ink) 40%, var(--danger) 60%);
+}
+
+.lesson-mcq-view__feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--paper-sunken);
+  border-left: 3px solid var(--ink-muted);
+}
+
+.lesson-mcq-view__feedback--correct {
+  background: color-mix(in oklch, var(--paper-sunken) 85%, var(--accent) 15%);
+  border-left-color: var(--accent);
+}
+
+.lesson-mcq-view__feedback--wrong {
+  background: color-mix(in oklch, var(--paper-sunken) 85%, var(--danger) 15%);
+  border-left-color: var(--danger);
+}
+
+.lesson-mcq-view__feedback-head {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lesson-mcq-view__feedback-eyebrow {
+  margin: 4px 0 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.lesson-mcq-view__feedback-body {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.lesson-mcq-view__feedback-body--hint {
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.lesson-mcq-view__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* VIDEO view — responsive 16:9 sandboxed iframe + provider meta row with
+ * an external "Watch on …" link. The iframe is absolutely-positioned
+ * inside a ratio-pinned wrapper so it stays a clean 16:9 regardless of
+ * the card width. */
+.lesson-video-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-video-view__frame-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.lesson-video-view__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.lesson-video-view__invalid {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed color-mix(in oklch, var(--paper-edge) 60%, var(--danger) 40%);
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--paper) 90%, var(--danger) 10%);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-style: italic;
+  color: color-mix(in oklch, var(--ink) 60%, var(--danger) 40%);
+}
+
+.lesson-video-view__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.lesson-video-view__provider {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-sans);
+}
+
+.lesson-video-view__provider-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.lesson-video-view__provider-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lesson-video-view__external {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-ink, var(--accent));
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 120ms ease;
+}
+
+.lesson-video-view__external:hover,
+.lesson-video-view__external:focus-visible {
+  border-bottom-color: currentColor;
+}
+
+/* Responsive — narrow viewports stack the MCQ label's `auto 1fr auto`
+ * grid vertically so the option tag doesn't squeeze against the text,
+ * and collapse the video meta row so the provider label and the
+ * external link stack cleanly. */
+@media (max-width: 560px) {
+  .lesson-mcq-view__label {
+    grid-template-columns: auto 1fr;
+    row-gap: 4px;
+  }
+
+  .lesson-mcq-view__option-tag {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .lesson-video-view__meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Dark mode — bump the accent-soft / danger-soft paper mixes so the
+ * correct-green and wrong-red tints stay legible against the darker
+ * paper, and raise the feedback card's paper-sunken base one step so
+ * it reads as nested inside the block card rather than invisible. */
+[data-theme="dark"] .lesson-mcq-view__choice--correct {
+  background: color-mix(in oklch, var(--paper-elevated) 78%, var(--accent) 22%);
+  border-color: color-mix(in oklch, var(--paper-edge) 45%, var(--accent) 55%);
+}
+
+[data-theme="dark"] .lesson-mcq-view__choice--wrong {
+  background: color-mix(in oklch, var(--paper-elevated) 78%, var(--danger) 22%);
+  border-color: color-mix(in oklch, var(--paper-edge) 45%, var(--danger) 55%);
+}
+
+[data-theme="dark"] .lesson-mcq-view__option-tag--correct {
+  background: color-mix(in oklch, var(--paper) 55%, var(--accent) 45%);
+  color: color-mix(in oklch, var(--ink) 20%, var(--accent) 80%);
+}
+
+[data-theme="dark"] .lesson-mcq-view__option-tag--wrong {
+  background: color-mix(in oklch, var(--paper) 55%, var(--danger) 45%);
+  color: color-mix(in oklch, var(--ink) 20%, var(--danger) 80%);
+}
+
+[data-theme="dark"] .lesson-mcq-view__feedback--correct {
+  background: color-mix(in oklch, var(--paper-sunken) 78%, var(--accent) 22%);
+}
+
+[data-theme="dark"] .lesson-mcq-view__feedback--wrong {
+  background: color-mix(in oklch, var(--paper-sunken) 78%, var(--danger) 22%);
+}
+
+[data-theme="dark"] .lesson-video-view__frame-wrap {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .lesson-video-view__invalid {
+  background: color-mix(in oklch, var(--paper) 82%, var(--danger) 18%);
+  border-color: color-mix(in oklch, var(--paper-edge) 45%, var(--danger) 55%);
+}
+
+/* =====================================================================
+   Class detail: tab-based IA (Phase 2c of the Option 4 UX overhaul).
+   The tablist replaces the sticky jump-link sub-nav. Roster / Homework /
+   Lessons / Schedule each map to a `?tab=` slug; the inactive panel
+   trees are tree-shaken at render time so the page stays lean.
+   ===================================================================== */
+
+.class-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  background: var(--paper);
+  border-bottom: 1px solid var(--paper-edge);
+  margin: 0 calc(-1 * var(--sp-4));
+  padding: 0 var(--sp-4);
+}
+
+.class-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.class-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.class-tabs__tab:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+  color: var(--ink);
+}
+
+.class-tabs__tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.class-tabs__tab--on {
+  background: color-mix(in oklch, var(--paper) 88%, var(--accent) 12%);
+  border-color: color-mix(in oklch, var(--paper-edge) 60%, var(--accent) 40%);
+  color: var(--ink);
+}
+
+.class-tabs__label {
+  font-weight: 500;
+}
+
+.class-tabs__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: color-mix(in oklch, var(--paper-sunken) 70%, var(--paper));
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.class-tabs__tab--on .class-tabs__count {
+  background: color-mix(in oklch, var(--accent) 25%, var(--paper));
+  color: var(--ink);
+}
+
+.class-tabs__hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.class-tabs__tab--on .class-tabs__hint {
+  color: color-mix(in oklch, var(--ink) 60%, var(--accent) 40%);
+}
+
+@media (max-width: 560px) {
+  .class-tabs__tab {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+  .class-tabs__hint {
+    display: none;
+  }
+}
+
+[data-theme="dark"] .class-tabs {
+  background: var(--paper);
+  border-bottom-color: color-mix(in oklch, var(--paper-edge) 70%, var(--ink) 30%);
+}
+
+[data-theme="dark"] .class-tabs__tab--on {
+  background: color-mix(in oklch, var(--paper) 80%, var(--accent) 20%);
+  border-color: color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+}
+
+[data-theme="dark"] .class-tabs__count {
+  background: color-mix(in oklch, var(--paper-sunken) 80%, var(--paper));
+}
+
+[data-theme="dark"] .class-tabs__tab--on .class-tabs__count {
+  background: color-mix(in oklch, var(--accent) 35%, var(--paper));
+}
+
+/* =====================================================================
+   Q&A inbox panel (Task #68 — admin classroom-comms surface). Sits as
+   the fifth tab on the class detail page. Renders the unresolved
+   thread inbox; clicking a row expands the full reply chain inline.
+   ===================================================================== */
+
+.qa-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.qa-inbox__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qa-inbox__title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.qa-inbox__subtitle {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.qa-inbox__empty {
+  padding: 18px 20px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.qa-inbox__error {
+  padding: 12px 16px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--paper) 90%, var(--danger) 10%);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.qa-inbox__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qa-inbox__row {
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qa-inbox__row--open {
+  border-color: color-mix(in oklch, var(--paper-edge) 40%, var(--accent) 60%);
+}
+
+.qa-inbox__row-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  align-items: start;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: background-color 120ms ease;
+}
+
+.qa-inbox__row-head:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken));
+}
+
+.qa-inbox__row-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.qa-inbox__row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  grid-column: 1;
+}
+
+.qa-inbox__row-parent {
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qa-inbox__row-asker {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.qa-inbox__row-snippet {
+  grid-column: 1;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.qa-inbox__row-counts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.qa-inbox__row-toggle {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: 12px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: start;
+}
+
+.qa-inbox__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 18px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.qa-inbox__loading {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.qa-inbox__head-msg,
+.qa-inbox__reply {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+}
+
+.qa-inbox__reply--teacher {
+  background: color-mix(in oklch, var(--paper) 92%, var(--accent) 8%);
+  border-color: color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+}
+
+.qa-inbox__msg-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.qa-inbox__msg-author {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.qa-inbox__msg-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--paper-sunken);
+  color: var(--ink-muted);
+}
+
+.qa-inbox__msg-role--teacher {
+  background: color-mix(in oklch, var(--accent) 25%, var(--paper));
+  color: var(--ink);
+}
+
+.qa-inbox__msg-when {
+  color: var(--ink-muted);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.qa-inbox__msg-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.qa-inbox__reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+}
+
+.qa-inbox__reply-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qa-inbox__reply-label-text {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.qa-inbox__reply-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.qa-inbox__reply-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.qa-inbox__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.qa-inbox__resolved-meta {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin: 0;
+  font-style: italic;
+}
+
+@media (max-width: 560px) {
+  .qa-inbox__row-head {
+    grid-template-columns: 1fr;
+  }
+  .qa-inbox__row-toggle {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+[data-theme="dark"] .qa-inbox__row {
+  background: color-mix(in oklch, var(--paper) 92%, var(--ink) 8%);
+}
+
+[data-theme="dark"] .qa-inbox__thread {
+  background: color-mix(in oklch, var(--paper) 88%, var(--ink) 12%);
+}
+
+[data-theme="dark"] .qa-inbox__reply--teacher {
+  background: color-mix(in oklch, var(--paper) 80%, var(--accent) 20%);
+  border-color: color-mix(in oklch, var(--paper-edge) 40%, var(--accent) 60%);
+}
+
+/* =====================================================================
+   Student per-block "Ask teacher" affordance (Task #69). Sits below
+   each block on the homework / lesson detail pages. Collapsed by
+   default; expanding lazy-fetches the student's existing threads
+   on this block + offers a new-question form.
+   ===================================================================== */
+
+.student-qa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.student-qa__toggle {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.student-qa__toggle:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--accent) 8%);
+}
+
+.student-qa__toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.student-qa__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+}
+
+.student-qa__loading {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.student-qa__error {
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--paper) 90%, var(--danger) 10%);
+  color: var(--danger);
+  font-size: 13px;
+  margin: 0;
+}
+
+.student-qa__threads {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-qa__thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+}
+
+.student-qa__thread--resolved {
+  opacity: 0.85;
+  border-color: color-mix(in oklch, var(--paper-edge) 70%, var(--ink-muted) 30%);
+}
+
+.student-qa__thread-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.student-qa__resolved-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: color-mix(in oklch, var(--paper-sunken) 70%, var(--paper));
+  color: var(--ink);
+  margin-left: auto;
+}
+
+.student-qa__msg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: color-mix(in oklch, var(--paper) 96%, var(--paper-sunken));
+  border-radius: 6px;
+}
+
+.student-qa__msg--reply {
+  background: color-mix(in oklch, var(--paper) 92%, var(--paper-sunken) 8%);
+}
+
+.student-qa__msg--teacher {
+  background: color-mix(in oklch, var(--paper) 90%, var(--accent) 10%);
+  border: 1px solid color-mix(in oklch, var(--paper-edge) 60%, var(--accent) 40%);
+}
+
+.student-qa__msg-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.student-qa__msg-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--paper-sunken);
+  color: var(--ink-muted);
+}
+
+.student-qa__msg-role--teacher {
+  background: color-mix(in oklch, var(--accent) 30%, var(--paper));
+  color: var(--ink);
+}
+
+.student-qa__msg-author {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.student-qa__msg-when {
+  margin-left: auto;
+}
+
+.student-qa__msg-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.student-qa__resolved-meta {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.student-qa__new,
+.student-qa__reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 8px;
+}
+
+.student-qa__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-qa__field-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.student-qa__input {
+  width: 100%;
+  resize: vertical;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--paper-edge);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.student-qa__input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.student-qa__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .student-qa__panel {
+    padding: 12px;
+  }
+  .student-qa__actions {
+    flex-direction: column-reverse;
+  }
+  .student-qa__actions > .btn {
+    width: 100%;
+  }
+}
+
+[data-theme="dark"] .student-qa__panel {
+  background: color-mix(in oklch, var(--paper) 88%, var(--ink) 12%);
+}
+
+[data-theme="dark"] .student-qa__thread {
+  background: color-mix(in oklch, var(--paper) 92%, var(--ink) 8%);
+}
+
+[data-theme="dark"] .student-qa__msg--teacher {
+  background: color-mix(in oklch, var(--paper) 80%, var(--accent) 20%);
+  border-color: color-mix(in oklch, var(--paper-edge) 40%, var(--accent) 60%);
+}
+
+/* =====================================================================
+   Per-block QA overlay on the homework Submissions sheet (Task #70).
+   Sits below each block's attempt list inside BlockReviewSection.
+   Reuses the .qa-inbox__* primitives for the actual thread chrome
+   (head-msg, reply, msg-role, msg-body, reply-form, etc.); the
+   classes below are just the disclosure / wrapper layer.
+   ===================================================================== */
+
+.hw-review-block__qa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--paper-edge);
+}
+
+.hw-review-block__qa-toggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed color-mix(in oklch, var(--paper-edge) 50%, var(--accent) 50%);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.hw-review-block__qa-toggle:hover {
+  background: color-mix(in oklch, var(--paper) 92%, var(--accent) 8%);
+}
+
+.hw-review-block__qa-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hw-review-block__qa-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--paper-sunken) 70%, var(--paper));
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.hw-review-block__qa-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-review-block__qa-empty {
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--paper-edge);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.hw-review-block__qa-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hw-review-block__qa-thread--resolved {
+  opacity: 0.85;
+}
+
+

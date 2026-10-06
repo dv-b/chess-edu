@@ -1,0 +1,1789 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1600" />
+<title>Kingside — Homework v2 mocks</title>
+<template id="__bundler_thumbnail" data-bg-color="#111210">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#111210"/>
+    <g transform="translate(540 240)">
+      <rect width="120" height="120" rx="26" fill="#93c27a"/>
+      <g transform="translate(24 22) scale(1.7)" fill="#14160f">
+        <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3"/>
+      </g>
+    </g>
+    <text x="600" y="440" text-anchor="middle" font-family="Georgia, serif" font-size="44" fill="#ecebe4" font-weight="500">Kingside</text>
+    <text x="600" y="480" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#8c8b82">Homework v2 · design mocks</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+.theme-dark {
+  --bg: #111210;
+  --bg-2: #1a1c19;
+  --card: #1a1c19;
+  --card-2: #1f211c;
+  --card-3: #22251e;
+  --input-bg: #14160f;
+  --ink: #ecebe4;
+  --ink-2: #c8c7bf;
+  --ink-3: #8c8b82;
+  --ink-4: #5a5a52;
+  --rule: #2a2c27;
+  --rule-2: #3a3c35;
+  --green: #93c27a;
+  --green-2: #a7d28f;
+  --green-soft: rgba(147,194,122,0.15);
+  --green-ink: #14160f;
+  --amber: #d9b26b;
+  --amber-soft: rgba(217,178,107,0.15);
+  --danger: #d47a6b;
+  --danger-soft: rgba(212,122,107,0.15);
+  --blue: #7aa6d4;
+  --blue-soft: rgba(122,166,212,0.15);
+}
+.theme-light {
+  --bg: #f4f0e4;
+  --bg-2: #ebe6d6;
+  --card: #ffffff;
+  --card-2: #fbf8ef;
+  --card-3: #f4f0e0;
+  --input-bg: #fbf8ef;
+  --ink: #1b1d19;
+  --ink-2: #3a3c36;
+  --ink-3: #6c6c63;
+  --ink-4: #a09f91;
+  --rule: #d9d3be;
+  --rule-2: #c5bda5;
+  --green: #5f9545;
+  --green-2: #4f8137;
+  --green-soft: rgba(95,149,69,0.14);
+  --green-ink: #ffffff;
+  --amber: #a77d2e;
+  --amber-soft: rgba(167,125,46,0.14);
+  --danger: #b1513f;
+  --danger-soft: rgba(177,81,63,0.14);
+  --blue: #4a79a8;
+  --blue-soft: rgba(74,121,168,0.14);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  background: #0b0b09;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(17,18,16,0.92); backdrop-filter: blur(8px);
+  border-bottom: 1px solid #2a2c27;
+  padding: 14px 40px;
+  display: flex; align-items: center; gap: 20px;
+  color: #ecebe4;
+  font-family: var(--sans); font-size: 13px;
+}
+.theme-wrap.theme-light .topbar {
+  background: rgba(244,240,228,0.92);
+  border-bottom-color: #d9d3be;
+  color: #1b1d19;
+}
+.topbar .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--serif); font-size: 18px; font-weight: 500;
+}
+.topbar .brand-tile {
+  width: 24px; height: 24px; border-radius: 5px;
+  background: linear-gradient(135deg, #93c27a, #a7d28f);
+  display: grid; place-items: center;
+}
+.topbar .brand-tile svg { width: 16px; height: 16px; color: #14160f; }
+.theme-wrap.theme-light .topbar .brand-tile {
+  background: linear-gradient(135deg, #5f9545, #4f8137);
+}
+.theme-wrap.theme-light .topbar .brand-tile svg { color: #fff; }
+.topbar .title { font-family: var(--serif); font-size: 15px; color: var(--ink-2); font-style: italic; }
+.topbar .spacer { flex: 1; }
+.topbar .seg {
+  display: flex; padding: 3px; gap: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #2a2c27;
+  border-radius: 999px;
+}
+.theme-wrap.theme-light .topbar .seg { background: rgba(0,0,0,0.03); border-color: #d9d3be; }
+.topbar .seg button {
+  all: unset; padding: 5px 12px; font-size: 12px;
+  color: var(--ink-3); border-radius: 999px; cursor: pointer;
+  font-weight: 500;
+}
+.topbar .seg button.on {
+  background: var(--green); color: var(--green-ink);
+}
+.theme-wrap .topbar .seg.theme button.on {
+  background: #ecebe4; color: #111210;
+}
+.theme-wrap.theme-light .topbar .seg.theme button.on {
+  background: #1b1d19; color: #f4f0e4;
+}
+
+/* Page / canvas background */
+.canvas {
+  padding: 48px 40px 120px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.hero {
+  max-width: 1100px;
+  margin: 0 0 60px;
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: 44px; font-weight: 500;
+  letter-spacing: -0.02em; line-height: 1.08;
+  color: var(--ink);
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+.hero p {
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 72ch;
+  margin: 0 0 10px;
+}
+
+/* Section heading */
+.sec {
+  margin-bottom: 88px;
+}
+.sec-head {
+  padding-bottom: 22px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--rule);
+  max-width: 1100px;
+}
+.sec-num {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 6px;
+}
+.sec-head h2 {
+  font-family: var(--serif);
+  font-size: 28px; font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.sec-head p {
+  font-size: 13.5px; line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 68ch;
+  margin: 0;
+}
+.rationale {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--card-2);
+  border-left: 2px solid var(--green);
+  border-radius: 2px;
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 68ch;
+}
+.rationale strong {
+  color: var(--ink); font-weight: 600;
+}
+
+/* Frame rows: horizontal scroll */
+.frames {
+  display: flex; gap: 32px;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  overflow-x: auto;
+}
+.frame {
+  flex-shrink: 0;
+}
+.frame-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+.frame-label .v {
+  color: var(--green);
+  font-weight: 600;
+  margin-right: 6px;
+}
+.frame-note {
+  font-family: var(--sans);
+  font-size: 11.5px;
+  color: var(--ink-4);
+  margin-top: 8px;
+  max-width: 420px;
+  line-height: 1.45;
+  font-style: italic;
+}
+
+/* ===== App chrome (simulated) ===== */
+.app {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  font-family: var(--sans);
+}
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg-2);
+  border-right: 1px solid var(--rule);
+  padding: 18px 14px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sidebar .logo {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 10px 16px;
+  font-family: var(--serif); font-size: 16px;
+  color: var(--ink);
+}
+.sidebar .logo-tile {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: linear-gradient(135deg, var(--green), var(--green-2));
+  display: grid; place-items: center;
+}
+.sidebar .logo-tile svg { width: 14px; height: 14px; color: var(--green-ink); }
+.sidebar .nav-head {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-4);
+  padding: 14px 10px 6px;
+}
+.sidebar .nav-item {
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar .nav-item.on {
+  background: var(--card-2);
+  color: var(--ink);
+}
+.sidebar .nav-item .count {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3);
+}
+.sidebar .nav-item .dot {
+  width: 6px; height: 6px; border-radius: 999px; background: var(--green);
+  margin-left: auto;
+}
+.sidebar .user {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px; border-top: 1px solid var(--rule); margin-top: auto;
+  padding-top: 14px;
+}
+.sidebar .avatar {
+  width: 28px; height: 28px; border-radius: 999px;
+  background: var(--card-2);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+}
+.sidebar .user .who {
+  font-size: 12.5px; color: var(--ink);
+  line-height: 1.2;
+}
+.sidebar .user .who span {
+  font-size: 11px; color: var(--ink-3); display: block;
+}
+
+.main {
+  flex: 1;
+  padding: 22px 28px 32px;
+  min-width: 0;
+}
+.main-head {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 22px;
+}
+.main-head .crumb {
+  font-size: 12px; color: var(--ink-3);
+}
+.main-head .crumb .sep { margin: 0 6px; color: var(--ink-4); }
+.main-head .crumb .cur { color: var(--ink-2); }
+.main-head .spacer { flex: 1; }
+.main-head .pg-title {
+  font-family: var(--serif); font-size: 26px; font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.main-head .pg-sub {
+  font-size: 12.5px; color: var(--ink-3);
+}
+
+/* chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.01em;
+  font-family: var(--sans);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.chip .d { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+.chip.neutral { background: var(--card-2); color: var(--ink-3); border-color: var(--rule); }
+.chip.progress { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
+.chip.submitted { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+.chip.ok { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.chip.needs { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.chip.ghost { background: transparent; color: var(--ink-3); border-color: var(--rule); }
+
+.btn {
+  all: unset; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 14px;
+  border-radius: 7px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+.btn-green { background: var(--green); color: var(--green-ink); }
+.btn-outline { border: 1px solid var(--rule-2); color: var(--ink); }
+.btn-ghost { color: var(--ink-3); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-lg { padding: 11px 20px; font-size: 14px; font-weight: 600; }
+.btn-block { display: flex; width: 100%; }
+
+/* ===== Homework card (list) ===== */
+.hw-card {
+  display: grid; grid-template-columns: 46px 1fr auto;
+  gap: 18px; align-items: center;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.hw-card:hover { border-color: var(--rule-2); }
+.hw-card .hw-icon {
+  width: 46px; height: 46px;
+  border-radius: 8px;
+  background: var(--card-2);
+  display: grid; place-items: center;
+  font-family: var(--serif); font-size: 18px;
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+}
+.hw-card .hw-body .title {
+  font-family: var(--serif); font-size: 17px; font-weight: 500;
+  color: var(--ink); margin: 0 0 4px;
+}
+.hw-card .hw-body .meta {
+  font-size: 12px; color: var(--ink-3);
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.hw-card .hw-body .meta .sep { color: var(--ink-4); }
+.hw-card .hw-status {
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+}
+.hw-card .progress {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3);
+}
+.progress-bar {
+  width: 70px; height: 4px;
+  background: var(--card-2);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+}
+.progress-bar > span {
+  display: block; height: 100%;
+  background: var(--green);
+  border-radius: 999px;
+}
+
+/* ===== Deadline pill ===== */
+.deadline {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3);
+}
+.deadline.tight { color: var(--amber); }
+.deadline.overdue { color: var(--danger); }
+.deadline svg { width: 12px; height: 12px; }
+
+/* ===== Block (in detail view) ===== */
+.blocks { display: flex; flex-direction: column; gap: 18px; }
+.block {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: flex-start;
+}
+.block.solve { border-left: 3px solid var(--green); }
+.block.study { border-left: 3px solid var(--blue); }
+.block-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px;
+}
+.block-head .kind {
+  font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-4);
+}
+.block-head .kind.solve { color: var(--green); }
+.block-head .kind.study { color: var(--blue); }
+.block-head .title {
+  font-family: var(--serif); font-size: 18px; font-weight: 500;
+  color: var(--ink); margin: 0;
+  flex: 1;
+}
+.block-head .n {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-4);
+  background: var(--card-2);
+  padding: 2px 7px; border-radius: 4px;
+}
+.block-body {
+  min-width: 0;
+}
+.block-prompt {
+  font-size: 13.5px; line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+  max-width: 50ch;
+}
+.block-actions {
+  display: flex; gap: 8px; align-items: center;
+  margin-top: 14px; flex-wrap: wrap;
+}
+.block-footnote {
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--ink-4);
+  font-style: italic;
+}
+
+/* Move list / annotations */
+.moves {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  background: var(--card-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.moves .num { color: var(--ink-4); margin-right: 4px; }
+.moves .w { color: var(--ink); font-weight: 600; }
+.moves .b { color: var(--ink-2); }
+.moves .cur { background: var(--green-soft); padding: 1px 4px; border-radius: 3px; color: var(--green-2); }
+
+/* Your move preview */
+.your-move {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  background: var(--green-soft);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--green);
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 500;
+}
+.your-move .arr {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+}
+.your-move .hint {
+  margin-left: auto; font-size: 11px; color: var(--ink-3); font-style: italic; font-weight: 400;
+}
+
+/* Feedback banners */
+.banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.banner .ic {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  margin-top: 1px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+}
+.banner.ok {
+  background: var(--green-soft); color: var(--green); border: 1px solid var(--green);
+}
+.banner.ok .ic { background: var(--green); color: var(--green-ink); }
+.banner.submitted {
+  background: var(--blue-soft); color: var(--blue); border: 1px solid var(--blue);
+}
+.banner.submitted .ic { background: var(--blue); color: #fff; }
+.banner.needs {
+  background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger);
+}
+.banner.needs .ic { background: var(--danger); color: #fff; }
+.banner.amber {
+  background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber);
+}
+.banner.amber .ic { background: var(--amber); color: #14160f; }
+.banner strong { color: inherit; font-weight: 600; }
+.banner .body { flex: 1; }
+.banner .body .teacher-note {
+  margin-top: 6px; font-style: italic;
+  font-family: var(--serif);
+  font-size: 13px; color: var(--ink);
+  opacity: 0.85;
+}
+
+/* ===== Chess board (static SVG-driven via CSS grid) ===== */
+.board-wrap { width: 380px; max-width: 100%; }
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  position: relative;
+}
+.theme-wrap.theme-light .board { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.sq {
+  position: relative;
+  display: grid; place-items: center;
+  aspect-ratio: 1 / 1;
+}
+.sq.lt { background: #e8d9b5; }
+.sq.dk { background: #a47a52; }
+.sq .piece {
+  width: 82%; height: 82%;
+}
+.sq .piece svg { width: 100%; height: 100%; display: block; }
+.sq.sel { box-shadow: inset 0 0 0 3px rgba(147,194,122,0.85); }
+.sq.last { background: rgba(147,194,122,0.45); }
+.sq.last.dk { background: rgba(147,194,122,0.55); }
+.sq.legal::after {
+  content: "";
+  position: absolute;
+  width: 28%; height: 28%;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.22);
+}
+.sq.legal.cap::after {
+  width: 80%; height: 80%;
+  background: transparent;
+  border: 3px solid rgba(212,122,107,0.7);
+}
+.sq.err { box-shadow: inset 0 0 0 3px rgba(212,122,107,0.85); }
+.sq.hint { box-shadow: inset 0 0 0 2px rgba(217,178,107,0.8); }
+.sq .coord {
+  position: absolute; font-size: 9px; font-family: var(--mono); color: rgba(0,0,0,0.45);
+  padding: 2px 4px;
+}
+.sq .coord.file { bottom: 0; right: 0; }
+.sq .coord.rank { top: 0; left: 0; }
+.sq.dk .coord { color: rgba(255,255,255,0.55); }
+
+.board-foot {
+  margin-top: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3);
+}
+.board-foot .ticks { display: flex; gap: 4px; }
+.board-foot .tick {
+  width: 24px; height: 6px; border-radius: 999px; background: var(--card-2);
+  border: 1px solid var(--rule);
+}
+.board-foot .tick.done { background: var(--green); border-color: var(--green); }
+.board-foot .tick.active { background: var(--amber); border-color: var(--amber); }
+
+.to-move {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3);
+}
+.to-move .dot {
+  width: 9px; height: 9px; border-radius: 999px;
+  background: #fff; border: 1px solid var(--ink-3);
+}
+.to-move .dot.black { background: #2b2b2b; border-color: var(--ink); }
+
+/* Revisit / overwrite confirm modal */
+.modal-card {
+  background: var(--card);
+  border: 1px solid var(--rule-2);
+  border-radius: 12px;
+  padding: 22px 24px;
+  width: 380px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.modal-card h3 {
+  font-family: var(--serif); font-size: 20px; font-weight: 500;
+  margin: 0 0 10px;
+}
+.modal-card p { font-size: 13px; line-height: 1.55; color: var(--ink-2); margin: 0 0 18px; }
+.modal-card .prev {
+  margin: 0 0 18px; padding: 10px 12px;
+  background: var(--card-2); border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-family: var(--mono); font-size: 11.5px;
+  color: var(--ink-3);
+  display: flex; gap: 8px; align-items: center;
+}
+.modal-card .acts { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Teacher submissions rows */
+.sub-row {
+  display: grid;
+  grid-template-columns: 32px 180px 1fr 180px 120px 80px;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 12.5px;
+}
+.sub-row:last-child { border-bottom: 0; }
+.sub-row .student {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.sub-row .student .av {
+  width: 28px; height: 28px; border-radius: 999px;
+  background: var(--card-2); border: 1px solid var(--rule);
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+}
+.sub-row .blocks-strip {
+  display: flex; gap: 4px; align-items: center;
+}
+.blk {
+  width: 20px; height: 20px; border-radius: 4px;
+  display: grid; place-items: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  border: 1px solid;
+  cursor: pointer;
+}
+.blk.neutral { color: var(--ink-4); border-color: var(--rule); }
+.blk.progress { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
+.blk.submitted { color: var(--blue); border-color: var(--blue); background: var(--blue-soft); }
+.blk.ok { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+.blk.needs { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+.sub-row .last { color: var(--ink-3); font-family: var(--mono); font-size: 11px; }
+.sub-head {
+  display: grid;
+  grid-template-columns: 32px 180px 1fr 180px 120px 80px;
+  gap: 14px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rule-2);
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-4);
+}
+.sub-table {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Legend */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 10px 18px;
+  padding: 14px 18px;
+  background: var(--card-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  max-width: 1100px;
+  margin-bottom: 22px;
+}
+.legend .item { display: flex; align-items: center; gap: 8px; }
+
+/* Mobile mock */
+.phone {
+  width: 320px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+  overflow: hidden;
+  font-family: var(--sans);
+  box-shadow: 0 12px 44px rgba(0,0,0,0.35);
+}
+.phone .status {
+  padding: 10px 18px 6px;
+  display: flex; justify-content: space-between;
+  font-family: var(--mono); font-size: 10px; color: var(--ink-2);
+}
+.phone .ph-main {
+  padding: 12px 16px 24px;
+}
+
+/* Annotations */
+.ann {
+  display: flex; gap: 12px;
+  max-width: 1400px;
+  margin-top: 8px;
+}
+.ann-col {
+  flex: 1;
+}
+</style>
+</head>
+<body>
+<div class="theme-wrap theme-dark" id="wrap">
+
+<!-- ===== Top bar ===== -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-tile">
+      <svg viewBox="0 0 45 45" fill="currentColor"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3"/></svg>
+    </div>
+    Kingside
+  </div>
+  <span class="title">Homework v2 — design mocks</span>
+  <span class="spacer"></span>
+
+  <div class="seg" id="lang">
+    <button data-v="uz">O'zbekcha</button>
+    <button data-v="ru" class="on">Русский</button>
+    <button data-v="en">English</button>
+  </div>
+  <div class="seg theme" id="theme">
+    <button data-v="dark" class="on">Dark</button>
+    <button data-v="light">Light</button>
+  </div>
+</div>
+
+<div class="canvas">
+
+<!-- Hero -->
+<section class="hero">
+  <div class="sec-num">Design pass · April 2026</div>
+  <h1>Homework with submitted moves</h1>
+  <p>
+    Moving from a "done / skipped" self-assessment to a teachable unit of work: each homework is a sequence of
+    <strong>blocks</strong> that students either <strong>solve</strong> (drag pieces, produce a line, submit) or
+    <strong>study</strong> (step through an annotated game). Teachers review block-by-block; the student's
+    homework status rolls up automatically. Mocks below cover the five scenarios in the brief and
+    answer the open questions we discussed.
+  </p>
+</section>
+
+<!-- Legend -->
+<section>
+  <div class="sec-num">Legend · Block states</div>
+  <div class="legend">
+    <span class="item"><span class="chip neutral"><span class="d"></span>Not attempted</span></span>
+    <span class="item"><span class="chip progress"><span class="d"></span>In progress</span></span>
+    <span class="item"><span class="chip submitted"><span class="d"></span>Submitted · awaiting review</span></span>
+    <span class="item"><span class="chip ok"><span class="d"></span>Reviewed — OK</span></span>
+    <span class="item"><span class="chip needs"><span class="d"></span>Needs work</span></span>
+    <span class="item"><span class="chip ghost"><span class="d"></span>Solution revealed</span></span>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 1. Homework list — new pill states -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">01 · Scenario</div>
+    <h2>Homework list — student view</h2>
+    <p>Same layout the student has today, with the old DONE/SKIPPED chip replaced by a progress bar and per-block rollup state. Deadline pill becomes amber inside 24 h, red when overdue.</p>
+    <div class="rationale">
+      <strong>Q3 answer — keep the self-mark.</strong> It's now a "Mark as finished" micro-action that only appears
+      when every block is in a terminal state (Reviewed OK / Reviewed needs-work / Solution revealed). The student still
+      gets the closure of "I'm done with this homework" without it being the primary status source.
+    </div>
+  </div>
+
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label"><span class="v">V1</span>Student · Homework list (mixed states)</div>
+      <div class="app" style="width: 1020px;">
+        <!-- sidebar -->
+        <aside class="sidebar">
+          <div class="logo">
+            <div class="logo-tile"><svg viewBox="0 0 45 45" fill="currentColor"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3"/></svg></div>
+            Kingside
+          </div>
+          <div class="nav-head">Learn</div>
+          <div class="nav-item">Dashboard</div>
+          <div class="nav-item on">Homework <span class="count">3</span></div>
+          <div class="nav-item">Lessons</div>
+          <div class="nav-item">Puzzles</div>
+          <div class="nav-head">Play</div>
+          <div class="nav-item">Classmates</div>
+          <div class="nav-item">Tournaments</div>
+          <div class="user">
+            <div class="avatar">AK</div>
+            <div class="who">Asliddin K.<span>Class 4B · 1420</span></div>
+          </div>
+        </aside>
+        <!-- main -->
+        <main class="main">
+          <div class="main-head">
+            <div>
+              <h1 class="pg-title">Homework</h1>
+              <div class="pg-sub">3 assigned · 1 awaiting review · next due tomorrow</div>
+            </div>
+            <span class="spacer"></span>
+            <div class="seg" style="background: var(--card-2); border: 1px solid var(--rule); display: flex; padding: 3px; border-radius: 999px;">
+              <button class="btn btn-sm" style="color: var(--ink); background: var(--card-3); border-radius: 999px;">Active</button>
+              <button class="btn btn-sm" style="color: var(--ink-3);">Finished</button>
+            </div>
+          </div>
+
+          <!-- card 1: in progress, tight deadline -->
+          <div class="hw-card">
+            <div class="hw-icon">♞</div>
+            <div class="hw-body">
+              <div class="title">Knight tactics — forks & skewers</div>
+              <div class="meta">
+                <span>6 blocks · 4 solve · 2 study</span>
+                <span class="sep">·</span>
+                <span class="deadline tight">
+                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+                  Due in 18 h
+                </span>
+                <span class="sep">·</span>
+                <span>Coach Nodira</span>
+              </div>
+            </div>
+            <div class="hw-status">
+              <span class="chip progress"><span class="d"></span>In progress · 3 / 6</span>
+              <div class="progress">
+                <div class="progress-bar"><span style="width: 50%;"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- card 2: submitted awaiting review -->
+          <div class="hw-card">
+            <div class="hw-icon">♝</div>
+            <div class="hw-body">
+              <div class="title">Bishop endgame fundamentals</div>
+              <div class="meta">
+                <span>4 blocks · all study</span>
+                <span class="sep">·</span>
+                <span class="deadline">
+                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+                  Due Fri · 3 days
+                </span>
+                <span class="sep">·</span>
+                <span>Coach Nodira</span>
+              </div>
+            </div>
+            <div class="hw-status">
+              <span class="chip submitted"><span class="d"></span>Submitted · 4 / 4</span>
+              <div class="progress" style="color: var(--blue);">
+                <div class="progress-bar"><span style="width: 100%; background: var(--blue);"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- card 3: mixed reviewed -->
+          <div class="hw-card">
+            <div class="hw-icon">♜</div>
+            <div class="hw-body">
+              <div class="title">Rook lift — Carlsen vs. Anand, 2014</div>
+              <div class="meta">
+                <span>5 blocks · 2 solve · 3 study</span>
+                <span class="sep">·</span>
+                <span class="deadline overdue">
+                  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+                  Was due yesterday
+                </span>
+                <span class="sep">·</span>
+                <span>Coach Rustam</span>
+              </div>
+            </div>
+            <div class="hw-status">
+              <div style="display:flex; gap:4px;">
+                <span class="chip needs" style="padding: 2px 7px; font-size: 10.5px;">1 needs work</span>
+                <span class="chip ok" style="padding: 2px 7px; font-size: 10.5px;">4 ok</span>
+              </div>
+              <button class="btn btn-sm btn-outline" style="padding: 4px 9px;">Mark as finished</button>
+            </div>
+          </div>
+
+        </main>
+      </div>
+      <div class="frame-note">Deadline pill picks up amber inside 24 h (card 1) and danger red when overdue (card 3). Progress bar colour matches the card's dominant state.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 2. Homework detail — Solve block (Variant A + B) -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">02 · Scenario</div>
+    <h2>Homework detail — Solve block, two variants</h2>
+    <p>Solve blocks are the new primary work surface. The student receives a position + prompt, plays the required sequence of moves on the board, and submits. Two variants below for how to signal "your turn to move" vs. "just watch".</p>
+    <div class="rationale">
+      <strong>Q1 answer — both signals layered.</strong> Variant A uses a prominent <em>"Your move"</em> chip and
+      distinct block kind label ("SOLVE" in green). Variant B pushes further with a left-border accent
+      and different card background tint. Recommendation: <strong>ship Variant A.</strong> The accent chip
+      + kind label is enough, the background tint in B makes long homeworks feel like a mosaic. Keep the
+      left-border accent from B as a subtle sub-treatment (already included in A below).
+    </div>
+  </div>
+
+  <div class="frames">
+    <!-- Variant A -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">V1 · recommended</span>Solve block — "Your move" chip + kind label</div>
+      <div class="block solve" style="width: 1020px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip progress"><span class="d"></span>In progress</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <p class="block-prompt">
+            White has a tactical opportunity. Find the move sequence that wins a piece.
+            Prompt from Coach Nodira: <em>"look at the weak back rank first — what does your knight threaten if you redeploy it?"</em>
+          </p>
+
+          <div class="your-move">
+            <span class="arr">⟶</span>
+            <span>Your move — drag the <strong>white knight</strong> to the square that starts the combination.</span>
+            <span class="hint">Move 3 of 3</span>
+          </div>
+
+          <div class="moves">
+            <span class="num">1.</span> <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w cur">Nf6+</span> <span style="color: var(--ink-4)">_</span>
+          </div>
+
+          <div class="block-actions">
+            <button class="btn btn-green">Submit move</button>
+            <button class="btn btn-outline">Take back</button>
+            <button class="btn btn-ghost">Reset to start</button>
+            <span style="flex:1"></span>
+            <span class="to-move"><span class="dot"></span> White to move</span>
+          </div>
+        </div>
+
+        <div class="board-wrap">
+          <!-- static board -->
+          <div id="board-a" class="board"></div>
+          <div class="board-foot">
+            <div class="ticks">
+              <span class="tick done"></span>
+              <span class="tick done"></span>
+              <span class="tick active"></span>
+            </div>
+            <span>3 moves · you play 2, 4, 6</span>
+          </div>
+        </div>
+      </div>
+      <div class="frame-note">Green left border + "SOLVE" kind label + "Your move" chip. Move list shows line so far with the current ply highlighted.</div>
+    </div>
+
+    <!-- Variant B -->
+    <div class="frame">
+      <div class="frame-label"><span class="v" style="color: var(--amber)">V2 · alternative</span>Solve block — full tint background</div>
+      <div class="block solve" style="width: 1020px; background: var(--green-soft); border-color: var(--green); border-left-width: 3px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip progress"><span class="d"></span>In progress</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <p class="block-prompt">
+            White has a tactical opportunity. Find the move sequence that wins a piece.
+          </p>
+          <div class="moves" style="background: var(--bg);">
+            <span class="num">1.</span> <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w cur">Nf6+</span>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-green">Submit move</button>
+            <button class="btn btn-outline">Take back</button>
+            <span style="flex:1"></span>
+            <span class="to-move"><span class="dot"></span> White to move</span>
+          </div>
+        </div>
+        <div class="board-wrap">
+          <div id="board-b" class="board"></div>
+          <div class="board-foot">
+            <div class="ticks">
+              <span class="tick done"></span><span class="tick done"></span><span class="tick active"></span>
+            </div>
+            <span>3 moves · you play 2, 4, 6</span>
+          </div>
+        </div>
+      </div>
+      <div class="frame-note">Whole block gets a green tint. Reads loud — good when there's only one solve block, too loud when a homework has 4 of them in a row.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 3. Homework detail — Study block -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">03 · Scenario</div>
+    <h2>Homework detail — Study block</h2>
+    <p>Passive: the student steps through an annotated game. The block auto-enters "Submitted" state once they reach the final move (no Submit button needed). Marked with a blue left border.</p>
+  </div>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label"><span class="v">V1</span>Study block — annotated walkthrough</div>
+      <div class="block study" style="width: 1020px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind study">○ Study · Block 2 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip ok"><span class="d"></span>Completed — step 24 / 24</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">How Carlsen set up the rook lift</h3>
+          <p class="block-prompt">
+            Follow the game to move 24. Coach commentary appears on the right at key
+            moments — no need to submit anything, just absorb the pattern.
+          </p>
+          <div class="moves">
+            <span class="num">18.</span> <span class="w">Rfe1</span> <span class="b">Qc7</span>
+            <span class="num">19.</span> <span class="w">Re3</span> <span class="b">b5</span>
+            <span class="num">20.</span> <span class="w">Rh3</span> <span class="b">g6</span>
+            <span class="num">21.</span> <span class="w">Rdh1</span> <span class="b">Nf8</span>
+            <span class="num">22.</span> <span class="w">Qd2</span> <span class="b">Bd7</span>
+            <span class="num">23.</span> <span class="w">Qh6</span> <span class="b">Kh8</span>
+            <span class="num">24.</span> <span class="w cur">Rxh7+</span>
+          </div>
+
+          <div class="banner amber">
+            <span class="ic">!</span>
+            <div class="body">
+              <strong>Coach annotation — move 19.Re3</strong>
+              <div class="teacher-note">"Carlsen starts the lift here. Notice it's not about attacking yet — he's clearing the third rank and telling his rook 'your new home is h3 or h5'. This is the whole idea."</div>
+            </div>
+          </div>
+
+          <div class="block-actions">
+            <button class="btn btn-outline">◂ Back</button>
+            <button class="btn btn-outline">Next ▸</button>
+            <span style="flex:1"></span>
+            <span class="to-move">Move 24 of 24</span>
+          </div>
+        </div>
+        <div class="board-wrap">
+          <div id="board-c" class="board"></div>
+          <div class="board-foot">
+            <div class="ticks">
+              <span class="tick done"></span><span class="tick done"></span><span class="tick done"></span>
+              <span class="tick done"></span><span class="tick done"></span><span class="tick done"></span>
+            </div>
+            <span>Study complete</span>
+          </div>
+        </div>
+      </div>
+      <div class="frame-note">Blue left border + "STUDY" kind label + no Submit button. Coach annotations attach to specific moves — students see them as amber banners that change as they step.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 4. Block states — solve block lifecycle -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">04 · States</div>
+    <h2>Solve block — five states, one layout</h2>
+    <p>Same scaffolding, different chip + banner. Layout never jumps.</p>
+  </div>
+  <div class="frames">
+
+    <!-- State: not attempted -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">A</span>Not attempted</div>
+      <div class="block solve" style="width: 640px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip neutral"><span class="d"></span>Not attempted</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <p class="block-prompt">White has a tactical opportunity. Find the move sequence that wins a piece.</p>
+          <div class="your-move">
+            <span class="arr">⟶</span>
+            <span>Your move — drag the <strong>white knight</strong>.</span>
+            <span class="hint">Move 1 of 3</span>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-green">Start</button>
+            <span style="flex:1"></span>
+            <span class="to-move"><span class="dot"></span> White to move</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: submitted -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">B</span>Submitted — awaiting review</div>
+      <div class="block solve" style="width: 640px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip submitted"><span class="d"></span>Submitted · awaiting review</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <div class="moves">
+            <span class="num">1.</span> <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w">Nf6+</span>
+          </div>
+          <div class="banner submitted">
+            <span class="ic">✓</span>
+            <div class="body">
+              <strong>Submitted · waiting for Coach Nodira</strong><br/>
+              <span style="opacity: 0.85;">You'll get a notification when she reviews it — usually within a day.</span>
+            </div>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-ghost">Revisit attempt</button>
+            <span style="flex:1"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: OK -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">C</span>Reviewed — OK</div>
+      <div class="block solve" style="width: 640px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip ok"><span class="d"></span>Reviewed — OK</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <div class="moves">
+            <span class="num">1.</span> <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w">Nf6+</span>
+          </div>
+          <div class="banner ok">
+            <span class="ic">✓</span>
+            <div class="body">
+              <strong>Coach Nodira — 2 days ago</strong>
+              <div class="teacher-note">"Perfect. The key move is 2.Qh5+ because g6 is forced, and only then does Nf6+ win the queen. You spotted the order correctly."</div>
+            </div>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-outline">Replay this attempt</button>
+            <span style="flex:1"></span>
+            <span style="font-size: 11px; color: var(--ink-4);">Solution now visible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: needs work -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">D</span>Reviewed — needs work</div>
+      <div class="block solve" style="width: 640px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip needs"><span class="d"></span>Needs work</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <div class="moves">
+            <span class="num">1.</span> <span class="w" style="color: var(--danger)">Nxf7</span> <span class="b">Kxf7</span>
+          </div>
+          <div class="banner needs">
+            <span class="ic">!</span>
+            <div class="body">
+              <strong>Coach Nodira — 1 day ago</strong>
+              <div class="teacher-note">"Nxf7 sacrifices without a follow-up. Look at the queen's diagonal to h5 first — that's what creates the threat. Try again when you're ready."</div>
+            </div>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-green">Try again</button>
+            <button class="btn btn-outline">Reveal solution</button>
+            <span style="flex:1"></span>
+            <span style="font-size: 11px; color: var(--ink-4);">Attempt counts toward effort, not score</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State: solution revealed -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">E</span>Solution revealed (after review)</div>
+      <div class="block solve" style="width: 640px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip ghost"><span class="d"></span>Solution revealed</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <div class="moves">
+            <span class="num">Your try:</span> <span class="w" style="color: var(--ink-4); text-decoration: line-through;">Nxf7</span>
+            <br/>
+            <span class="num">Solution:</span>
+            <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w">Nf6+</span>
+          </div>
+          <div class="banner amber">
+            <span class="ic">i</span>
+            <div class="body">
+              <strong>Solution shown because the coach has reviewed your attempt.</strong><br/>
+              <span style="opacity: 0.85;">Your attempt is kept on file. Revisit to try again without changing Coach Nodira's review.</span>
+            </div>
+          </div>
+          <div class="block-actions">
+            <button class="btn btn-outline">Revisit without overwriting</button>
+            <span style="flex:1"></span>
+          </div>
+        </div>
+      </div>
+      <div class="frame-note">Q9 answer — solution unlocks only after the teacher reviews. Strict "Needs work" must be reviewed first before student can reveal.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 5. Revisit / overwrite flow -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">05 · Flow</div>
+    <h2>Revisit a reviewed block — overwrite confirmation</h2>
+    <p>Once a block is submitted, the student can still reopen it to practise the position. If they make a different move sequence, they get to choose: overwrite the submission (new attempt goes to the teacher for re-review), or keep practising in a sandbox.</p>
+    <div class="rationale">
+      <strong>Q7 answer — block-level + rollup.</strong> Each block gets its own review cycle; the homework's overall
+      status in the student's list rolls up from its blocks. That means the teacher doesn't have to wait for all 6 blocks
+      to be done before reviewing the first 3.
+    </div>
+  </div>
+  <div class="frames">
+
+    <!-- Step 1 -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">1</span>Revisit entry — from a submitted block</div>
+      <div style="width: 420px; padding: 40px 20px; background: var(--bg-2); border: 1px solid var(--rule); border-radius: 10px; display: grid; place-items: center;">
+        <div class="modal-card" style="width: 100%; box-shadow: none; background: var(--card); border-color: var(--rule);">
+          <div style="font-size: 11px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 6px;">Block 3 / 6</div>
+          <h3>Win the knight with a fork</h3>
+          <p>This block is already submitted. What would you like to do?</p>
+          <button class="btn btn-outline btn-block" style="margin-bottom: 8px;">Replay my submitted attempt</button>
+          <button class="btn btn-outline btn-block" style="margin-bottom: 8px;">Practise without changing my submission</button>
+          <button class="btn btn-green btn-block">Try a new answer →</button>
+          <div style="margin-top: 14px; font-size: 11.5px; color: var(--ink-4); text-align: center;">Your coach sees only what you submit.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">2</span>Different move played — overwrite confirm</div>
+      <div style="width: 420px; padding: 40px 20px; background: var(--bg-2); border: 1px solid var(--rule); border-radius: 10px; display: grid; place-items: center;">
+        <div class="modal-card">
+          <h3>Overwrite your submission?</h3>
+          <p>You played a different move sequence. If you submit, your previous attempt will be replaced and Coach Nodira will be notified.</p>
+          <div class="prev">
+            <span style="color: var(--ink-4);">prev →</span>
+            <span>Nxf7</span>
+            <span style="margin-left: auto; color: var(--danger);">Needs work</span>
+          </div>
+          <div class="prev" style="border-color: var(--green); color: var(--green); background: var(--green-soft);">
+            <span style="color: var(--green);">new →</span>
+            <span>Nxe5, Qh5+, Nf6+</span>
+            <span style="margin-left: auto;">Not yet reviewed</span>
+          </div>
+          <div class="acts">
+            <button class="btn btn-ghost">Keep old</button>
+            <button class="btn btn-green">Overwrite & submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="frame">
+      <div class="frame-label"><span class="v">3</span>After overwrite — awaiting re-review</div>
+      <div class="block solve" style="width: 420px;">
+        <div class="block-body">
+          <div class="block-head">
+            <span class="kind solve">▸ Solve · Block 3 / 6</span>
+            <span class="spacer" style="flex:1;"></span>
+            <span class="chip submitted"><span class="d"></span>Resubmitted</span>
+          </div>
+          <h3 class="block-head title" style="margin: 0 0 12px;">Win the knight with a fork</h3>
+          <div class="moves">
+            <span class="num">1.</span> <span class="w">Nxe5</span> <span class="b">Bxe5</span>
+            <span class="num">2.</span> <span class="w">Qh5+</span> <span class="b">g6</span>
+            <span class="num">3.</span> <span class="w">Nf6+</span>
+          </div>
+          <div class="banner submitted">
+            <span class="ic">↻</span>
+            <div class="body">
+              <strong>Resubmitted · waiting for Coach Nodira</strong><br/>
+              <span style="opacity: 0.85;">Previous attempt kept in history. New answer sent for review.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 6. Teacher submissions sheet -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">06 · Scenario</div>
+    <h2>Teacher — Submissions sheet with block-level review</h2>
+    <p>Each student row shows a strip of per-block pills so the teacher can see at a glance who needs what. Clicking any pill jumps to the student's attempt on that block.</p>
+    <div class="rationale">
+      <strong>Q4 answer — both.</strong> Row strip is the block-level entry point. "Homework status" column is the
+      auto-derived rollup. Only the rollup appears on the class dashboard; block detail is one click away.
+    </div>
+  </div>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label"><span class="v">V1</span>Submissions sheet — block strip + rollup</div>
+      <div style="width: 1200px;">
+        <div style="display: flex; align-items: center; margin-bottom: 14px; gap: 12px;">
+          <h3 style="font-family: var(--serif); font-size: 20px; margin: 0; font-weight: 500;">Knight tactics — forks & skewers</h3>
+          <span class="chip neutral">Class 4B · 12 students</span>
+          <span class="chip submitted">6 awaiting review</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-outline btn-sm">Export CSV</button>
+          <button class="btn btn-green btn-sm">Review next</button>
+        </div>
+        <div class="sub-table">
+          <div class="sub-head">
+            <span></span>
+            <span>Student</span>
+            <span>Blocks · hover for detail</span>
+            <span>Rollup</span>
+            <span>Last activity</span>
+            <span>Action</span>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">AK</div></div>
+            <div class="student">Asliddin Karimov</div>
+            <div class="blocks-strip">
+              <span class="blk ok" title="1. OK">1</span>
+              <span class="blk ok" title="2. OK">2</span>
+              <span class="blk submitted" title="3. Submitted">3</span>
+              <span class="blk progress" title="4. In progress">4</span>
+              <span class="blk neutral" title="5. Not attempted">5</span>
+              <span class="blk neutral" title="6. Not attempted">6</span>
+            </div>
+            <div><span class="chip progress"><span class="d"></span>In progress</span></div>
+            <div class="last">12 min ago</div>
+            <div><button class="btn btn-sm btn-green">Review</button></div>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">DS</div></div>
+            <div class="student">Dilnoza Sharipova</div>
+            <div class="blocks-strip">
+              <span class="blk ok">1</span><span class="blk ok">2</span>
+              <span class="blk ok">3</span><span class="blk ok">4</span>
+              <span class="blk ok">5</span><span class="blk ok">6</span>
+            </div>
+            <div><span class="chip ok"><span class="d"></span>All clean</span></div>
+            <div class="last">2 days ago</div>
+            <div><button class="btn btn-sm btn-ghost">View</button></div>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">JB</div></div>
+            <div class="student">Jahongir Boltayev</div>
+            <div class="blocks-strip">
+              <span class="blk ok">1</span><span class="blk needs">2</span>
+              <span class="blk ok">3</span><span class="blk submitted">4</span>
+              <span class="blk neutral">5</span><span class="blk neutral">6</span>
+            </div>
+            <div><span class="chip needs"><span class="d"></span>Needs attention</span></div>
+            <div class="last">yesterday</div>
+            <div><button class="btn btn-sm btn-green">Review</button></div>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">MK</div></div>
+            <div class="student">Malika Kamalova</div>
+            <div class="blocks-strip">
+              <span class="blk submitted">1</span>
+              <span class="blk submitted">2</span>
+              <span class="blk submitted">3</span>
+              <span class="blk submitted">4</span>
+              <span class="blk submitted">5</span>
+              <span class="blk submitted">6</span>
+            </div>
+            <div><span class="chip submitted"><span class="d"></span>6 to review</span></div>
+            <div class="last">4 h ago</div>
+            <div><button class="btn btn-sm btn-green">Review</button></div>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">RT</div></div>
+            <div class="student">Rustam Toshev</div>
+            <div class="blocks-strip">
+              <span class="blk neutral">1</span><span class="blk neutral">2</span>
+              <span class="blk neutral">3</span><span class="blk neutral">4</span>
+              <span class="blk neutral">5</span><span class="blk neutral">6</span>
+            </div>
+            <div><span class="chip neutral"><span class="d"></span>Not started</span></div>
+            <div class="last">—</div>
+            <div><button class="btn btn-sm btn-ghost">Nudge</button></div>
+          </div>
+          <div class="sub-row">
+            <div class="student"><div class="av">SY</div></div>
+            <div class="student">Sevara Yusupova</div>
+            <div class="blocks-strip">
+              <span class="blk ok">1</span><span class="blk ok">2</span>
+              <span class="blk ok">3</span><span class="blk submitted">4</span>
+              <span class="blk submitted">5</span><span class="blk progress">6</span>
+            </div>
+            <div><span class="chip progress"><span class="d"></span>In progress</span></div>
+            <div class="last">1 h ago</div>
+            <div><button class="btn btn-sm btn-green">Review</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-note">Pill 1–6 = the 6 blocks. Row rollup colour follows the most-urgent block (needs-work &gt; awaiting review &gt; progress &gt; ok). Malika has 6 submissions waiting for review — the "Review next" button at the top queues them up.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 7. Deadline states -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">07 · Details</div>
+    <h2>Deadline affordance — three states</h2>
+    <p>A single deadline pill that shifts colour as the deadline approaches. Relative time (through Intl.RelativeTimeFormat) in the student's locale. Overdue state stays active until the student closes the homework out.</p>
+  </div>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label"><span class="v">A</span>Comfortable · &gt; 24 h</div>
+      <div style="padding: 18px; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; width: 260px;">
+        <div class="deadline">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+          Due Friday · in 3 days
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-label"><span class="v">B</span>Tight · ≤ 24 h</div>
+      <div style="padding: 18px; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; width: 260px;">
+        <div class="deadline tight">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+          Due tomorrow · in 18 h
+        </div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-label"><span class="v">C</span>Overdue</div>
+      <div style="padding: 18px; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; width: 260px;">
+        <div class="deadline overdue">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.8l1.8 1.1"/></svg>
+          Was due yesterday
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 8. Mobile -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">08 · Scenario</div>
+    <h2>Mobile — student surfaces</h2>
+    <p>Students 7–16 often finish homework on a phone. Board is full-width; move list and actions stack underneath. Block kind label stays visible at the top so the solve/study distinction is still strong.</p>
+  </div>
+  <div class="frames">
+    <div class="frame">
+      <div class="frame-label"><span class="v">M1</span>Mobile · homework list</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>●●●● ▉</span></div>
+        <div class="ph-main">
+          <div style="font-family: var(--serif); font-size: 22px; font-weight: 500; margin-bottom: 4px;">Homework</div>
+          <div style="font-size: 12px; color: var(--ink-3); margin-bottom: 14px;">3 assigned · next due tomorrow</div>
+          <div class="hw-card" style="grid-template-columns: 36px 1fr; padding: 12px 14px; margin-bottom: 8px;">
+            <div class="hw-icon" style="width: 36px; height: 36px; font-size: 14px;">♞</div>
+            <div class="hw-body">
+              <div class="title" style="font-size: 14px;">Knight tactics</div>
+              <div class="meta" style="font-size: 11px;">6 blocks · 3 / 6 done</div>
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">
+                <span class="chip progress" style="padding: 2px 7px; font-size: 10px;">In progress</span>
+                <span class="deadline tight" style="font-size: 10px;">18 h</span>
+              </div>
+            </div>
+          </div>
+          <div class="hw-card" style="grid-template-columns: 36px 1fr; padding: 12px 14px; margin-bottom: 8px;">
+            <div class="hw-icon" style="width: 36px; height: 36px; font-size: 14px;">♝</div>
+            <div class="hw-body">
+              <div class="title" style="font-size: 14px;">Bishop endgame</div>
+              <div class="meta" style="font-size: 11px;">4 blocks · submitted</div>
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">
+                <span class="chip submitted" style="padding: 2px 7px; font-size: 10px;">Awaiting review</span>
+              </div>
+            </div>
+          </div>
+          <div class="hw-card" style="grid-template-columns: 36px 1fr; padding: 12px 14px;">
+            <div class="hw-icon" style="width: 36px; height: 36px; font-size: 14px;">♜</div>
+            <div class="hw-body">
+              <div class="title" style="font-size: 14px;">Rook lift</div>
+              <div class="meta" style="font-size: 11px;">5 blocks · reviewed</div>
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">
+                <span class="chip needs" style="padding: 2px 7px; font-size: 10px;">1 needs work</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-label"><span class="v">M2</span>Mobile · solve block (stacked)</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>●●●● ▉</span></div>
+        <div class="ph-main">
+          <div style="font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">▸ Solve · 3 / 6</div>
+          <div style="font-family: var(--serif); font-size: 17px; font-weight: 500; margin-bottom: 10px;">Win the knight with a fork</div>
+          <div id="board-m" class="board" style="width: 100%; margin-bottom: 10px;"></div>
+          <div class="your-move" style="padding: 8px 10px; font-size: 11.5px;">
+            <span class="arr">⟶</span>
+            <span>Your move · drag white knight</span>
+          </div>
+          <div style="margin-top: 10px; display: flex; gap: 6px;">
+            <button class="btn btn-green btn-sm" style="flex: 1;">Submit</button>
+            <button class="btn btn-outline btn-sm">↩</button>
+            <button class="btn btn-outline btn-sm">↻</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="frame-label"><span class="v">M3</span>Mobile · reviewed OK</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>●●●● ▉</span></div>
+        <div class="ph-main">
+          <div style="font-family: var(--mono); font-size: 10px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">▸ Solve · 3 / 6</div>
+          <div style="font-family: var(--serif); font-size: 17px; font-weight: 500; margin-bottom: 8px;">Win the knight with a fork</div>
+          <span class="chip ok"><span class="d"></span>Reviewed — OK</span>
+          <div id="board-m2" class="board" style="width: 100%; margin: 10px 0;"></div>
+          <div class="banner ok" style="font-size: 11.5px; padding: 8px 10px;">
+            <span class="ic">✓</span>
+            <div class="body">
+              <strong>Coach Nodira</strong>
+              <div class="teacher-note" style="font-size: 12px;">"Perfect. You spotted the order correctly."</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 9. Rationale summary -->
+<!-- ================================================================ -->
+<section class="sec">
+  <div class="sec-head">
+    <div class="sec-num">09 · Summary</div>
+    <h2>Open questions · recommendations</h2>
+  </div>
+
+  <div style="max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="rationale" style="margin: 0;">
+      <strong>Q1 — Solve vs. Study affordance.</strong> Layer multiple cues: green/blue kind label + left-border accent + "Your move" chip on solve blocks. Skip the full-background tint (Variant B).
+    </div>
+    <div class="rationale" style="margin: 0;">
+      <strong>Q3 — Homework-level self-mark.</strong> Replaced by auto-rollup. Keep "Mark as finished" as a tertiary micro-action that only appears when every block is terminal.
+    </div>
+    <div class="rationale" style="margin: 0;">
+      <strong>Q4 — Review granularity.</strong> Block-level, with a rollup surfaced on the class dashboard.
+    </div>
+    <div class="rationale" style="margin: 0;">
+      <strong>Q7 — Rollup.</strong> Most-urgent block wins: needs-work &gt; awaiting-review &gt; in-progress &gt; ok &gt; not-started.
+    </div>
+    <div class="rationale" style="margin: 0;">
+      <strong>Q9 — Solution after review.</strong> Unlock automatically once the teacher reviews. "Reveal" button on Needs-work states. Strict rule: no solution visible before review.
+    </div>
+    <div class="rationale" style="margin: 0;">
+      <strong>Deadline.</strong> Single pill, neutral → amber inside 24 h → red when overdue. Overdue doesn't lock the homework.
+    </div>
+  </div>
+</section>
+
+</div> <!-- /.canvas -->
+</div> <!-- /.theme-wrap -->
+
+<!-- ===== Piece library (shared by all boards) ===== -->
+<template id="piece-lib">
+  <!-- uses stored SVG fragments keyed by piece char -->
+</template>
+
+<script>
+/* ======== Piece SVGs (uppercase=white) ======== */
+const PIECE_SVG = {
+  K: `<svg viewBox="0 0 45 45"><g fill="#fff" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M22.5 11.63V6M20 8h5" stroke-linecap="butt"/><path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5"/><path d="M12.5 37c5.5 3.5 14.5 3.5 20 0v-7s9-4.5 6-10.5c-4-6.5-13.5-3.5-16 4V27v-3.5c-3.5-7.5-13-10.5-16-4-3 6 5 10 5 10V37z"/><path d="M12.5 30c5.5-3 14.5-3 20 0m-20 3.5c5.5-3 14.5-3 20 0m-20 3.5c5.5-3 14.5-3 20 0" fill="none"/></g></svg>`,
+  Q: `<svg viewBox="0 0 45 45"><g fill="#fff" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"><path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM16 8.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM33 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7 11V11l-5.5 13.5-3-15-3 15-5.5-14V25L7 14l2 12z" stroke-linecap="butt"/><path d="M9 26c0 2 1.5 2 2.5 4 1 1.5 1 1 .5 3.5-1.5 1-1.5 2.5-1.5 2.5-1.5 1.5.5 2.5.5 2.5 6.5 1 16.5 1 23 0 0 0 1.5-1 0-2.5 0 0 .5-1.5-1-2.5-.5-2.5-.5-2 .5-3.5 1-2 2.5-2 2.5-4-8.5-1.5-18.5-1.5-27 0z" stroke-linecap="butt"/><path d="M11.5 30c3.5-1 18.5-1 22 0M12 33.5c6-1 15-1 21 0" fill="none"/></g></svg>`,
+  R: `<svg viewBox="0 0 45 45"><g fill="#fff" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt"/><path d="M34 14l-3 3H14l-3-3"/><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M31 29.5l1.5 2.5h-20l1.5-2.5"/><path d="M11 14h23" fill="none" stroke-linejoin="miter"/></g></svg>`,
+  B: `<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g fill="#fff" stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.354.49-2.323.47-3-.5 1.354-1.94 3-2 3-2zM15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z"/><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z"/></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" stroke-linejoin="miter"/></g></svg>`,
+  N: `<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff"/><path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3" fill="#fff"/><path d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0zM15 15.5a.5 1.5 0 1 1-1 0 .5 1.5 0 1 1 1 0z" fill="#2b2b2b" stroke="#2b2b2b"/></g></svg>`,
+  P: `<svg viewBox="0 0 45 45"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  k: `<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6" stroke-linejoin="miter"/><path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#2b2b2b" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M12.5 37c5.5 3.5 14.5 3.5 20 0v-7s9-4.5 6-10.5c-4-6.5-13.5-3.5-16 4V27v-3.5c-3.5-7.5-13-10.5-16-4-3 6 5 10 5 10V37z" fill="#2b2b2b"/><path d="M20 8h5" stroke-linejoin="miter"/><path d="M12.5 30c5.5-3 14.5-3 20 0m-20 3.5c5.5-3 14.5-3 20 0m-20 3.5c5.5-3 14.5-3 20 0" stroke="#fff"/></g></svg>`,
+  q: `<svg viewBox="0 0 45 45"><g fill="#2b2b2b" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25l-.3-14.1-5.2 13.6-3-14.5-3 14.5-5.2-13.6L14 25 6.5 13.5 9 26zM9 26c0 2 1.5 2 2.5 4 1 1.5 1 1 .5 3.5-1.5 1-1.5 2.5-1.5 2.5-1.5 1.5.5 2.5.5 2.5 6.5 1 16.5 1 23 0 0 0 1.5-1 0-2.5 0 0 .5-1.5-1-2.5-.5-2.5-.5-2 .5-3.5 1-2 2.5-2 2.5-4-8.5-1.5-18.5-1.5-27 0z" stroke-linecap="butt"/></g></svg>`,
+  r: `<svg viewBox="0 0 45 45"><g fill="#2b2b2b" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M9 39h27v-3H9v3zM12.5 32l1.5-2.5h17l1.5 2.5h-20zM12 36v-4h21v4H12z" stroke-linecap="butt"/><path d="M14 29.5v-13h17v13H14z" stroke-linecap="butt" stroke-linejoin="miter"/><path d="M14 16.5L11 14h23l-3 2.5H14zM11 14V9h4v2h5V9h5v2h5V9h4v5H11z" stroke-linecap="butt"/></g></svg>`,
+  b: `<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g fill="#2b2b2b" stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.354.49-2.323.47-3-.5 1.354-1.94 3-2 3-2zM15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z"/><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z"/></g></g></svg>`,
+  n: `<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#2b2b2b"/><path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.042-.94 1.41-3.04 0-3-1 0 .19 1.23-1 2-1 0-4.003 1-4-4 0-2 6-12 6-12s1.89-1.9 2-3.5c-.73-.994-.5-2-.5-3 1-1 3 2.5 3 2.5h2s.78-1.992 2.5-3c1 0 1 3 1 3" fill="#2b2b2b"/></g></svg>`,
+  p: `<svg viewBox="0 0 45 45"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#2b2b2b" stroke="#2b2b2b" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+};
+
+/* ======== Board renderer ========
+ * Takes a string with 8 ranks separated by '/', each rank 8 chars or digits.
+ * Piece chars: K Q R B N P (white) / k q r b n p (black) / . (empty)
+ * Optional flags on the outer board: select, last-move, legal moves, etc.
+ */
+function renderBoard(el, rows, opts = {}) {
+  el.innerHTML = '';
+  const ranks = rows.split('/');
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const sq = document.createElement('div');
+      const light = (r + f) % 2 === 0;
+      sq.className = 'sq ' + (light ? 'lt' : 'dk');
+      const algebraic = 'abcdefgh'[f] + (8 - r);
+      if (opts.sel && opts.sel.includes(algebraic)) sq.classList.add('sel');
+      if (opts.last && opts.last.includes(algebraic)) sq.classList.add('last');
+      if (opts.legal && opts.legal.includes(algebraic)) sq.classList.add('legal');
+      if (opts.cap && opts.cap.includes(algebraic)) sq.classList.add('legal', 'cap');
+      if (opts.err && opts.err.includes(algebraic)) sq.classList.add('err');
+      if (opts.hint && opts.hint.includes(algebraic)) sq.classList.add('hint');
+      const p = ranks[r][f];
+      if (p && p !== '.' && PIECE_SVG[p]) {
+        const pe = document.createElement('div');
+        pe.className = 'piece';
+        pe.innerHTML = PIECE_SVG[p];
+        sq.appendChild(pe);
+      }
+      if (r === 7) {
+        const c = document.createElement('span');
+        c.className = 'coord file';
+        c.textContent = 'abcdefgh'[f];
+        sq.appendChild(c);
+      }
+      if (f === 0) {
+        const c = document.createElement('span');
+        c.className = 'coord rank';
+        c.textContent = 8 - r;
+        sq.appendChild(c);
+      }
+      el.appendChild(sq);
+    }
+  }
+}
+
+/* Positions */
+// Fork position (after 2...g6, before 3.Nf6+): white N on e4, K on g1, Q on h5, etc
+const forkPos = 'r.bq.rk./ppp..p.p/..npb.p./....N..Q/......../..N..N../PPPP.PPP/R.B.KB.R';
+// Shorter: just show a clear "white to move" position — key squares: e4 (knight), h5 (queen), f6 (target)
+const forkPosClean = 'r.bq.rk./ppp..p.p/..n.b.p./.....B.Q/....N.../..N..../PPPP.PPP/R...K..R';
+
+// Carlsen rook lift (just after Rxh7+ played), approximate
+const rookLiftPos = 'r....rkR/pbq..p../..p.p.n./.p..N.../.P.P..../..P.B.../P.Q..PPP/.....K..';
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderBoard(document.getElementById('board-a'), forkPosClean, { sel: ['e4'], legal: ['f6', 'd6', 'g5', 'c5'], last: ['g7', 'g6'] });
+  renderBoard(document.getElementById('board-b'), forkPosClean, { sel: ['e4'], legal: ['f6', 'd6', 'g5', 'c5'], last: ['g7', 'g6'] });
+  renderBoard(document.getElementById('board-c'), rookLiftPos, { last: ['h1', 'h7'], hint: ['h7'] });
+  renderBoard(document.getElementById('board-m'), forkPosClean, { sel: ['e4'], legal: ['f6', 'd6'], last: ['g7', 'g6'] });
+  renderBoard(document.getElementById('board-m2'), forkPosClean, { last: ['e4', 'f6'] });
+});
+
+/* Theme + lang toggles (minimal — just visual) */
+const wrap = document.getElementById('wrap');
+document.querySelectorAll('#theme button').forEach(b => {
+  b.addEventListener('click', () => {
+    const v = b.dataset.v;
+    wrap.classList.toggle('theme-dark', v === 'dark');
+    wrap.classList.toggle('theme-light', v === 'light');
+    document.body.style.background = v === 'dark' ? '#0b0b09' : '#e8e3d1';
+    document.querySelectorAll('#theme button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+    localStorage.setItem('ks-hw2-theme', v);
+  });
+});
+document.querySelectorAll('#lang button').forEach(b => {
+  b.addEventListener('click', () => {
+    const v = b.dataset.v;
+    document.querySelectorAll('#lang button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+    localStorage.setItem('ks-hw2-lang', v);
+  });
+});
+// restore
+(() => {
+  const t = localStorage.getItem('ks-hw2-theme') || 'dark';
+  const l = localStorage.getItem('ks-hw2-lang') || 'ru';
+  document.querySelector(`#theme button[data-v="${t}"]`)?.click();
+  document.querySelector(`#lang button[data-v="${l}"]`)?.click();
+})();
+</script>
+</body>
+</html>

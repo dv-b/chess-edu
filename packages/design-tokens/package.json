@@ -1,0 +1,11 @@
+{
+  "name": "@chess-edu/design-tokens",
+  "version": "0.0.1",
+  "private": true,
+  "description": "CSS custom properties for the chess-edu design system (paper + ink + scholar green).",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./board.css": "./board.css"
+  },
+  "files": ["tokens.css", "board.css"]
+}

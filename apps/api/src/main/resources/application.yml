@@ -1,0 +1,128 @@
+spring:
+  application:
+    name: chess-edu-api
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  jackson:
+    time-zone: Asia/Tashkent
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/chessedu}
+    username: ${DB_USER:chessedu}
+    password: ${DB_PASSWORD:chessedu}
+    hikari:
+      pool-name: chessedu-hikari
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Tashkent
+        format_sql: false
+        default_batch_fetch_size: 32
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-migration-naming: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      timeout: 2s
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:2525}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+  web:
+    locale: uz
+    locale-resolver: fixed
+
+server:
+  port: 7373
+  forward-headers-strategy: framework
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+chessedu:
+  security:
+    # Placeholder JWT signing key — replace per environment. 32+ bytes.
+    jwt:
+      issuer: chess-edu-dev
+      audience: chess-edu-web
+      access-token-ttl: PT30M
+      refresh-token-ttl: P14D
+      secret: ${JWT_SECRET:dev-only-change-me-dev-only-change-me-dev-only}
+  web:
+    # Absolute URL of the web app — used to build links in transactional email.
+    base-url: ${WEB_BASE_URL:http://localhost:3100}
+  mail:
+    from-address: ${MAIL_FROM_ADDRESS:noreply@chess-edu.local}
+    from-name: ${MAIL_FROM_NAME:Kingside}
+  invitation:
+    # How long a freshly-issued invitation remains acceptable.
+    ttl: P7D
+  telegram:
+    # Master switch. When false (default) the bot worker bean isn't created,
+    # so nothing tries to long-poll Telegram. Flip on once a token is set.
+    enabled: ${CHESSEDU_TELEGRAM_ENABLED:false}
+    bot-token: ${CHESSEDU_TELEGRAM_BOT_TOKEN:}
+    bot-username: ${CHESSEDU_TELEGRAM_BOT_USERNAME:}
+    # Override only when pointing at a mock Telegram server (Task E test).
+    api-base-url: ${CHESSEDU_TELEGRAM_API_BASE_URL:https://api.telegram.org}
+    poll-timeout-seconds: ${CHESSEDU_TELEGRAM_POLL_TIMEOUT:50}
+    # One-time bot/widget -> web handoff token TTL (ISO-8601 duration).
+    ott-ttl: ${CHESSEDU_TELEGRAM_OTT_TTL:PT10M}
