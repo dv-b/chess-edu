@@ -30,6 +30,126 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Telegram Auth C — OTT redemption endpoint (`POST /api/v1/auth/telegram/accept`)
+
+Third slice of the Telegram-auth umbrella: the web-side half of the
+bot → web handoff. The `/<locale>/auth/accept?ott=<token>` deeplink the
+bot sends (Task B) now has an endpoint to redeem against: the raw OTT
+goes in, a `TokenResponse` (access + refresh JWT pair, same shape as
+`/auth/login` and `/auth/invitations/accept`) comes out. Permit-all,
+no bot token needed — the redemption path runs on every instance even
+with the bot worker off. The Login-Widget endpoint
+(`POST /auth/telegram/login`, HMAC) stays deferred until a prod domain
+exists for `@BotFather /setdomain`.
+
+Also: **Telegram A + B are now compile- and boot-verified** (this slice
+was built locally with Gradle + Java 21 + Testcontainers; Flyway V012
+applies, Hibernate `validate` passes). The "not compile-verified"
+caveat from the handoff is closed.
+
+Files:
+
+- `apps/api/.../identity/auth/AuthService.java` — new public
+  `issueSessionFor(User, ip, userAgent)`: ACTIVE gate, `lastLoginAt`
+  stamp, membership lookup, fresh refresh-token family → `mintTokens`.
+  This is the "session for an externally-verified identity" primitive
+  the Login Widget will reuse; it avoids a third copy of the ~12-line
+  mint block (`AuthService.login` and `InvitationService.accept` each
+  have their own).
+- `apps/api/.../identity/telegram/TelegramAuthService.java` — new,
+  **unconditional** `@Service`. `accept(rawOtt, ip, ua)` =
+  `TelegramAuthTokenService.redeem` → bump `telegram_account.last_seen_at`
+  → `AuthService.issueSessionFor`. One `@Transactional` so a failed
+  issuance (user suspended after the bot minted the OTT) rolls back the
+  used-stamp — no used-but-no-session rows.
+- `apps/api/.../identity/telegram/TelegramAuthController.java` — new,
+  `@RequestMapping("/api/v1/auth/telegram")`, `POST /accept` with
+  `@Valid TelegramAcceptRequest` + `HttpServletRequest` for IP /
+  User-Agent (same extraction as `AuthController`).
+- `apps/api/.../identity/telegram/dto/TelegramAcceptRequest.java` —
+  `record(@NotBlank @Size(max=200) String ott)`.
+- `apps/api/.../security/SecurityConfig.java` — `/api/v1/auth/telegram/**`
+  added to the permit-all list (covers the future `/login` too).
+- `apps/api/src/test/.../identity/telegram/TelegramAcceptFlowIntegrationTest.java`
+  — 5 MockMvc tests: happy path (accept → `/me` shows TEACHER @ Demo
+  Chess School → refresh rotates → OTT single-use → `used_at`,
+  `last_login_at`, `last_seen_at` all stamped), unknown OTT 401, blank
+  OTT 400, expired OTT 401 (not stamped used), SUSPENDED user 401
+  (used-stamp rolled back). Seeds a password-less user + membership +
+  `telegram_account` directly; mints the OTT through
+  `TelegramAuthTokenService` exactly as the bot does.
+
+Error semantics: every token failure and the non-ACTIVE user return
+`401 UNAUTHENTICATED` with an opaque "Invalid token"/"Invalid
+credentials" message — no unknown/used/expired distinction, matching
+`AuthService.bad()`. Validation (blank/oversized `ott`) is the usual
+`400 VALIDATION_FAILED`.
+
+Build verify: `./gradlew :api:compileJava :api:compileTestJava` clean;
+`./gradlew :api:test --tests '*TelegramAcceptFlowIntegrationTest' --tests
+'*AuthFlowIntegrationTest'` green (Testcontainers Postgres, Docker
+required). Note the machine's default `java` is 1.8 — run Gradle with
+`JAVA_HOME` pointed at a 21 JDK (e.g. Corretto 21 under
+`~/Library/Java/JavaVirtualMachines/`). i18n untouched (en=ru=uz=917).
+
+Deliberately scoped out:
+
+- **Frontend** `/<locale>/auth/accept` page that reads `?ott=`, POSTs
+  it, stores the tokens the way `/auth/login` does, and redirects by
+  role — Task D. Until then the deeplink lands on a 404 in the web app;
+  verify with curl (below).
+- **Login-Widget endpoint** (`POST /auth/telegram/login`, HMAC against
+  the bot token, mints an OTT internally and calls the same
+  `TelegramAuthService` path) — domain-ready phase.
+- **Rate limiting** on `/auth/telegram/accept` — the OTT is 2×UUID
+  (~244 bits) with a 10-min TTL, so brute force isn't practical; the
+  endpoint inherits whatever rate limiting `/auth/login` gets later.
+- **Bot-level mock integration test** (mock Telegram HTTP server →
+  `/start` → contact → deeplink → accept) — Task E; this slice tests
+  from the minted OTT onward.
+
+How to check as a user:
+
+No bot token needed. Postgres + backend running (`docker compose up -d`,
+then `./gradlew :api:bootRun` with Java 21).
+
+1. Pick (or seed) an ACTIVE non-student user. The demo admin works:
+   ```sql
+   SELECT id FROM app_user WHERE email = 'admin@demo.local';
+   ```
+2. Mint an OTT the way the bot does. Simplest without the bot: run the
+   `TelegramAuthTokenService.mint(userId)` path by inserting a row
+   whose `token_hash` is the SHA-256 of a raw token you choose:
+   ```sql
+   INSERT INTO telegram_auth_token (id, user_id, token_hash, issued_at, expires_at)
+   VALUES (gen_random_uuid(), '<user id>',
+           encode(sha256('my-raw-ott'::bytea), 'hex'),
+           now(), now() + interval '10 minutes');
+   ```
+   (`TokenHasher.hash` is exactly hex-encoded SHA-256, so this matches
+   what `TelegramAuthTokenService.mint` would store.)
+3. Redeem it:
+   ```bash
+   curl -s -X POST http://localhost:8080/api/v1/auth/telegram/accept \
+     -H 'Content-Type: application/json' -d '{"ott":"my-raw-ott"}'
+   ```
+   Expected: `200` with `accessToken` / `refreshToken` / `tokenType:
+   Bearer` / `expiresIn`. Then `curl -H "Authorization: Bearer <access>"
+   http://localhost:8080/api/v1/auth/me` returns the user with their
+   role and school.
+4. Edge cases worth eyeballing:
+   - Repeat step 3 with the same OTT → `401 UNAUTHENTICATED`
+     (single-use); `SELECT used_at FROM telegram_auth_token` is set.
+   - `{"ott":"garbage"}` → `401`; `{"ott":""}` → `400 VALIDATION_FAILED`.
+   - `UPDATE telegram_auth_token SET expires_at = now() - interval '1
+     minute'` on a fresh row → `401`, and `used_at` stays NULL.
+   - `UPDATE app_user SET status = 'SUSPENDED'` on the user, fresh OTT
+     → `401`, and `used_at` stays NULL (rolled back). Set the user back
+     to `ACTIVE` afterwards.
+   - With the bot enabled (see Telegram Auth B's walkthrough), the
+     deeplink the bot sends now redeems end-to-end via curl of the
+     `ott` query param.
+
 ### Telegram Auth B — Bot worker (RestClient long-poll + signup funnel)
 
 Second slice of the Telegram-auth umbrella. Adds the bot worker that

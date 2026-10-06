@@ -46,29 +46,26 @@ Email/password stays as a visible fallback on `/auth/login`.
   contact-share + `/cancel` handlers, OTT mint/redeem service, locale-aware
   bot copy). All under `apps/api/.../identity/telegram/`. See CLAUDE.md
   "Telegram Auth B".
-- **Task C — auth endpoints** ⬜ NEXT. `POST /api/v1/auth/telegram/accept`
-  redeems the OTT → JWT. The widget login endpoint
-  (`POST /api/v1/auth/telegram/login`, HMAC) is deferred to the
-  domain-ready phase.
-- **Task D — frontend** ⬜ (`/auth/accept` page; admin invitation
+- **Task C — auth endpoints** ✅ `POST /api/v1/auth/telegram/accept`
+  redeems the OTT → JWT (`TelegramAuthService` → `AuthService.issueSessionFor`;
+  permit-all in `SecurityConfig`; 5-case `TelegramAcceptFlowIntegrationTest`).
+  The widget login endpoint (`POST /api/v1/auth/telegram/login`, HMAC) is
+  deferred to the domain-ready phase. See CLAUDE.md "Telegram Auth C".
+- **Task D — frontend** ⬜ NEXT (`/auth/accept` page; admin invitation
   channel picker + funnel-state display; Login Widget button last).
 - **Task E — integration test + dev runbook + env docs** ⬜ (mock
   Telegram at the HTTP level via the overridable `apiBaseUrl`).
 
-## ⚠️ Not compile-verified
+## Build status
 
-A and B were written in Cowork's sandbox, which has **no Gradle / javac /
-internet**, so the backend has never been compiled. Before building on it:
+A and B were written in a sandbox without Gradle; **as of Task C they are
+compile-, boot- and test-verified locally** (Flyway V012 applies,
+Hibernate `validate` passes, Testcontainers suite green). Run Gradle with
+Java 21 — the machine's default `java` is 1.8:
 
 ```
-./gradlew :api:compileJava
+JAVA_HOME=~/Library/Java/JavaVirtualMachines/corretto-21.0.6/Contents/Home ./gradlew :api:compileJava
 ```
-
-Entity/repo references were checked by hand against the real sources
-(`UserRepository.findByEmail`, `Membership` setters,
-`TelegramAccountRepository.existsByTelegramId`, `ErrorCode.UNAUTHENTICATED`
-— there is no `INVALID_TOKEN` code). Boot once and confirm Flyway applies
-V012, then Hibernate `validate` maps the new entities cleanly.
 
 ## Blockers / needed from Bulat (for B/C/E runtime — not A)
 
@@ -79,26 +76,34 @@ V012, then Hibernate `validate` maps the new entities cleanly.
   Login-Widget half of C/D needs it; the whole signup flow is testable
   without it.
 
-## Task C — starting notes
+## Task D — starting notes
 
-`TelegramAuthTokenService.redeem(rawToken)` already exists and returns the
-`User`, throwing `AppException(UNAUTHENTICATED)` on any failure. So the
-accept controller is thin:
+Backend contract for the accept page: `POST /api/v1/auth/telegram/accept`
+with `{ "ott": "<raw>" }` → `TokenResponse { accessToken, refreshToken,
+tokenType: "Bearer", expiresIn }` — identical to what
+`/auth/invitations/accept` returns, so the accept page can copy the
+invitation accept page's token-storage + role-redirect tail verbatim.
+Failures: `401 UNAUTHENTICATED` (unknown / used / expired OTT, or
+suspended user — one opaque message), `400 VALIDATION_FAILED` (blank).
+The page should read `?ott=` on mount, POST once, and on 401 show a
+"link expired — ask for a new one in the bot" state with a link back to
+`/auth/login` (email/password fallback stays).
 
-- New `POST /api/v1/auth/telegram/accept` (public, no auth) taking
-  `{ ott }` → `redeem` → mint the JWT pair via the existing `AuthService`
-  token machinery, same shape `InvitationService.accept` returns
-  (`TokenResponse`). Reuse `AuthService.mintTokens` (it's private — either
-  add a package-private `issueTokensFor(User, http)` to `AuthService` or
-  mirror the ~12 lines, matching how `InvitationService` auto-logs-in).
-- Needs an IP/User-Agent/`HttpServletRequest` for the refresh-token row,
-  like the other auth endpoints.
-- Security: the accept endpoint must be on the permit-all list in
-  `SecurityConfig` (same as `/auth/login`, `/auth/invitations/**`).
+Admin side: `invitation.delivery_channel` (`EMAIL` | `TELEGRAM`) and
+`bot_state` (`PENDING` / `AWAITING_CONTACT` / `COMPLETED` / `CANCELLED`)
+exist since Task A on the entity only — `InvitationService` /
+`AdminInvitationController` and their DTOs do **not** expose
+`deliveryChannel` / `botState` yet (grep confirms zero hits). Task D
+therefore has a small backend part: accept `deliveryChannel` on issue
+(default `EMAIL`; `TELEGRAM` skips the email send and sets
+`bot_state=PENDING`), and surface both fields in the list view. Then the
+issue form gets a channel picker and the list a funnel-state column.
 
 ## File anchors
 
 - Telegram backend: `apps/api/src/main/java/com/chessedu/platform/identity/telegram/`
+  (`TelegramAuthController` + `TelegramAuthService` = the Task C web half;
+  test in `apps/api/src/test/.../identity/telegram/`).
 - Existing auth to mirror: `.../identity/auth/AuthService.java`,
   `AuthController.java`; `.../identity/invitation/InvitationService.java`
   (the `accept` → auto-login path is the closest template for C).

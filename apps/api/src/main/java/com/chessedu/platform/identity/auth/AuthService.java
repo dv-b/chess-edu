@@ -131,6 +131,30 @@ public class AuthService {
         return mintTokens(user, membership, familyId, ip, userAgent);
     }
 
+    // ========================================================================
+    // Session issuance for externally-verified identities
+    // ========================================================================
+
+    /**
+     * Mint a fresh JWT pair for a user whose identity was already verified by
+     * another channel (Telegram OTT redemption today; the Login Widget later).
+     * Same post-login shape as {@link #login}: status gate, last-login stamp,
+     * membership lookup, new refresh-token family. No credentials involved —
+     * Telegram-signup users have no password row at all.
+     */
+    @Transactional
+    public TokenResponse issueSessionFor(User user, String ip, String userAgent) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            log.info("Session issuance blocked — user {} status={}", user.getId(), user.getStatus());
+            throw bad("Invalid credentials");
+        }
+        user.setLastLoginAt(Instant.now());
+        users.save(user);
+
+        Membership membership = memberships.findByUserId(user.getId()).orElse(null);
+        return mintTokens(user, membership, UUID.randomUUID(), ip, userAgent);
+    }
+
     private void registerFailure(Credentials creds) {
         int attempts = creds.getFailedAttempts() + 1;
         creds.setFailedAttempts(attempts);
