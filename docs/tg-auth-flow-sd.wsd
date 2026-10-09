@@ -1,0 +1,91 @@
+@startuml
+sequenceDiagram
+    autonumber
+    participant Admin
+    participant Web
+    participant API
+    participant DB
+    participant Bot as Bot worker
+    participant TG as Telegram
+    participant Invitee
+
+    rect rgb(245, 245, 235)
+    Note over Admin, DB: Phase 1 — issue a Telegram invitation (admin UI)
+    Admin->>Web: Submit "New invitation" (role, email, name, Send via = Telegram bot)
+    Web->>API: POST /api/v1/admin/invitations {deliveryChannel: TELEGRAM} + admin JWT
+    API->>API: Authority checks (school admin / platform admin, role allowed, same school)
+    API->>API: Mint raw invite token (random, base64url); keep only SHA-256 hash
+    API->>DB: INSERT invitation (token_hash, delivery_channel=TELEGRAM, bot_state=PENDING, expires_at)
+    Note right of API: No email is sent for this channel.<br/>The raw token exists only in the response.
+    API-->>Web: InvitationView + botDeeplink = https://t.me/<bot>?start=INV_<raw>
+    Web-->>Admin: "Invitation ready" card with the link (shown once) + Copy
+    Admin-->>Invitee: Forwards the link out of band (usually in Telegram)
+    end
+
+    rect rgb(235, 245, 245)
+    Note over Bot, Invitee: Phase 2 — bot-driven signup (Telegram-verified phone)
+    loop every ~1 s (fixedDelay) — single instance
+        Bot->>TG: getUpdates(offset, timeout=50 s)  [long poll]
+        TG-->>Bot: updates[]
+    end
+    Invitee->>TG: Taps link → sends "/start INV_<raw>" to the bot
+    TG-->>Bot: update: message "/start INV_<raw>" (from telegram_id)
+    Bot->>DB: SELECT invitation WHERE token_hash = sha256(raw)
+    Bot->>Bot: Validate: channel=TELEGRAM, not accepted, not expired, role != STUDENT,<br/>telegram_id not already linked
+    Note right of Bot: Any failure → polite reply, nothing written.<br/>Already-linked account → "sign in on the website".
+    Bot->>Bot: Remember telegram_id → invitation_id (in-memory map)
+    Bot->>DB: UPDATE invitation SET bot_state=AWAITING_CONTACT
+    Bot->>TG: sendMessage(welcome, reply keyboard with request_contact=true)
+    TG-->>Invitee: "Share my phone number" button
+    Invitee->>TG: Taps the button (Telegram shares its own verified contact)
+    TG-->>Bot: update: message.contact {phone_number, user_id}
+    Bot->>Bot: Look up pending invitation from the map; require contact.user_id == sender
+    Note right of Bot: A forwarded contact card is rejected:<br/>the phone must be the sender's own, verified by Telegram.
+    Bot->>Bot: Normalise phone to E.164 (DB CHECK constraint)
+    Bot->>DB: INSERT app_user (ACTIVE, email + name from invitation, NO credentials row)
+    Bot->>DB: INSERT app_membership (role, school) — or platform_role for PLATFORM_ADMIN
+    Bot->>DB: INSERT telegram_account (telegram_id, phone, chat_id, username/name/photo snapshot)
+    Bot->>DB: UPDATE invitation SET accepted_at, accepted_user, bot_state=COMPLETED
+    Bot->>DB: INSERT telegram_auth_token (sha256(ott), expires_at = now + 10 min)
+    Note right of Bot: OTT = one-time token: 2×UUID raw, only its hash stored,<br/>single use, 10-minute TTL (chessedu.telegram.ott-ttl).
+    Bot->>TG: sendMessage("You're all set" + <WEB_BASE_URL>/<locale>/auth/accept?ott=<raw>)
+    TG-->>Invitee: Deeplink to the web app
+    end
+
+    rect rgb(245, 235, 245)
+    Note over Invitee, DB: Phase 3 — web redemption: OTT → session
+    Invitee->>Web: GET /<locale>/auth/accept?ott=<raw>
+    Web-->>Invitee: "Signing you in…" page; hidden form auto-submits once
+    Note left of Web: Ref-guarded: React strict mode must not submit twice,<br/>because the OTT is single-use.
+    Invitee->>Web: Server Action acceptTelegramAction(ott)
+    Web->>API: POST /api/v1/auth/telegram/accept {ott}   (permit-all, no JWT)
+    API->>DB: SELECT telegram_auth_token WHERE token_hash = sha256(ott)
+    API->>API: Usable? (used_at IS NULL and expires_at > now)
+    API->>DB: UPDATE telegram_auth_token SET used_at = now
+    API->>DB: UPDATE telegram_account SET last_seen_at = now
+    API->>API: issueSessionFor(user): status == ACTIVE?
+    API->>DB: UPDATE app_user SET last_login_at = now; SELECT membership
+    API->>API: Sign access JWT (userId, email, schoolId, role, platformRole; 30 min)
+    API->>DB: INSERT refresh_token (hash, family_id, ip, user-agent, 14 d)
+    Note right of API: One transaction: if session issuance fails<br/>(e.g. user suspended), the used_at stamp rolls back.
+    API-->>Web: TokenResponse {accessToken, refreshToken, Bearer, expiresIn}
+    Note right of API: Every token failure → 401 UNAUTHENTICATED with one opaque message<br/>(no unknown / used / expired distinction).
+    Web->>Web: setSession(): HttpOnly cookies session_access + session_refresh
+    Web->>API: GET /api/v1/auth/me (Bearer access)
+    API-->>Web: role, platformRole, school
+    Web-->>Invitee: 303 → /<locale>/admin | /parent | /student (homeForRole)
+    Note left of Web: On 401/400 the page shows "This link has expired":<br/>ask the bot for a new one, or use email + password.
+    end
+
+    rect rgb(240, 240, 240)
+    Note over Invitee, API: Phase 4 — repeat sign-in via Login Widget (DESIGNED, NOT BUILT — needs a prod domain)
+    Invitee->>Web: /auth/login → "Log in with Telegram" widget (bot domain set via @BotFather /setdomain)
+    Invitee->>TG: Authorises in Telegram
+    TG-->>Web: Signed payload {id, first_name, auth_date, hash}
+    Web->>API: POST /api/v1/auth/telegram/login {payload}
+    API->>API: Verify hash = HMAC-SHA256(payload, key = SHA-256(bot_token)); auth_date fresh
+    API->>DB: SELECT telegram_account WHERE telegram_id = payload.id
+    API->>API: Mint OTT internally, then the same redemption path as Phase 3
+    API-->>Web: TokenResponse → cookies → redirect
+    end
+@enduml

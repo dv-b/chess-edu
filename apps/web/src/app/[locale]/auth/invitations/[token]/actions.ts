@@ -68,6 +68,7 @@ export async function acceptInvitationAction(
   await setSession({
     accessToken: result.data.accessToken,
     refreshToken: result.data.refreshToken,
+    expiresIn: result.data.expiresIn,
   });
 
   // Send the freshly-onboarded user straight into their admin workspace.

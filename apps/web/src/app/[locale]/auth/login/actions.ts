@@ -62,6 +62,7 @@ export async function loginAction(
   await setSession({
     accessToken: result.data.accessToken,
     refreshToken: result.data.refreshToken,
+    expiresIn: result.data.expiresIn,
   });
 
   // Look up the user's role so we can route them to the right shell. If the

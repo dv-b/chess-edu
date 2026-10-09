@@ -30,6 +30,76 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Auth 1 — Silent session refresh in the web app
+
+First item of the auth roadmap agreed with Bulat on 2026-10-09 (see
+`docs/telegram-auth-handoff.md` → "Auth roadmap decisions"). The API has
+issued a 14-day rotating refresh token since M2, but nothing in the web
+app ever called `/auth/refresh`, so every session died when the 30-minute
+access cookie expired. Now a session lasts as long as the user comes back
+within 14 days.
+
+Files:
+
+- `apps/web/src/middleware.ts` — wraps the next-intl middleware. If the
+  `session_access` cookie is absent but `session_refresh` is present, it
+  POSTs `/api/v1/auth/refresh` (forwarding User-Agent / X-Forwarded-For
+  for the refresh-token row) and answers **307 to the same URL** with the
+  new cookie pair, so the re-request renders with a valid session.
+  On failure it clears both cookies and lets the shell layouts bounce to
+  `/auth/login` as before. Why a self-redirect: Server Components read
+  cookies from the incoming request, and forwarding a rewritten cookie
+  header through next-intl's response would depend on Next internals.
+  **Single-flight guard** (CAREFUL): the backend's rotation treats a
+  re-presented refresh token as theft and revokes the family; a page load
+  fans out into parallel RSC requests that would all refresh with the
+  same old token. An in-memory `Map<token, Promise>` with a 15 s window
+  hands every concurrent caller the same result. Single web instance
+  (same assumption as the bot worker); multi-instance needs a reuse grace
+  window on the backend instead.
+- `apps/web/src/lib/session-cookies.ts` — new, dependency-free: cookie
+  names, lifetimes, `sessionCookieOptions`, and `accessCookieMaxAge(expiresIn)`
+  = backend `expiresIn` minus a 60 s safety margin, so the cookie always
+  dies *before* the JWT inside it (otherwise there's a window where the
+  cookie exists but every API call 401s → logout instead of refresh).
+- `apps/web/src/lib/session.ts` — imports the shared constants;
+  `setSession` takes optional `expiresIn`.
+- `auth/login/actions.ts`, `auth/accept/actions.ts`,
+  `auth/invitations/[token]/actions.ts` — pass `expiresIn` to `setSession`.
+
+Verified with curl against the running stack: refresh-only cookie →
+307 + both Set-Cookie (access Max-Age 1740); three concurrent requests
+with the same old token → all 307 with the *same* new refresh token;
+following with the new cookies → 200; the newest refresh still rotates at
+the API (family intact); a garbage refresh → both cookies cleared +
+redirect to `/en/auth/login`. `npx tsc --noEmit` clean. i18n untouched
+(946). No backend change.
+
+Deliberately scoped out:
+
+- **Backend reuse grace window** (accept the just-rotated token for ~30 s
+  and return the successor) — needed only for multi-instance web.
+- **Refreshing on a mid-request 401** — the 60 s cookie margin makes that
+  window practically unreachable; the 18 existing `session/logout` 401
+  handlers are unchanged.
+- **Idle timeout / "remember me"** — the refresh token is 14 d from each
+  rotation, so an active user stays in indefinitely; add an absolute cap
+  if product wants one.
+
+How to check as a user:
+
+1. Sign in at `/en/auth/login` (`admin@demo.local / admin12345`).
+2. In DevTools → Application → Cookies, delete only `session_access`
+   (keep `session_refresh`). Reload any admin page.
+   Expected: one 307 to the same URL in the Network tab, then the page
+   renders logged-in; both cookies are back with fresh expiries.
+3. Delete both cookies, reload → login page (unchanged behaviour).
+4. Edge: edit `session_refresh` to garbage, delete `session_access`,
+   reload → login page, and both cookies are gone.
+5. Edge: open two tabs, delete `session_access`, reload both at once →
+   both stay logged in (single-flight; without it the second tab would
+   have revoked the family and logged both out).
+
 ### Telegram Auth D — `/auth/accept` page + admin channel picker & funnel state
 
 Fourth slice of the Telegram-auth umbrella: the frontend, plus the small

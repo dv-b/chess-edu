@@ -36,6 +36,40 @@ Email/password stays as a visible fallback on `/auth/login`.
   then E. The Login-Widget endpoint + button are deferred until a prod
   domain exists for `@BotFather /setdomain`.
 
+## Auth roadmap decisions (Bulat, 2026-10-09)
+
+Settled after the "signup/signin is incomplete" review — treat as locked:
+
+- **Two sign-in methods**: username + password, and Telegram. Telegram is
+  the focus now. "Username" becomes a real column (students have no real
+  email); login accepts username or email.
+- **"Recovery" = re-login after being away**, not password reset. Two
+  parts: (1) silent session refresh in the web app (the 14-day refresh
+  token is currently never used — sessions die at 30 min); (2) Telegram
+  re-login without a prod domain via a **login request + nonce**: login
+  page creates a 5-min single-use request, opens
+  `t.me/<bot>?start=login_<nonce>`, polls; bot `/start login_<nonce>` from
+  a linked account completes it with a fresh OTT; page redeems through the
+  existing accept path. Login Widget replaces the deeplink later.
+- **Students are created by parents** (as now). Two coexisting models:
+  - **Younger: log in through the parent.** Child switcher issues an
+    "acting-as" access token (subject = child, actor = parent). Student app
+    works unchanged. **Acting-as is restricted to read-only plus submitting
+    homework and asking questions** — no profile/settings changes.
+  - **Older: own credentials.** Enabled by **parent or school admin**;
+    parent-set username/password or a parent-issued one-time bot link the
+    child taps with their own Telegram. **No age/policy gate — parent's
+    call.**
+- **One user, several roles** (teacher who is also a parent): the
+  one-membership-per-user constraint must go → refactor to multiple
+  memberships + role switching. Not in the current slice; design before
+  the student work.
+
+Build order (agreed): 1 silent refresh → 2 Telegram re-login (nonce) →
+3 username + set-password for Telegram users → 4 parent child switcher
+(acting-as) → 5 student own credentials → later: Login Widget, email
+password reset, multi-role refactor.
+
 ## Status
 
 - **Task A — schema + entities + repos** ✅ (V012 migration,

@@ -64,6 +64,7 @@ export async function acceptTelegramAction(
   await setSession({
     accessToken: result.data.accessToken,
     refreshToken: result.data.refreshToken,
+    expiresIn: result.data.expiresIn,
   });
 
   const me = await apiFetch<MeResponse>("/api/v1/auth/me", {
