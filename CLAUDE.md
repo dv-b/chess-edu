@@ -30,6 +30,131 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Auth 2 — Telegram re-login (login-request handshake + bot `/login`)
+
+Second item of the 2026-10-09 auth roadmap. Until now a Telegram-signup
+user (no password) could never sign in again once their session ended.
+The Login Widget would fix that but needs a prod domain for `@BotFather
+/setdomain`. This slice adds a domain-free equivalent — the same pattern
+Telegram Desktop uses — plus a bot `/login` command for the same-device
+phone case.
+
+Handshake (V013 `telegram_login_request`):
+
+1. Login page "Log in with Telegram" → `POST /api/v1/auth/telegram/login-requests`
+   → `{id, clientSecret, deeplink, expiresAt}` (5-min TTL,
+   `chessedu.telegram.login-request-ttl`). Web keeps `id.clientSecret` in
+   an HttpOnly `tg_login_request` cookie; the client only sees the
+   `https://t.me/<bot>?start=login_<nonce>` deeplink.
+2. User opens the deeplink (same phone, or phone while the desktop waits).
+   Bot `/start login_<nonce>` from an **already-linked** Telegram id →
+   `TelegramLoginRequestService.complete` stamps `user_id` +
+   `completed_at` → bot replies "Sign-in confirmed, go back to your
+   browser". Unlinked account → "ask your school for an invitation".
+3. Web polls `POST /login-requests/{id}/poll {clientSecret}` every 2 s:
+   `PENDING` until step 2, then once `COMPLETED` + `TokenResponse`
+   (`AuthService.issueSessionFor`, `telegram_account.last_seen_at`
+   bumped, `consumed_at` stamped — single use). Poll action installs the
+   cookies and redirects by role, same tail as password login.
+
+Three secrets, three parties: nonce → Telegram (bot's only handle),
+client secret → browser cookie (only thing that turns a completed request
+into a session), id → plain handle. All stored as SHA-256. 404 unknown
+id, 401 wrong secret, 410 expired/consumed.
+
+Files:
+
+- `apps/api/src/main/resources/db/migration/V013__telegram_login_request.sql`
+- `apps/api/.../identity/model/TelegramLoginRequest.java`,
+  `.../identity/repo/TelegramLoginRequestRepository.java`
+- `apps/api/.../identity/telegram/TelegramLoginRequestService.java` —
+  **unconditional**: `create()`, `complete(nonce, telegramId, userId)` →
+  `CompleteOutcome {COMPLETED, NOT_FOUND, EXPIRED, ALREADY_COMPLETED}`,
+  `poll(id, secret, ip, ua)`.
+- `apps/api/.../identity/telegram/TelegramLoginBotHandler.java` —
+  `@ConditionalOnProperty`: `handleLoginStart` (`/start login_<nonce>`)
+  and `handleLoginCommand` (`/login` → mints an OTT via
+  `TelegramAuthTokenService` and replies with a fresh
+  `/<locale>/auth/accept?ott=` link). Both refresh the profile snapshot +
+  `last_seen_at`.
+- `TelegramBotWorker.java` — dispatch: `/start login_…` → login handler,
+  `/login` → login handler, everything else as before.
+- `TelegramBotMessages.java` — `loginNotLinked`, `loginConfirmed`,
+  `loginAlreadyConfirmed`, `loginRequestExpired`, `loginLink`; `alreadyLinked`
+  and `help` now point at `/login` and the website button.
+- `TelegramAuthController.java` — the two new endpoints (already under the
+  permit-all `/api/v1/auth/telegram/**`). DTOs in `telegram/dto/`:
+  `TelegramLoginRequestView`, `TelegramLoginPollRequest`,
+  `TelegramLoginPollResponse`.
+- `TelegramProperties.java` + `application.yml` — `loginRequestTtl`
+  (default PT5M, env `CHESSEDU_TELEGRAM_LOGIN_REQUEST_TTL`).
+- `apps/web/src/app/[locale]/auth/login/actions.ts` —
+  `startTelegramLoginAction` (sets the cookie, returns the deeplink),
+  `pollTelegramLoginAction(locale)` (cookie → poll → on COMPLETED
+  `setSession` + `/me` + redirect), `cancelTelegramLoginAction`.
+- `apps/web/src/app/[locale]/auth/login/telegram-login.tsx` — client
+  panel: idle button → "Confirm in Telegram" card with an "Open Telegram"
+  link (`target=_blank`, so popup blockers can't eat it) + Cancel; one
+  interval, non-overlapping polls (CAREFUL: the poll action is the one
+  that redirects — don't add a client-side redirect). Errors: `expired`
+  (timed out / consumed), `unavailable` (bot not configured → 400),
+  `network`, `unknown`.
+- `login-form.tsx` — "or" divider + the panel between Sign in and the
+  footer. `globals.css` — `.auth-divider`, `.auth-telegram*`.
+- i18n: `auth.login.or`, `auth.login.telegram.*` (12 keys) in en/ru/uz →
+  **958** leaf keys each.
+- `apps/api/src/test/.../telegram/TelegramLoginRequestFlowIntegrationTest.java`
+  — 5 tests: full handshake (PENDING → complete → COMPLETED tokens → `/me`
+  → 410 on re-poll → ALREADY_COMPLETED on re-confirm), wrong secret 401
+  (request stays usable), unknown id 404, expired 410 + EXPIRED, bogus
+  nonce NOT_FOUND.
+
+Verified: backend tests green (5 + the 5 accept tests); `tsc` clean; in
+the browser against the running stack: button → waiting card with a real
+`t.me/e2e4_uz_bot?start=login_…` link → completed the row by SQL (what
+the bot does) → next poll redirected to `/en/admin` logged in, row
+`consumed_at` set, API log "login request … consumed".
+
+Deliberately scoped out:
+
+- **Rate limiting** on `login-requests` creation and on bot `/start` per
+  Telegram id — rows are cheap and self-expiring, but add before prod.
+- **Cleanup job** for expired `telegram_login_request` rows.
+- **QR code** on the waiting card (desktop → phone camera) — the deeplink
+  text/link is enough for v1; add `qrcode` later if wanted.
+- **Login Widget** — still the nicer UX once a domain exists; it will
+  mint an OTT and reuse `/auth/accept`, and this handshake stays for the
+  cross-device case.
+
+How to check as a user:
+
+Needs the bot running (`.env` sourced) and a Telegram account that
+already signed up through the bot (Bulat's is linked to
+`tg-teacher-test@demo.local`).
+
+1. Log out, open `/en/auth/login`, press **Log in with Telegram**.
+   Expected: the card switches to "Confirm in Telegram" with an **Open
+   Telegram** button and Cancel.
+2. Press Open Telegram (or open the same link on your phone) → the bot
+   chat opens with Start → press it. Bot replies "Sign-in confirmed ✅".
+   Within ~2 s the browser tab redirects to `/en/admin` (teacher) —
+   no password typed anywhere.
+3. In the bot, send `/login`. Expected: a one-time
+   `http://localhost:3100/<locale>/auth/accept?ott=…` link; opening it
+   signs you in the same way (10-min TTL, single use).
+4. Edge cases:
+   - Press the button, wait >5 min, then press Start in the bot → bot
+     says the link expired; the page shows "timed out, try again".
+   - From a Telegram account that never signed up: `/start login_…` or
+     `/login` → "not registered yet, ask your school admin".
+   - Press Start twice → second reply "already confirmed".
+   - Cancel on the card → back to the idle button; the bot's later Start
+     still says confirmed, but nothing polls it, and the row expires.
+   - Stop the bot (`CHESSEDU_TELEGRAM_ENABLED=false`): the button still
+     creates a request (the endpoints are unconditional), but nobody
+     confirms it → times out. With `CHESSEDU_TELEGRAM_BOT_USERNAME`
+     unset → "not available on this server".
+
 ### Auth 1 — Silent session refresh in the web app
 
 First item of the auth roadmap agreed with Bulat on 2026-10-09 (see

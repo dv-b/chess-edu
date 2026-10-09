@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { TopBar } from "@/components/top-bar";
 import { loginAction, type LoginActionState } from "./actions";
+import { TelegramLogin } from "./telegram-login";
 
 const INITIAL: LoginActionState = {};
 
@@ -82,6 +83,12 @@ export function LoginForm({ locale }: { locale: string }) {
             >
               {pending ? t("submitting") : t("submit")}
             </button>
+
+            <div className="auth-divider" aria-hidden="true">
+              <span>{t("or")}</span>
+            </div>
+
+            <TelegramLogin locale={locale} />
 
             <div className="auth-footer">
               <a href="#">{t("forgotPassword")}</a>

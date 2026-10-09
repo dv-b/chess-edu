@@ -11,6 +11,10 @@ import java.time.Duration;
  * worker bean isn't created at all, so normal dev boots, the test profile, and
  * CI never try to long-poll Telegram. Flip it on once a real bot token is set.
  *
+ * <p>{@code loginRequestTtl} bounds the browser↔bot re-login handshake (V013):
+ * long enough to switch to Telegram and tap Start, short enough that an
+ * abandoned deeplink is worthless.
+ *
  * <p>{@code apiBaseUrl} is overridable so an integration test can point the
  * client at a mock HTTP server instead of {@code api.telegram.org}.
  */
@@ -21,7 +25,8 @@ public record TelegramProperties(
         String botUsername,
         String apiBaseUrl,
         Integer pollTimeoutSeconds,
-        Duration ottTtl) {
+        Duration ottTtl,
+        Duration loginRequestTtl) {
 
     public TelegramProperties {
         if (apiBaseUrl == null || apiBaseUrl.isBlank()) {
@@ -32,6 +37,9 @@ public record TelegramProperties(
         }
         if (ottTtl == null) {
             ottTtl = Duration.ofMinutes(10);
+        }
+        if (loginRequestTtl == null) {
+            loginRequestTtl = Duration.ofMinutes(5);
         }
     }
 

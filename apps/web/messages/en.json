@@ -68,6 +68,22 @@
         "invalid": "Invalid email or password.",
         "network": "Can't reach the server. Please try again.",
         "unknown": "Something went wrong. Please try again."
+      },
+      "or": "or",
+      "telegram": {
+        "button": "Log in with Telegram",
+        "starting": "Opening…",
+        "hint": "For accounts registered through the Telegram bot.",
+        "waitingTitle": "Confirm in Telegram",
+        "waitingHint": "Open Telegram and press Start in the bot. This page will continue on its own.",
+        "openTelegram": "Open Telegram",
+        "cancel": "Cancel",
+        "error": {
+          "expired": "The Telegram sign-in timed out. Try again.",
+          "unavailable": "Telegram sign-in is not available on this server.",
+          "network": "We couldn't reach the server. Check your connection and try again.",
+          "unknown": "Something went wrong. Try again."
+        }
       }
     },
     "invitation": {

@@ -65,10 +65,10 @@ Settled after the "signup/signin is incomplete" review — treat as locked:
   memberships + role switching. Not in the current slice; design before
   the student work.
 
-Build order (agreed): 1 silent refresh → 2 Telegram re-login (nonce) →
-3 username + set-password for Telegram users → 4 parent child switcher
-(acting-as) → 5 student own credentials → later: Login Widget, email
-password reset, multi-role refactor.
+Build order (agreed): 1 silent refresh ✅ → 2 Telegram re-login (nonce) ✅
+→ 3 username + set-password for Telegram users ⬜ NEXT → 4 parent child
+switcher (acting-as) → 5 student own credentials → later: Login Widget,
+email password reset, multi-role refactor. See CLAUDE.md "Auth 1" / "Auth 2".
 
 ## Status
 

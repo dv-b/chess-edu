@@ -68,6 +68,22 @@
         "invalid": "Elektron pochta yoki parol noto‘g‘ri.",
         "network": "Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.",
         "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
+      },
+      "or": "yoki",
+      "telegram": {
+        "button": "Telegram orqali kirish",
+        "starting": "Ochilmoqda…",
+        "hint": "Telegram-bot orqali ro‘yxatdan o‘tgan hisoblar uchun.",
+        "waitingTitle": "Telegramda tasdiqlang",
+        "waitingHint": "Telegramni oching va botda «Start» tugmasini bosing. Bu sahifa o‘zi davom etadi.",
+        "openTelegram": "Telegramni ochish",
+        "cancel": "Bekor qilish",
+        "error": {
+          "expired": "Telegram orqali kirish vaqti tugadi. Qayta urinib ko‘ring.",
+          "unavailable": "Bu serverda Telegram orqali kirish mavjud emas.",
+          "network": "Serverga ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.",
+          "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
+        }
       }
     },
     "invitation": {

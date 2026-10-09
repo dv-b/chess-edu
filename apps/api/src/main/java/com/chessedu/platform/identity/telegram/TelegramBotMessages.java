@@ -61,9 +61,51 @@ final class TelegramBotMessages {
 
     static String alreadyLinked(String locale, String baseUrl) {
         return switch (locale) {
-            case "ru" -> "Этот аккаунт Telegram уже привязан. Войдите на сайте: " + baseUrl;
-            case "en" -> "This Telegram account is already linked. Sign in on the website: " + baseUrl;
-            default -> "Bu Telegram hisobi allaqachon bog‘langan. Saytda tizimga kiring: " + baseUrl;
+            case "ru" -> "Этот аккаунт Telegram уже привязан. Отправьте /login, чтобы получить ссылку для входа, или нажмите «Войти через Telegram» на сайте: " + baseUrl;
+            case "en" -> "This Telegram account is already linked. Send /login to get a sign-in link, or press \"Log in with Telegram\" on the website: " + baseUrl;
+            default -> "Bu Telegram hisobi allaqachon bog‘langan. Kirish havolasini olish uchun /login yuboring yoki saytda «Telegram orqali kirish» tugmasini bosing: " + baseUrl;
+        };
+    }
+
+    // ---- repeat sign-in (/start login_<nonce> and /login) -------------------
+
+    static String loginNotLinked(String locale) {
+        return switch (locale) {
+            case "ru" -> "Этот аккаунт Telegram ещё не зарегистрирован. Попросите администратора школы прислать приглашение.";
+            case "en" -> "This Telegram account isn't registered yet. Ask your school admin for an invitation.";
+            default -> "Bu Telegram hisobi hali ro‘yxatdan o‘tmagan. Maktab administratoridan taklifnoma so‘rang.";
+        };
+    }
+
+    static String loginConfirmed(String locale) {
+        return switch (locale) {
+            case "ru" -> "Вход подтверждён ✅ Вернитесь в браузер — вы уже в системе.";
+            case "en" -> "Sign-in confirmed ✅ Go back to your browser — you're in.";
+            default -> "Kirish tasdiqlandi ✅ Brauzerga qayting — siz tizimdasiz.";
+        };
+    }
+
+    static String loginAlreadyConfirmed(String locale) {
+        return switch (locale) {
+            case "ru" -> "Этот запрос на вход уже подтверждён. Если вы ещё не в системе, нажмите «Войти через Telegram» на сайте ещё раз.";
+            case "en" -> "That sign-in request was already confirmed. If you're not in yet, press \"Log in with Telegram\" on the website again.";
+            default -> "Bu kirish so‘rovi allaqachon tasdiqlangan. Hali tizimga kirmagan bo‘lsangiz, saytda «Telegram orqali kirish» tugmasini qayta bosing.";
+        };
+    }
+
+    static String loginRequestExpired(String locale) {
+        return switch (locale) {
+            case "ru" -> "Эта ссылка для входа устарела. Обновите страницу входа и нажмите «Войти через Telegram» ещё раз — или отправьте /login, чтобы получить ссылку прямо здесь.";
+            case "en" -> "That sign-in link has expired. Reload the login page and press \"Log in with Telegram\" again — or send /login to get a link right here.";
+            default -> "Bu kirish havolasi eskirgan. Kirish sahifasini yangilab, «Telegram orqali kirish» tugmasini qayta bosing — yoki shu yerda havola olish uchun /login yuboring.";
+        };
+    }
+
+    static String loginLink(String locale, String deeplink) {
+        return switch (locale) {
+            case "ru" -> "Нажмите, чтобы войти (ссылка одноразовая, действует 10 минут):\n" + deeplink;
+            case "en" -> "Tap to sign in (one-time link, valid for 10 minutes):\n" + deeplink;
+            default -> "Kirish uchun bosing (bir martalik havola, 10 daqiqa amal qiladi):\n" + deeplink;
         };
     }
 
@@ -141,9 +183,9 @@ final class TelegramBotMessages {
 
     static String help(String locale) {
         return switch (locale) {
-            case "ru" -> "Откройте ссылку-приглашение от администратора, чтобы начать. Чтобы отменить — /cancel.";
-            case "en" -> "Open the invite link from your admin to begin. Send /cancel to abort.";
-            default -> "Boshlash uchun administratordan olgan taklif havolasini oching. Bekor qilish uchun /cancel yuboring.";
+            case "ru" -> "Новый пользователь? Откройте ссылку-приглашение от администратора. Уже зарегистрированы? Отправьте /login, чтобы получить ссылку для входа. Отменить регистрацию — /cancel.";
+            case "en" -> "New here? Open the invite link from your admin. Already registered? Send /login to get a sign-in link. Send /cancel to abort a sign-up.";
+            default -> "Yangi foydalanuvchimisiz? Administratordan olgan taklif havolasini oching. Allaqachon ro‘yxatdan o‘tganmisiz? Kirish havolasi uchun /login yuboring. Ro‘yxatdan o‘tishni bekor qilish — /cancel.";
         };
     }
 }
