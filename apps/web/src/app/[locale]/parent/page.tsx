@@ -59,6 +59,7 @@ export default async function ParentDashboardPage({ params }: PageProps) {
   const children = childrenRes.ok ? childrenRes.data : [];
 
   const t = await getTranslations("parent");
+  const tShell = await getTranslations("parent");
 
   return (
     <main className="dashboard-shell">
@@ -70,6 +71,7 @@ export default async function ParentDashboardPage({ params }: PageProps) {
           ) : null}
         </div>
         <div className="dashboard-header__actions">
+          <a href={`/${locale}/account`} className="btn btn--ghost">{tShell("account")}</a>
           <LogoutButton locale={locale} />
         </div>
       </header>

@@ -28,6 +28,14 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 240)
     private String email;
 
+    /**
+     * Optional second login identifier, stored lowercase (see V014). Never
+     * contains '@' — that's how {@code AuthService.login} tells it apart from
+     * an email without a separate field.
+     */
+    @Column(name = "username", length = 32)
+    private String username;
+
     @Column(name = "phone", length = 40)
     private String phone;
 
@@ -65,6 +73,9 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }

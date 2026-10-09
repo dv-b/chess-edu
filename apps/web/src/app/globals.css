@@ -940,6 +940,29 @@ button {
   font-weight: 600;
 }
 
+/* /account page: intro block above the two auth-card forms. */
+.account-shell {
+  flex-direction: column;
+  gap: 16px;
+}
+.account-intro {
+  width: min(100%, 440px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.account-intro h1 {
+  margin: 0;
+}
+.form-success {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in oklch, #2f7d4d, var(--paper) 85%);
+  color: #2f7d4d;
+  font-size: var(--fs-sm);
+}
+
 .pill-note {
   display: block;
   margin-top: 4px;

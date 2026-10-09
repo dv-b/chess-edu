@@ -42,12 +42,14 @@ export function LoginForm({ locale }: { locale: string }) {
             ) : null}
 
             <div className="field">
-              <label htmlFor="email">{t("emailLabel")}</label>
+              <label htmlFor="login">{t("emailLabel")}</label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="login"
+                name="login"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 placeholder="you@school.uz"
                 required
                 defaultValue={state.email ?? ""}

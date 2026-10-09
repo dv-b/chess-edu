@@ -30,6 +30,115 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Auth 3 — Username + self-service password (account page)
+
+Third item of the 2026-10-09 auth roadmap: the "username + password"
+half of the two-method sign-in. Email stays the primary identity; a
+username is an optional second login identifier (students created by a
+parent have a synthetic internal email they never see, and Telegram
+users may want a password fallback). New `/<locale>/account` page lets
+any signed-in user pick a username and set or change a password — for a
+Telegram-signup user that's their first password, no "current" needed.
+
+Backend:
+
+- `apps/api/src/main/resources/db/migration/V014__username.sql` —
+  `app_user.username VARCHAR(32)` nullable, CHECK
+  `^[a-z0-9][a-z0-9_.]{2,31}$`, partial unique index on `lower(username)`.
+  No '@' allowed, so the login endpoint tells emails and usernames apart
+  by the presence of '@'.
+- `identity/model/User.java` — `username` field; `UserRepository` —
+  `findByUsername`, `existsByUsername`.
+- `identity/auth/dto/LoginRequest.java` — `login` (email **or**
+  username) + legacy `email` (still accepted, 15 existing tests post it)
+  + `password`; `identifier()` picks whichever is set; `@AssertTrue`
+  requires one.
+- `AuthService.login(identifier, …)` — `resolveByIdentifier`: contains
+  '@' → `findByEmail(normalizeEmail)`, else
+  `findByUsername(normalizeUsername)`. Same opaque "Invalid credentials".
+  `AuthService.me` now also returns `username`, `hasPassword`
+  (credentials row exists) and `telegramLinked`; `AuthService` gained a
+  `TelegramAccountRepository` dependency for that.
+- `identity/auth/AccountService.java` — new. `setUsername(userId, raw)`:
+  normalise → pattern (400 `VALIDATION_FAILED`) → case-insensitive
+  uniqueness (409; re-saving your own is fine). `setPassword(userId,
+  current, new)`: no credentials row → create one (first password, no
+  current check); row exists → `current` must match (401), then rehash +
+  reset `failed_attempts`/`locked_until`. Both return the fresh `MeResponse`.
+- `AuthController` — `PUT /api/v1/auth/account/username {username}`,
+  `PUT /api/v1/auth/account/password {currentPassword?, newPassword}`
+  (authenticated — under `/api/v1/**` → `.authenticated()`). DTOs
+  `SetUsernameRequest`, `SetPasswordRequest`.
+- `apps/api/src/test/.../auth/AccountFlowIntegrationTest.java` — 4 tests:
+  Telegram user (OTT session, no credentials) → `/me` shows
+  `hasPassword=false`/`telegramLinked=true` → password login impossible →
+  set username ("  Account.Tester_1 " → `account.tester_1`) → set first
+  password → login by username, by email, and via the legacy `email`
+  field → change needs correct current (401 on wrong/missing) → old
+  password dead, new works; uniqueness is case-insensitive (409) and
+  own-name re-save ok; six bad patterns → 400; no session → 401.
+
+Frontend:
+
+- `auth/login/login-form.tsx` — the field is now `login` (`type=text`,
+  `autocomplete=username`, label "Email or username"); `actions.ts`
+  posts `{login, password}` (reads `login`, falls back to `email`).
+- `apps/web/src/app/[locale]/account/{page,account-forms,actions}` —
+  new. Server page: session → `/me` → intro (name, email, Telegram
+  linked?) + Back to the role home (`homeForRole`) + two client forms.
+  Username form (HTML `pattern` mirrors the server rule; API normalises).
+  Password form: shows "Current password" only when `hasPassword`;
+  confirm check is client-side; after a successful first set the form
+  flips to "Change password" without a reload. Error keys:
+  `invalid | taken | unauthorised | network | unknown` and
+  `mismatch | wrongCurrent | invalid | unauthorised | network | unknown`.
+- "Account" link next to Log out in `admin/page.tsx`, `parent/page.tsx`
+  and `student/sidebar.tsx` (plain `<a href="/{locale}/account">` — the
+  page lives outside the shells).
+- `globals.css` — `.account-shell`, `.account-intro`, `.form-success`.
+- i18n: `account.*` (34 keys), `auth.login.emailLabel` → "Email or
+  username", `auth.login.error.invalid` reworded, `admin.account`,
+  `parent.account`, `student.nav.account` → **994** leaf keys each.
+
+Verified: `:api:test` AccountFlow 4/4, AuthFlow 3/3, TelegramAccept 5/5;
+`tsc` clean; CSS braces balanced. Browser, as the Telegram-only
+`tg-teacher-test` user (OTT session): `/en/account` showed "Set a
+password" with no current field → saved username `TG.Teacher` (stored
+`tg.teacher`) → set a password → form flipped to "Change password" →
+logged out → signed in with the username + that password → `/en/admin`.
+
+Deliberately scoped out:
+
+- **Revoking other sessions on password change** (`AuthService.logoutAll`
+  exists) — would also kill the current session's family; needs a
+  "keep this one" variant first.
+- **Username on invitation accept / Telegram signup** — users pick it on
+  the account page afterwards; optional by design.
+- **Email change** and **display name / locale edits** — the page is
+  sign-in settings only for now.
+- **Password reset by email** — still the "later" item on the roadmap;
+  this page covers the signed-in case only.
+
+How to check as a user:
+
+1. Sign in as any password user (`admin@demo.local / admin12345`) → the
+   dashboard header has **Account** next to Log out → `/en/account`.
+   Expected: "Signed in as …", "Telegram is not linked", a Username card
+   and a **Change password** card with a Current password field.
+2. Save a username (try `Admin.One` → saved as `admin.one`; try `ab` or
+   `has space` → inline validation error; try a name another user has →
+   "already taken").
+3. Log out, sign in with the username instead of the email → works. Both
+   work from now on.
+4. Telegram-only user: get a session via the bot (`/login` link) or an
+   SQL-minted OTT (Telegram Auth C, step 2), open `/en/account`.
+   Expected: **Set a password** card without a Current field. Set one →
+   card flips to Change password; log out → sign in with
+   email/username + password → their role home.
+5. Edge: Change password with a wrong current → "current password is
+   incorrect"; mismatched repeat → "don't match"; <8 chars → rule error.
+   Student sidebar and parent header also show Account.
+
 ### Auth 2 — Telegram re-login (login-request handshake + bot `/login`)
 
 Second item of the 2026-10-09 auth roadmap. Until now a Telegram-signup

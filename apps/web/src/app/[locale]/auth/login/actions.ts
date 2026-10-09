@@ -41,7 +41,7 @@ export async function loginAction(
   _prev: LoginActionState,
   formData: FormData,
 ): Promise<LoginActionState> {
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("login") ?? formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const locale = normalizeLocale(formData.get("locale"));
 
@@ -51,7 +51,8 @@ export async function loginAction(
 
   const result = await apiFetch<TokenResponse>("/api/v1/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    // `login` is an email or a username; the API tells them apart by the "@".
+    body: JSON.stringify({ login: email, password }),
   });
 
   if (!result.ok) {

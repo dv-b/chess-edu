@@ -50,7 +50,7 @@
   "auth": {
     "login": {
       "title": "Sign in to your account",
-      "emailLabel": "Email",
+      "emailLabel": "Email or username",
       "passwordLabel": "Password",
       "submit": "Sign in",
       "submitting": "Signing in…",
@@ -65,7 +65,7 @@
         "rest": "for students, parents, teachers and admins."
       },
       "error": {
-        "invalid": "Invalid email or password.",
+        "invalid": "Invalid email, username or password.",
         "network": "Can't reach the server. Please try again.",
         "unknown": "Something went wrong. Please try again."
       },
@@ -876,7 +876,8 @@
         "COMPLETED": "Signed up via bot",
         "CANCELLED": "Cancelled in the bot"
       }
-    }
+    },
+    "account": "Account"
   },
   "parent": {
     "logout": "Log out",
@@ -912,7 +913,8 @@
         "network": "Can't reach the server. Please try again.",
         "unknown": "Something went wrong. Please try again."
       }
-    }
+    },
+    "account": "Account"
   },
   "student": {
     "qa": {
@@ -1039,7 +1041,8 @@
       "questions": "Questions",
       "puzzles": "Puzzles",
       "classmates": "Classmates",
-      "tournaments": "Tournaments"
+      "tournaments": "Tournaments",
+      "account": "Account"
     },
     "questionsList": {
       "title": "Your questions",
@@ -1176,5 +1179,48 @@
     "loading": "Loading…",
     "error": "Something went wrong",
     "retry": "Retry"
+  },
+  "account": {
+    "title": "Sign-in settings",
+    "signedInAs": "Signed in as {name} ({email})",
+    "telegramLinked": "Telegram is linked to this account.",
+    "telegramNotLinked": "Telegram is not linked to this account.",
+    "back": "Back",
+    "saving": "Saving…",
+    "username": {
+      "title": "Username",
+      "hint": "A short name you can use instead of your email when signing in.",
+      "label": "Username",
+      "submit": "Save username",
+      "saved": "Username saved.",
+      "error": {
+        "invalid": "3–32 characters: letters, digits, dots or underscores.",
+        "taken": "That username is already taken.",
+        "unauthorised": "Your session has expired. Sign in again.",
+        "network": "We couldn't reach the server. Try again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    },
+    "password": {
+      "setTitle": "Set a password",
+      "setHint": "You signed up through Telegram. Add a password so you can also sign in with your email or username.",
+      "changeTitle": "Change password",
+      "changeHint": "Enter your current password, then the new one twice.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Repeat new password",
+      "rule": "At least 8 characters.",
+      "setSubmit": "Set password",
+      "changeSubmit": "Change password",
+      "saved": "Password saved.",
+      "error": {
+        "mismatch": "The two passwords don't match.",
+        "wrongCurrent": "The current password is incorrect.",
+        "invalid": "The new password must be 8–200 characters.",
+        "unauthorised": "Your session has expired. Sign in again.",
+        "network": "We couldn't reach the server. Try again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
   }
 }

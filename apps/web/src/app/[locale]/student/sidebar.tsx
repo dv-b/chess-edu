@@ -212,6 +212,7 @@ export function StudentSidebar({
           <span className="student-sidebar__who-name">{shortName}</span>
           <span className="student-sidebar__who-meta">{me.email}</span>
         </div>
+        <a href={`/${locale}/account`} className="btn btn--ghost btn--sm">{t("account")}</a>
         <LogoutButton locale={locale} />
       </div>
     </aside>

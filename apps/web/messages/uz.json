@@ -50,7 +50,7 @@
   "auth": {
     "login": {
       "title": "Hisobingizga kiring",
-      "emailLabel": "Elektron pochta",
+      "emailLabel": "Email yoki foydalanuvchi nomi",
       "passwordLabel": "Parol",
       "submit": "Kirish",
       "submitting": "Kirmoqda…",
@@ -65,7 +65,7 @@
         "rest": "o‘quvchilar, ota-onalar, o‘qituvchilar va adminlar uchun."
       },
       "error": {
-        "invalid": "Elektron pochta yoki parol noto‘g‘ri.",
+        "invalid": "Email, foydalanuvchi nomi yoki parol noto‘g‘ri.",
         "network": "Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.",
         "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
       },
@@ -876,7 +876,8 @@
         "COMPLETED": "Bot orqali ro‘yxatdan o‘tdi",
         "CANCELLED": "Botda bekor qilindi"
       }
-    }
+    },
+    "account": "Hisob"
   },
   "parent": {
     "logout": "Chiqish",
@@ -912,7 +913,8 @@
         "network": "Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.",
         "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
       }
-    }
+    },
+    "account": "Hisob"
   },
   "student": {
     "qa": {
@@ -1039,7 +1041,8 @@
       "questions": "Savollar",
       "puzzles": "Masalalar",
       "classmates": "Sinfdoshlar",
-      "tournaments": "Turnirlar"
+      "tournaments": "Turnirlar",
+      "account": "Hisob"
     },
     "questionsList": {
       "title": "Sizning savollaringiz",
@@ -1176,5 +1179,48 @@
     "loading": "Yuklanmoqda…",
     "error": "Xatolik yuz berdi",
     "retry": "Qayta urinish"
+  },
+  "account": {
+    "title": "Kirish sozlamalari",
+    "signedInAs": "{name} ({email}) sifatida kirgansiz",
+    "telegramLinked": "Bu hisobga Telegram bog‘langan.",
+    "telegramNotLinked": "Bu hisobga Telegram bog‘lanmagan.",
+    "back": "Orqaga",
+    "saving": "Saqlanmoqda…",
+    "username": {
+      "title": "Foydalanuvchi nomi",
+      "hint": "Email o‘rniga kirish uchun ishlatiladigan qisqa nom.",
+      "label": "Foydalanuvchi nomi",
+      "submit": "Nomni saqlash",
+      "saved": "Foydalanuvchi nomi saqlandi.",
+      "error": {
+        "invalid": "3–32 ta belgi: lotin harflari, raqamlar, nuqta yoki pastki chiziq.",
+        "taken": "Bu nom allaqachon band.",
+        "unauthorised": "Sessiya muddati tugadi. Qayta kiring.",
+        "network": "Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.",
+        "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
+      }
+    },
+    "password": {
+      "setTitle": "Parol o‘rnatish",
+      "setHint": "Siz Telegram orqali ro‘yxatdan o‘tgansiz. Email yoki foydalanuvchi nomi bilan ham kirish uchun parol o‘rnating.",
+      "changeTitle": "Parolni o‘zgartirish",
+      "changeHint": "Joriy parolni, so‘ng yangisini ikki marta kiriting.",
+      "current": "Joriy parol",
+      "new": "Yangi parol",
+      "confirm": "Yangi parolni takrorlang",
+      "rule": "Kamida 8 ta belgi.",
+      "setSubmit": "Parol o‘rnatish",
+      "changeSubmit": "Parolni o‘zgartirish",
+      "saved": "Parol saqlandi.",
+      "error": {
+        "mismatch": "Parollar mos kelmadi.",
+        "wrongCurrent": "Joriy parol noto‘g‘ri.",
+        "invalid": "Yangi parol 8–200 ta belgidan iborat bo‘lishi kerak.",
+        "unauthorised": "Sessiya muddati tugadi. Qayta kiring.",
+        "network": "Serverga ulanib bo‘lmadi. Qayta urinib ko‘ring.",
+        "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
+      }
+    }
   }
 }
