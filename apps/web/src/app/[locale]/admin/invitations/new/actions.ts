@@ -19,6 +19,13 @@ export type IssueActionState = {
     | "network"
     | "unknown"
     | "unauthorised";
+  /**
+   * The backend's own message for 400 / 403 / 409 — e.g. "schoolId is
+   * required when a platform admin invites a school user" or "Telegram bot
+   * is not configured". Shown under the generic line so an admin isn't left
+   * guessing which field to "check".
+   */
+  detail?: string;
   /** Preserve form values on error. */
   values?: {
     email?: string;
@@ -26,6 +33,7 @@ export type IssueActionState = {
     role?: string;
     preferredLocale?: string;
     deliveryChannel?: string;
+    schoolId?: string;
   };
   /**
    * Set (instead of redirecting) after a TELEGRAM invite is issued: the
@@ -70,8 +78,10 @@ export async function issueInvitationAction(
   const role = String(formData.get("role") ?? "");
   const preferredLocale = String(formData.get("preferredLocale") ?? "").trim();
   const deliveryChannel = String(formData.get("deliveryChannel") ?? "EMAIL");
+  // Only present when the form rendered the platform-admin school picker.
+  const schoolId = String(formData.get("schoolId") ?? "").trim();
 
-  const values = { email, displayName, role, preferredLocale, deliveryChannel };
+  const values = { email, displayName, role, preferredLocale, deliveryChannel, schoolId };
 
   if (!email || !displayName || !isRole(role) || !isChannel(deliveryChannel)) {
     return { error: "invalid", values };
@@ -91,19 +101,21 @@ export async function issueInvitationAction(
       role,
       preferredLocale: preferredLocale || undefined,
       deliveryChannel,
+      schoolId: schoolId || undefined,
     }),
   });
 
   if (!result.ok) {
     const status = result.error.status;
+    const detail = result.error.message;
     if (status === 0) return { error: "network", values };
     if (status === 401) {
       await clearSession();
       return { error: "unauthorised", values };
     }
-    if (status === 403) return { error: "forbidden", values };
-    if (status === 409) return { error: "conflict", values };
-    if (status === 400 || status === 422) return { error: "invalid", values };
+    if (status === 403) return { error: "forbidden", detail, values };
+    if (status === 409) return { error: "conflict", detail, values };
+    if (status === 400 || status === 422) return { error: "invalid", detail, values };
     return { error: "unknown", values };
   }
 
@@ -116,7 +128,10 @@ export async function issueInvitationAction(
   }
 
   redirect({
-    href: { pathname: "/admin/invitations", query: { sent: email } },
+    href: {
+      pathname: "/admin/invitations",
+      query: schoolId ? { sent: email, schoolId } : { sent: email },
+    },
     locale,
   });
   // `redirect` throws — this return is unreachable but keeps TS's control-flow

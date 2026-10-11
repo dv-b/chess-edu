@@ -4,6 +4,7 @@ import { apiFetch } from "@/lib/api";
 import { getAccessToken } from "@/lib/session";
 import { Link } from "@/i18n/routing";
 import { revokeInvitationAction } from "./actions";
+import { SchoolPicker, type SchoolOption } from "./school-picker";
 
 type InvitationView = {
   id: string;
@@ -24,23 +25,41 @@ type InvitationView = {
 
 type PageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ schoolId?: string | string[] }>;
 };
 
+type MeResponse = { platformRole: string | null };
+
 /**
- * Admin list of invitations for the school the caller belongs to.
- * Platform admins hitting this page without a `schoolId` query param will
- * see an empty list (the backend returns [] by design — see
- * {@code AdminInvitationController.resolveSchool}); eventually we'll expose
- * a school picker for them.
+ * Admin list of invitations for one school. School admins see their own;
+ * platform admins (no membership) pick a tenant with the school picker,
+ * which drives `?schoolId=` — defaulting to the first school so the page is
+ * never empty for the wrong reason.
  */
-export default async function AdminInvitationsPage({ params }: PageProps) {
+export default async function AdminInvitationsPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   const access = await getAccessToken();
   if (!access) redirect(`/${locale}/auth/login`);
 
-  const result = await apiFetch<InvitationView[]>("/api/v1/admin/invitations", {
+  const me = await apiFetch<MeResponse>("/api/v1/auth/me", { accessToken: access });
+  const isPlatformAdmin = me.ok && me.data.platformRole === "PLATFORM_ADMIN";
+
+  let schools: SchoolOption[] = [];
+  let schoolId: string | null = null;
+  if (isPlatformAdmin) {
+    const sp = await searchParams;
+    const requested = Array.isArray(sp.schoolId) ? sp.schoolId[0] : sp.schoolId;
+    const list = await apiFetch<SchoolOption[]>("/api/v1/admin/schools", { accessToken: access });
+    schools = list.ok ? list.data : [];
+    schoolId = schools.some((s) => s.id === requested) ? requested! : (schools[0]?.id ?? null);
+  }
+
+  const listPath = schoolId
+    ? `/api/v1/admin/invitations?schoolId=${encodeURIComponent(schoolId)}`
+    : "/api/v1/admin/invitations";
+  const result = await apiFetch<InvitationView[]>(listPath, {
     accessToken: access,
   });
 
@@ -62,10 +81,23 @@ export default async function AdminInvitationsPage({ params }: PageProps) {
           <h1 className="dashboard-title">{t("title")}</h1>
           <p className="dashboard-subtitle">{t("subtitle")}</p>
         </div>
-        <Link href="/admin/invitations/new" className="btn btn--primary">
+        <Link
+          href={schoolId ? { pathname: "/admin/invitations/new", query: { schoolId } } : "/admin/invitations/new"}
+          className="btn btn--primary"
+        >
           {t("newCta")}
         </Link>
       </header>
+
+      {isPlatformAdmin ? (
+        schools.length > 0 ? (
+          <SchoolPicker schools={schools} selected={schoolId} />
+        ) : (
+          <section className="dashboard-note">
+            <p>{t("noSchools")}</p>
+          </section>
+        )
+      ) : null}
 
       {!result.ok ? (
         <div className="form-error" role="alert">

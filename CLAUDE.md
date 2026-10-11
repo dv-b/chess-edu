@@ -30,6 +30,44 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Platform admin: school picker on invitations + backend error detail
+
+Found while Bulat ran the e2e test plan: a platform admin (no
+membership) pressing "Send invitation" got only "Check the fields and
+try again". The backend had said exactly what was wrong — "schoolId is
+required when a platform admin invites a school user" — but the form
+mapped every 400 to the generic line, and the UI had no way to supply a
+school at all (the test plan had been using curl for that step).
+
+- `apps/api/.../tenancy/AdminSchoolController.java` — new
+  `GET /api/v1/admin/schools`, `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`,
+  returns `SchoolView(id, slug, displayName, status)` sorted by name.
+  `AdminSchoolListIntegrationTest` (2): platform admin sees the demo
+  school; school admin → 403.
+- `apps/web/src/app/[locale]/admin/invitations/school-picker.tsx` — new
+  client `<select>` that rewrites `?schoolId=` (`router.replace`).
+- `invitations/page.tsx` — fetches `/me`; for a platform admin also
+  fetches the schools, resolves `?schoolId` (defaults to the first
+  school), lists `?schoolId=…`, and the "New invitation" link carries it.
+  School admins see no picker — their school is implied, as before.
+- `invitations/new/page.tsx` + `invite-form.tsx` — same resolution; the
+  form renders a **School** select for platform admins and posts
+  `schoolId`; the success redirect keeps `?schoolId`.
+- `invitations/new/actions.ts` — `IssueActionState.detail` carries the
+  backend message for 400 / 403 / 409; the form shows it as
+  `.form-error__detail` under the generic copy.
+- i18n: `admin.invitations.{schoolLabel,noSchools}`,
+  `admin.invitations.new.schoolLabel` → **1007** leaf keys each.
+- `docs/auth-e2e-test-plan.md` — Phase 1 is now a UI step; the curl
+  path and the "known gap" note are gone.
+
+How to check as a user: sign in as a platform admin (test plan Phase 0),
+open `/en/admin/invitations` → a School select sits above the list;
+New invitation → the form has the same select; submit → redirect to the
+list for that school. As a school admin, neither select appears. Edge:
+with the bot username unset, a Telegram invite now says why under the
+red line.
+
 ### Auth 2b — "Log in with Telegram" by one-time code (replaces the deeplink handshake)
 
 Bulat's UX verdict on Auth 2 (2026-10-11): the `t.me` deeplink opened a

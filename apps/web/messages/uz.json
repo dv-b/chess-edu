@@ -873,7 +873,8 @@
         "deeplinkLabel": "Bot havolasi",
         "copy": "Havolani nusxalash",
         "copied": "Nusxalandi",
-        "backToList": "Taklifnomalar ro‘yxatiga"
+        "backToList": "Taklifnomalar ro‘yxatiga",
+        "schoolLabel": "Maktab"
       },
       "channel": {
         "EMAIL": "Email",
@@ -885,7 +886,9 @@
         "AWAITING_CONTACT": "Telefon raqami kutilmoqda",
         "COMPLETED": "Bot orqali ro‘yxatdan o‘tdi",
         "CANCELLED": "Botda bekor qilindi"
-      }
+      },
+      "schoolLabel": "Maktab",
+      "noSchools": "Hozircha maktablar yo‘q."
     },
     "account": "Hisob"
   },

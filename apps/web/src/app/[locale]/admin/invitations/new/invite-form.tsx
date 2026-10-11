@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { issueInvitationAction, type IssueActionState } from "./actions";
+import type { SchoolOption } from "../school-picker";
 
 const INITIAL: IssueActionState = {};
 
@@ -61,7 +62,16 @@ function IssuedTelegramCard({
  * PARENT) — STUDENT onboarding is deliberately routed through parent
  * invitations in M3, and PLATFORM_ADMIN is out of scope for this screen.
  */
-export function InviteForm({ locale }: { locale: string }) {
+export function InviteForm({
+  locale,
+  schools = [],
+  initialSchoolId = null,
+}: {
+  locale: string;
+  /** Non-empty only for platform admins, who must pick the tenant. */
+  schools?: SchoolOption[];
+  initialSchoolId?: string | null;
+}) {
   const t = useTranslations("admin.invitations.new");
   const [state, formAction, pending] = useActionState(
     issueInvitationAction,
@@ -88,6 +98,20 @@ export function InviteForm({ locale }: { locale: string }) {
       {state.error ? (
         <div className="form-error" role="alert">
           {t(`error.${state.error}`)}
+          {state.detail ? <p className="form-error__detail">{state.detail}</p> : null}
+        </div>
+      ) : null}
+
+      {schools.length > 0 ? (
+        <div className="field">
+          <label htmlFor="schoolId">{t("schoolLabel")}</label>
+          <select id="schoolId" name="schoolId" defaultValue={v.schoolId ?? initialSchoolId ?? ""} required>
+            {schools.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.displayName}
+              </option>
+            ))}
+          </select>
         </div>
       ) : null}
 

@@ -873,7 +873,8 @@
         "deeplinkLabel": "Ссылка на бота",
         "copy": "Скопировать ссылку",
         "copied": "Скопировано",
-        "backToList": "К списку приглашений"
+        "backToList": "К списку приглашений",
+        "schoolLabel": "Школа"
       },
       "channel": {
         "EMAIL": "Email",
@@ -885,7 +886,9 @@
         "AWAITING_CONTACT": "Ожидаем номер телефона",
         "COMPLETED": "Зарегистрирован(а) через бота",
         "CANCELLED": "Отменено в боте"
-      }
+      },
+      "schoolLabel": "Школа",
+      "noSchools": "Школ пока нет."
     },
     "account": "Аккаунт"
   },

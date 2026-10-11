@@ -79,20 +79,19 @@ admin. Expected: `/en/admin` with role `PLATFORM_ADMIN` and no school.
 
 ## Phase 1 — Platform admin invites the school admin (email)
 
-The invite form has no school picker for platform admins yet, so this one
-step uses the API directly. Get a token and issue the invitation:
+Signed in as the platform admin, open **Invitations**. Because a
+platform admin belongs to no school, the page shows a **School** picker
+above the list (Demo Chess School is preselected) and the list is scoped
+to it. Press **New invitation**: the form carries the same **School**
+field. Fill role **School admin**, email `principal@demo.local`, a name,
+language English, Send via Email, and submit.
 
-```bash
-TOKEN=$(curl -s -X POST localhost:7373/api/v1/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"login":"admin@demo.local","password":"admin12345"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["accessToken"])')
-SCHOOL=$($PSQL -tAc "select id from school where slug='demo'")
-curl -s -X POST localhost:7373/api/v1/admin/invitations \
-  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d "{\"role\":\"SCHOOL_ADMIN\",\"email\":\"principal@demo.local\",\"displayName\":\"School Principal\",\"schoolId\":\"$SCHOOL\",\"preferredLocale\":\"en\"}"
-```
+Expected: redirect back to the list, the new row with Channel `Email`,
+status `Pending`.
 
-Expected: JSON with `"deliveryChannel":"EMAIL"`, no `botDeeplink`.
+If anything is rejected, the red box now shows the backend's own reason
+under the generic line (for example a missing school, or "Telegram bot is
+not configured"), so you are not left guessing.
 
 1. Open Mailpit at http://localhost:8125 → the invitation email → click
    the `/en/auth/invitations/<token>` link.
@@ -208,9 +207,6 @@ can still sign in with its password. Or go back to Phase 0.
 
 ## Known gaps you will notice
 
-- Platform admin has no school picker in the invite form and sees an
-  empty invitations list (needs a `schoolId`). Phase 1 uses curl for that
-  reason.
 - "Forgot password?" on the login page is still a dead link (email reset
   is a later roadmap item).
 - Students cannot sign in yet (items 4 and 5).
