@@ -99,15 +99,19 @@ sequenceDiagram
     end
 
     rect rgb(240, 240, 240)
-    Note over Invitee, API: Phase 4 — repeat sign-in via Login Widget (DESIGNED, NOT BUILT — needs a prod domain)
-    Invitee->>Web: /auth/login → "Log in with Telegram" widget (bot domain set via @BotFather /setdomain)
-    Invitee->>TG: Authorises in Telegram
-    TG-->>Web: Signed payload {id, first_name, auth_date, hash}
-    Web->>API: POST /api/v1/auth/telegram/login {payload}
-    API->>API: Verify hash = HMAC-SHA256(payload, key = SHA-256(bot_token)) and auth_date is fresh
-    API->>DB: SELECT telegram_account WHERE telegram_id = payload.id
-    API->>API: Mint OTT internally, then the same redemption path as Phase 3
-    API-->>Web: TokenResponse → cookies → redirect
+    Note over Invitee, API: Phase 4 — repeat sign-in by one-time code (no domain needed)
+    Invitee->>Web: /auth/login → "Log in with Telegram" → enters username / email / phone
+    Web->>API: POST /api/v1/auth/telegram/login-codes {identifier}
+    API->>DB: resolve → telegram_account (chat_id), INSERT telegram_login_code (sha256(code), 5 min)
+    API->>TG: sendMessage(chat_id, "Your sign-in code: 123456")
+    API-->>Web: {id, expiresAt}   (same shape even if nothing matched — no account probing)
+    TG-->>Invitee: the code, in the bot chat
+    Invitee->>Web: types the code → Sign in
+    Web->>API: POST /login-codes/{id}/verify {code}
+    API->>API: hash matches? (max 5 wrong attempts, single use)
+    API->>DB: UPDATE consumed_at, issue session (same as Phase 3)
+    API-->>Web: TokenResponse → cookies → redirect by role
+    Note right of API: Bot /login still replies with a fresh /auth/accept link<br/>for the same-device phone case.
     end
 ```
 
@@ -144,9 +148,22 @@ sequenceDiagram
 16. **Web installs HttpOnly cookies** (`session_access`, `session_refresh`), calls `/auth/me`, and redirects by role via the shared `homeForRole`: PARENT → `/parent`, STUDENT → `/student`, everything else → `/admin`.
 17. **Failures are opaque.** Unknown, used, expired OTT and suspended user all return `401 UNAUTHENTICATED` with the same message; the page shows "This link has expired" and offers `/start` again or email + password.
 
-### Phase 4 — Repeat sign-in (planned)
+### Phase 4 — Repeat sign-in by one-time code
 
-18. **Login Widget** on `/auth/login`, HMAC-verified against `SHA-256(bot_token)` with a fresh `auth_date`, keyed on `telegram_account.telegram_id`, mints an OTT internally and reuses Phase 3. Blocked on a production domain for `@BotFather /setdomain`.
+18. **"Log in with Telegram" on the login page** asks who is signing in
+    (username, email, or the phone linked at signup). The API resolves it
+    to a `telegram_account`, mints a 6-digit code (hash stored, 5-minute
+    TTL, 5 wrong attempts max, 45-second resend cooldown) and the bot
+    DMs it. The response looks the same whether or not anything matched,
+    so the endpoint can't be used to probe accounts.
+19. **The user types the code** on the same page; verify issues the
+    session exactly like Phase 3 and redirects by role. Explicit step,
+    no new tab, works on desktop and phone alike.
+    *Comment:* the earlier deeplink handshake (`/start login_<nonce>`)
+    was removed after UX review; the bot's `/login` command remains as a
+    same-device shortcut that replies with a fresh accept link.
+20. **Login Widget** can still be added once a production domain exists,
+    as a one-click option next to the code flow.
 
 ## Security properties worth keeping
 
@@ -156,6 +173,10 @@ sequenceDiagram
 - **One web entry point** (`/auth/accept` + `/auth/telegram/accept`) for both signup and the future widget login, so there is a single place to audit.
 - **Public surface is small**: `/api/v1/auth/telegram/**` is the only permit-all addition; everything else stays behind the JWT.
 
-## Known gap (not yet addressed)
+## Status of the former gap
 
-A Telegram-signup user has **no password**, and the Login Widget isn't built yet. If their session cookies expire (14-day refresh) or they log out, there is currently no way back in: `/start` with their old invite says "already accepted", and `/start` from their linked account says "sign in on the website". Options until the widget lands: a bot command (e.g. `/login`) that mints a fresh OTT for an already-linked `telegram_id` and replies with a new `/auth/accept` link — small, reuses everything in Phase 3, and needs no domain. Worth deciding before Task E's runbook is written.
+A Telegram-signup user originally had no way back in after their session
+ended. That is now covered three ways: the one-time code (Phase 4), the
+bot's `/login` link, and — since Auth 3 — an optional username + password
+set on the account page. Silent session refresh (Auth 1) also means an
+active user is no longer logged out every 30 minutes.

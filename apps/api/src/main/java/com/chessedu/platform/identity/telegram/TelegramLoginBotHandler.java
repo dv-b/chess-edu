@@ -14,18 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 
 /**
- * Bot-side half of repeat sign-in for already-linked accounts. Two entry
- * points, both only for users who completed signup earlier:
- *
- * <ul>
- *   <li>{@code /start login_<nonce>} — the browser's "Log in with Telegram"
- *       button opened this deeplink; confirm the pending login request so the
- *       browser's poll can issue the session. Works cross-device (desktop
- *       browser, phone Telegram).</li>
- *   <li>{@code /login} — typed directly in the bot: reply with a fresh
- *       {@code /auth/accept?ott=…} link, for the same-device phone case or when
- *       the user simply wants a link. Same single-use OTT as signup.</li>
- * </ul>
+ * Bot-side repeat sign-in for already-linked accounts: {@code /login} typed
+ * in the bot replies with a fresh {@code /auth/accept?ott=…} link (same
+ * single-use OTT as signup) — the same-device phone shortcut. The web
+ * "Log in with Telegram" button uses one-time codes instead
+ * ({@link TelegramLoginCodeService}); the bot doesn't take part in that
+ * beyond delivering the message.
  *
  * <p>Bot-facing, so {@code @ConditionalOnProperty} like the rest of the worker.
  */
@@ -35,47 +29,19 @@ public class TelegramLoginBotHandler {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramLoginBotHandler.class);
 
-    static final String LOGIN_PREFIX = "login_";
-
-    private final TelegramLoginRequestService loginRequests;
     private final TelegramAccountRepository accounts;
     private final TelegramAuthTokenService ottService;
     private final TelegramApiClient api;
     private final WebProperties webProps;
 
-    public TelegramLoginBotHandler(TelegramLoginRequestService loginRequests,
-                                   TelegramAccountRepository accounts,
+    public TelegramLoginBotHandler(TelegramAccountRepository accounts,
                                    TelegramAuthTokenService ottService,
                                    TelegramApiClient api,
                                    WebProperties webProps) {
-        this.loginRequests = loginRequests;
         this.accounts = accounts;
         this.ottService = ottService;
         this.api = api;
         this.webProps = webProps;
-    }
-
-    /** {@code /start login_<nonce>} — confirm a browser's pending login request. */
-    @Transactional
-    public void handleLoginStart(TgMessage msg, String nonce) {
-        TgUser from = msg.from();
-        long chatId = msg.chat().id();
-        String locale = TelegramBotMessages.resolveLocale(from.languageCode());
-
-        TelegramAccount account = accounts.findByTelegramId(from.id()).orElse(null);
-        if (account == null) {
-            api.sendMessage(chatId, TelegramBotMessages.loginNotLinked(locale));
-            return;
-        }
-        touch(account, from);
-
-        var outcome = loginRequests.complete(nonce, from.id(), account.getUserId());
-        switch (outcome) {
-            case COMPLETED -> api.sendMessage(chatId, TelegramBotMessages.loginConfirmed(locale));
-            case ALREADY_COMPLETED -> api.sendMessage(chatId, TelegramBotMessages.loginAlreadyConfirmed(locale));
-            case NOT_FOUND, EXPIRED -> api.sendMessage(chatId, TelegramBotMessages.loginRequestExpired(locale));
-        }
-        log.info("Telegram login start: telegramId={} outcome={}", from.id(), outcome);
     }
 
     /** {@code /login} — hand a linked user a fresh one-time accept link. */

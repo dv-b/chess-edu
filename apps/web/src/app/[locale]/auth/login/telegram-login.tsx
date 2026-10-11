@@ -1,120 +1,131 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  cancelTelegramLoginAction,
-  pollTelegramLoginAction,
-  startTelegramLoginAction,
+  cancelTelegramCodeAction,
+  requestTelegramCodeAction,
+  verifyTelegramCodeAction,
+  type TelegramCodeRequestState,
+  type TelegramCodeVerifyState,
 } from "./actions";
 
-const POLL_MS = 2000;
-
-type Phase =
-  | { kind: "idle" }
-  | { kind: "starting" }
-  | { kind: "waiting"; deeplink: string }
-  | { kind: "error"; code: "unavailable" | "network" | "unknown" | "expired" };
+const REQ_INITIAL: TelegramCodeRequestState = {};
+const VER_INITIAL: TelegramCodeVerifyState = {};
 
 /**
- * "Log in with Telegram" for already-linked accounts, without the Login
- * Widget (which needs a production domain registered with @BotFather).
+ * "Log in with Telegram" by one-time code — the pattern Telegram itself
+ * uses. Three states on the login card:
  *
- * Click → Server Action creates a login request (keeps the client secret in
- * an HttpOnly cookie) and returns a t.me deeplink → we show an "Open
- * Telegram" link and poll every 2 s → the bot confirms → the poll action
- * installs the session and redirects. Works on one device (phone) and
- * across two (desktop browser + phone Telegram).
+ *   idle      → a button
+ *   ask       → "who are you?" (username / email / phone) → Send code
+ *   code      → "we sent a code to your Telegram" → 6-digit input → Sign in
  *
- * CAREFUL: polling is driven by a single interval that is torn down on
- * phase change / unmount, and the poll action itself is the one that
- * redirects — don't add a second redirect on the client or you'll race it.
+ * Both steps are plain forms bound to Server Actions via useActionState;
+ * the verify action installs the session and redirects, so a successful
+ * code is an explicit navigation, not a page that changes under the user.
+ * Works identically on desktop (code arrives on the phone, typed on the
+ * desktop) and on the phone itself. No new tab, no deeplink.
  */
 export function TelegramLogin({ locale }: { locale: string }) {
   const t = useTranslations("auth.login.telegram");
-  const [phase, setPhase] = useState<Phase>({ kind: "idle" });
-  const [pending, startTransition] = useTransition();
-  const polling = useRef(false);
+  const [open, setOpen] = useState(false);
+  const [req, requestAction, requesting] = useActionState(requestTelegramCodeAction, REQ_INITIAL);
+  const [ver, verifyAction, verifying] = useActionState(verifyTelegramCodeAction, VER_INITIAL);
+  // "Back" from the code step must survive a later successful request, so
+  // the step is derived from the request state but can be dismissed.
+  const [dismissedRequest, setDismissedRequest] = useState<TelegramCodeRequestState | null>(null);
+  const codeStep = Boolean(req.sent) && dismissedRequest !== req;
 
-  function start() {
-    setPhase({ kind: "starting" });
-    startTransition(async () => {
-      const res = await startTelegramLoginAction();
-      if (res.deeplink) {
-        setPhase({ kind: "waiting", deeplink: res.deeplink });
-      } else {
-        setPhase({ kind: "error", code: res.error ?? "unknown" });
-      }
-    });
+  function reset() {
+    setDismissedRequest(req);
+    setOpen(false);
+    void cancelTelegramCodeAction();
   }
 
-  function cancel() {
-    setPhase({ kind: "idle" });
-    void cancelTelegramLoginAction();
-  }
-
-  useEffect(() => {
-    if (phase.kind !== "waiting") return;
-    let cancelled = false;
-    const timer = setInterval(async () => {
-      if (polling.current) return; // never overlap two polls
-      polling.current = true;
-      try {
-        const res = await pollTelegramLoginAction(locale);
-        if (cancelled) return;
-        if (res.status === "expired") {
-          setPhase({ kind: "error", code: "expired" });
-        }
-        // "pending" and transient "network" just keep waiting.
-      } catch {
-        // A successful poll redirects by throwing NEXT_REDIRECT, which the
-        // framework handles; anything else is transient — keep polling.
-      } finally {
-        polling.current = false;
-      }
-    }, POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [phase.kind, locale]);
-
-  if (phase.kind === "waiting") {
+  if (!open) {
     return (
-      <div className="auth-telegram" role="status" aria-live="polite">
-        <p className="auth-telegram__title">{t("waitingTitle")}</p>
-        <p className="auth-meta">{t("waitingHint")}</p>
-        <a
-          className="btn btn--primary auth-telegram__open"
-          href={phase.deeplink}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t("openTelegram")}
-        </a>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={cancel}>
-          {t("cancel")}
+      <div className="auth-telegram">
+        <button type="button" className="btn btn--ghost auth-telegram__start" onClick={() => setOpen(true)}>
+          {t("button")}
         </button>
+        <p className="auth-meta">{t("hint")}</p>
       </div>
     );
   }
 
+  if (codeStep) {
+    const expired = ver.error === "expired";
+    return (
+      <form className="auth-telegram" action={verifyAction} noValidate>
+        <input type="hidden" name="locale" value={locale} />
+        <p className="auth-telegram__title">{t("codeTitle")}</p>
+        <p className="auth-meta">{t("codeHint", { identifier: req.identifier ?? "" })}</p>
+
+        {ver.error ? (
+          <div className="form-error" role="alert">{t(`error.${ver.error}`)}</div>
+        ) : null}
+
+        {!expired ? (
+          <>
+            <div className="field">
+              <label htmlFor="tg-code">{t("codeLabel")}</label>
+              <input
+                id="tg-code"
+                name="code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9 ]*"
+                maxLength={8}
+                placeholder="123456"
+                autoFocus
+                required
+              />
+            </div>
+            <button className="btn btn--primary" type="submit" disabled={verifying}>
+              {verifying ? t("verifying") : t("verify")}
+            </button>
+          </>
+        ) : null}
+
+        <button type="button" className="btn btn--ghost btn--sm" onClick={reset}>
+          {expired ? t("startOver") : t("back")}
+        </button>
+      </form>
+    );
+  }
+
   return (
-    <div className="auth-telegram">
-      {phase.kind === "error" ? (
-        <div className="form-error" role="alert">
-          {t(`error.${phase.code}`)}
-        </div>
+    <form className="auth-telegram" action={requestAction} noValidate>
+      <p className="auth-telegram__title">{t("askTitle")}</p>
+      <p className="auth-meta">{t("askHint")}</p>
+
+      {req.error ? (
+        <div className="form-error" role="alert">{t(`error.${req.error}`)}</div>
       ) : null}
-      <button
-        type="button"
-        className="btn btn--ghost auth-telegram__start"
-        onClick={start}
-        disabled={pending || phase.kind === "starting"}
-      >
-        {phase.kind === "starting" ? t("starting") : t("button")}
+
+      <div className="field">
+        <label htmlFor="tg-identifier">{t("identifierLabel")}</label>
+        <input
+          id="tg-identifier"
+          name="identifier"
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          placeholder={t("identifierPlaceholder")}
+          defaultValue={req.identifier ?? ""}
+          autoFocus
+          required
+        />
+      </div>
+      <button className="btn btn--primary" type="submit" disabled={requesting}>
+        {requesting ? t("sending") : t("sendCode")}
       </button>
-      <p className="auth-meta">{t("hint")}</p>
-    </div>
+      <button type="button" className="btn btn--ghost btn--sm" onClick={reset}>
+        {t("back")}
+      </button>
+    </form>
   );
 }

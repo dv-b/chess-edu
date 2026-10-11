@@ -2,9 +2,9 @@ package com.chessedu.platform.identity.telegram;
 
 import com.chessedu.platform.identity.auth.dto.TokenResponse;
 import com.chessedu.platform.identity.telegram.dto.TelegramAcceptRequest;
-import com.chessedu.platform.identity.telegram.dto.TelegramLoginPollRequest;
-import com.chessedu.platform.identity.telegram.dto.TelegramLoginPollResponse;
-import com.chessedu.platform.identity.telegram.dto.TelegramLoginRequestView;
+import com.chessedu.platform.identity.telegram.dto.TelegramLoginCodeRequest;
+import com.chessedu.platform.identity.telegram.dto.TelegramLoginCodeVerifyRequest;
+import com.chessedu.platform.identity.telegram.dto.TelegramLoginCodeView;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +23,10 @@ import java.util.UUID;
  *   <li>{@code POST /api/v1/auth/telegram/accept} — redeem the OTT from the
  *       bot's deeplink for a JWT pair. Same {@link TokenResponse} shape as
  *       {@code /auth/login} and {@code /auth/invitations/accept}.</li>
- *   <li>{@code POST /api/v1/auth/telegram/login-requests} — start a "Log in
- *       with Telegram" handshake (returns the {@code t.me} deeplink).</li>
- *   <li>{@code POST /api/v1/auth/telegram/login-requests/{id}/poll} — ask
- *       whether the bot confirmed it; the first poll after confirmation
- *       carries the JWT pair and consumes the request.</li>
+ *   <li>{@code POST /api/v1/auth/telegram/login-codes} — "Log in with
+ *       Telegram": resolve username / email / phone, DM a 6-digit code.</li>
+ *   <li>{@code POST /api/v1/auth/telegram/login-codes/{id}/verify} — swap the
+ *       code for the JWT pair (single use, 5 wrong attempts max).</li>
  * </ul>
  *
  * <p>The Login-Widget endpoint ({@code POST /auth/telegram/login}) is deferred
@@ -38,12 +37,12 @@ import java.util.UUID;
 public class TelegramAuthController {
 
     private final TelegramAuthService telegramAuth;
-    private final TelegramLoginRequestService loginRequests;
+    private final TelegramLoginCodeService loginCodes;
 
     public TelegramAuthController(TelegramAuthService telegramAuth,
-                                  TelegramLoginRequestService loginRequests) {
+                                  TelegramLoginCodeService loginCodes) {
         this.telegramAuth = telegramAuth;
-        this.loginRequests = loginRequests;
+        this.loginCodes = loginCodes;
     }
 
     @PostMapping("/accept")
@@ -51,16 +50,16 @@ public class TelegramAuthController {
         return telegramAuth.accept(body.ott(), ip(req), userAgent(req));
     }
 
-    @PostMapping("/login-requests")
-    public TelegramLoginRequestView createLoginRequest() {
-        return loginRequests.create();
+    @PostMapping("/login-codes")
+    public TelegramLoginCodeView requestLoginCode(@Valid @RequestBody TelegramLoginCodeRequest body) {
+        return loginCodes.request(body.identifier());
     }
 
-    @PostMapping("/login-requests/{id}/poll")
-    public TelegramLoginPollResponse pollLoginRequest(@PathVariable("id") UUID id,
-                                                      @Valid @RequestBody TelegramLoginPollRequest body,
-                                                      HttpServletRequest req) {
-        return loginRequests.poll(id, body.clientSecret(), ip(req), userAgent(req));
+    @PostMapping("/login-codes/{id}/verify")
+    public TokenResponse verifyLoginCode(@PathVariable("id") UUID id,
+                                         @Valid @RequestBody TelegramLoginCodeVerifyRequest body,
+                                         HttpServletRequest req) {
+        return loginCodes.verify(id, body.code(), ip(req), userAgent(req));
     }
 
     // Same client-meta extraction as AuthController / InvitationService — the

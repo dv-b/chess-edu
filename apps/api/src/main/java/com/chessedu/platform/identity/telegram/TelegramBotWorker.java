@@ -87,12 +87,7 @@ public class TelegramBotWorker {
             String payload = text.length() > "/start".length()
                     ? text.substring("/start".length()).trim()
                     : null;
-            if (payload != null && payload.startsWith(TelegramLoginBotHandler.LOGIN_PREFIX)) {
-                // Re-login handshake from the web "Log in with Telegram" button.
-                login.handleLoginStart(msg, payload.substring(TelegramLoginBotHandler.LOGIN_PREFIX.length()));
-            } else {
-                signup.handleStart(msg, (payload == null || payload.isBlank()) ? null : payload);
-            }
+            signup.handleStart(msg, (payload == null || payload.isBlank()) ? null : payload);
         } else if (text.equals("/login")) {
             login.handleLoginCommand(msg);
         } else if (text.equals("/cancel")) {

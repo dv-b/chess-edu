@@ -46,11 +46,11 @@ Settled after the "signup/signin is incomplete" review — treat as locked:
 - **"Recovery" = re-login after being away**, not password reset. Two
   parts: (1) silent session refresh in the web app (the 14-day refresh
   token is currently never used — sessions die at 30 min); (2) Telegram
-  re-login without a prod domain via a **login request + nonce**: login
-  page creates a 5-min single-use request, opens
-  `t.me/<bot>?start=login_<nonce>`, polls; bot `/start login_<nonce>` from
-  a linked account completes it with a fresh OTT; page redeems through the
-  existing accept path. Login Widget replaces the deeplink later.
+  re-login without a prod domain. First built as a deeplink + nonce
+  handshake (Auth 2), **replaced on 2026-10-11 by a one-time code** (Auth
+  2b) after UX review: user enters username / email / phone, the bot DMs
+  a 6-digit code, user types it in. No new tab, explicit sign-in step.
+  Login Widget may be added later as a nicer desktop option.
 - **Students are created by parents** (as now). Two coexisting models:
   - **Younger: log in through the parent.** Child switcher issues an
     "acting-as" access token (subject = child, actor = parent). Student app
@@ -65,7 +65,7 @@ Settled after the "signup/signin is incomplete" review — treat as locked:
   memberships + role switching. Not in the current slice; design before
   the student work.
 
-Build order (agreed): 1 silent refresh ✅ → 2 Telegram re-login (nonce) ✅
+Build order (agreed): 1 silent refresh ✅ → 2 Telegram re-login (one-time code, Auth 2b) ✅
 → 3 username + set-password for Telegram users ✅ → 4 parent child
 switcher (acting-as) ⬜ NEXT → 5 student own credentials → later: Login
 Widget, email password reset, multi-role refactor. See CLAUDE.md "Auth 1"

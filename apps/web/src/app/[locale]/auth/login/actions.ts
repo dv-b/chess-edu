@@ -88,92 +88,93 @@ export async function loginAction(
 }
 
 // ============================================================================
-// "Log in with Telegram" — login-request handshake (no Login Widget needed)
+// "Log in with Telegram" — one-time code sent by the bot
 // ============================================================================
 
 /**
- * The browser's half of the handshake lives in an HttpOnly cookie:
- * `<requestId>.<clientSecret>`. The secret never reaches the client bundle;
- * the client only ever sees the t.me deeplink and a status word.
+ * The pending code request's id lives in an HttpOnly cookie between the two
+ * steps (ask for a code → type the code), so the client bundle never sees
+ * anything but a status word. The code itself only ever exists in the
+ * user's Telegram chat and in the form field they type it into.
  */
-const TG_LOGIN_COOKIE = "tg_login_request";
-const TG_LOGIN_COOKIE_MAX_AGE = 60 * 5;
+const TG_CODE_COOKIE = "tg_login_code";
+const TG_CODE_COOKIE_MAX_AGE = 60 * 5;
 
-export type TelegramStartState = {
-  deeplink?: string;
-  error?: "unavailable" | "network" | "unknown";
+export type TelegramCodeRequestState = {
+  sent?: boolean;
+  identifier?: string;
+  error?: "invalid" | "unavailable" | "network" | "unknown";
 };
 
-export type TelegramPollState = {
-  status: "pending" | "expired" | "network";
+export type TelegramCodeVerifyState = {
+  error?: "wrongCode" | "expired" | "unavailable" | "network" | "unknown";
 };
 
-export async function startTelegramLoginAction(): Promise<TelegramStartState> {
-  const result = await apiFetch<{
-    id: string;
-    clientSecret: string;
-    deeplink: string;
-    expiresAt: string;
-  }>("/api/v1/auth/telegram/login-requests", { method: "POST" });
+/** Step 1: who are you? The API answers 200 either way (no account probing). */
+export async function requestTelegramCodeAction(
+  _prev: TelegramCodeRequestState,
+  formData: FormData,
+): Promise<TelegramCodeRequestState> {
+  const identifier = String(formData.get("identifier") ?? "").trim();
+  if (!identifier) return { error: "invalid", identifier };
 
+  const result = await apiFetch<{ id: string; expiresAt: string }>(
+    "/api/v1/auth/telegram/login-codes",
+    { method: "POST", body: JSON.stringify({ identifier }) },
+  );
   if (!result.ok) {
-    if (result.error.status === 0) return { error: "network" };
-    // 400 = bot not configured on this deployment.
-    if (result.error.status === 400) return { error: "unavailable" };
-    return { error: "unknown" };
+    if (result.error.status === 0) return { error: "network", identifier };
+    // 400 = bot not configured / not running on this deployment.
+    if (result.error.status === 400) return { error: "unavailable", identifier };
+    return { error: "unknown", identifier };
   }
 
   const store = await cookies();
-  store.set(TG_LOGIN_COOKIE, `${result.data.id}.${result.data.clientSecret}`, {
+  store.set(TG_CODE_COOKIE, result.data.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: TG_LOGIN_COOKIE_MAX_AGE,
+    maxAge: TG_CODE_COOKIE_MAX_AGE,
   });
-
-  return { deeplink: result.data.deeplink };
+  return { sent: true, identifier };
 }
 
-/**
- * Polled by the login page every couple of seconds while it waits for the
- * bot. On COMPLETED it installs the session and redirects — the same tail as
- * the password login — so the client never handles tokens.
- */
-export async function pollTelegramLoginAction(localeValue: string): Promise<TelegramPollState> {
-  const locale = normalizeLocale(localeValue);
+/** Step 2: the code. On success installs the session and redirects by role. */
+export async function verifyTelegramCodeAction(
+  _prev: TelegramCodeVerifyState,
+  formData: FormData,
+): Promise<TelegramCodeVerifyState> {
+  const locale = normalizeLocale(formData.get("locale"));
+  const code = String(formData.get("code") ?? "").replace(/\s+/g, "");
   const store = await cookies();
-  const raw = store.get(TG_LOGIN_COOKIE)?.value ?? "";
-  const dot = raw.indexOf(".");
-  if (dot <= 0) return { status: "expired" };
-  const id = raw.slice(0, dot);
-  const clientSecret = raw.slice(dot + 1);
+  const id = store.get(TG_CODE_COOKIE)?.value ?? "";
+  if (!id) return { error: "expired" };
+  if (!code) return { error: "wrongCode" };
 
-  const result = await apiFetch<{ status: "PENDING" | "COMPLETED"; tokens?: TokenResponse }>(
-    `/api/v1/auth/telegram/login-requests/${encodeURIComponent(id)}/poll`,
-    { method: "POST", body: JSON.stringify({ clientSecret }) },
+  const result = await apiFetch<TokenResponse>(
+    `/api/v1/auth/telegram/login-codes/${encodeURIComponent(id)}/verify`,
+    { method: "POST", body: JSON.stringify({ code }) },
   );
-
   if (!result.ok) {
-    if (result.error.status === 0) return { status: "network" };
-    // 404 / 401 / 410 — nothing to wait for any more.
-    store.delete(TG_LOGIN_COOKIE);
-    return { status: "expired" };
+    const status = result.error.status;
+    if (status === 0) return { error: "network" };
+    if (status === 401) return { error: "wrongCode" };
+    // 404 / 410: unknown, expired, consumed or too many attempts — start over.
+    store.delete(TG_CODE_COOKIE);
+    if (status === 404 || status === 410) return { error: "expired" };
+    return { error: "unknown" };
   }
 
-  if (result.data.status !== "COMPLETED" || result.data.tokens == null) {
-    return { status: "pending" };
-  }
-
-  store.delete(TG_LOGIN_COOKIE);
+  store.delete(TG_CODE_COOKIE);
   await setSession({
-    accessToken: result.data.tokens.accessToken,
-    refreshToken: result.data.tokens.refreshToken,
-    expiresIn: result.data.tokens.expiresIn,
+    accessToken: result.data.accessToken,
+    refreshToken: result.data.refreshToken,
+    expiresIn: result.data.expiresIn,
   });
 
   const me = await apiFetch<MeResponse>("/api/v1/auth/me", {
-    accessToken: result.data.tokens.accessToken,
+    accessToken: result.data.accessToken,
   });
   const home = me.ok ? homeForRole(me.data.role, me.data.platformRole) : "admin";
   if (home === "parent") {
@@ -185,7 +186,7 @@ export async function pollTelegramLoginAction(localeValue: string): Promise<Tele
   redirect(`/${locale}/admin`);
 }
 
-export async function cancelTelegramLoginAction(): Promise<void> {
+export async function cancelTelegramCodeAction(): Promise<void> {
   const store = await cookies();
-  store.delete(TG_LOGIN_COOKIE);
+  store.delete(TG_CODE_COOKIE);
 }

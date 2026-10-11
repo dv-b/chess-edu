@@ -61,13 +61,13 @@ final class TelegramBotMessages {
 
     static String alreadyLinked(String locale, String baseUrl) {
         return switch (locale) {
-            case "ru" -> "Этот аккаунт Telegram уже привязан. Отправьте /login, чтобы получить ссылку для входа, или нажмите «Войти через Telegram» на сайте: " + baseUrl;
-            case "en" -> "This Telegram account is already linked. Send /login to get a sign-in link, or press \"Log in with Telegram\" on the website: " + baseUrl;
-            default -> "Bu Telegram hisobi allaqachon bog‘langan. Kirish havolasini olish uchun /login yuboring yoki saytda «Telegram orqali kirish» tugmasini bosing: " + baseUrl;
+            case "ru" -> "Этот аккаунт Telegram уже привязан. Отправьте /login, чтобы получить ссылку для входа, или нажмите «Войти через Telegram» на сайте — я пришлю код: " + baseUrl;
+            case "en" -> "This Telegram account is already linked. Send /login to get a sign-in link, or press \"Log in with Telegram\" on the website and I'll send you a code: " + baseUrl;
+            default -> "Bu Telegram hisobi allaqachon bog‘langan. Kirish havolasini olish uchun /login yuboring yoki saytda «Telegram orqali kirish» tugmasini bosing — kod yuboraman: " + baseUrl;
         };
     }
 
-    // ---- repeat sign-in (/start login_<nonce> and /login) -------------------
+    // ---- repeat sign-in (/login and the web one-time code) ------------------
 
     static String loginNotLinked(String locale) {
         return switch (locale) {
@@ -77,27 +77,11 @@ final class TelegramBotMessages {
         };
     }
 
-    static String loginConfirmed(String locale) {
+    static String loginCode(String locale, String code) {
         return switch (locale) {
-            case "ru" -> "Вход подтверждён ✅ Вернитесь в браузер — вы уже в системе.";
-            case "en" -> "Sign-in confirmed ✅ Go back to your browser — you're in.";
-            default -> "Kirish tasdiqlandi ✅ Brauzerga qayting — siz tizimdasiz.";
-        };
-    }
-
-    static String loginAlreadyConfirmed(String locale) {
-        return switch (locale) {
-            case "ru" -> "Этот запрос на вход уже подтверждён. Если вы ещё не в системе, нажмите «Войти через Telegram» на сайте ещё раз.";
-            case "en" -> "That sign-in request was already confirmed. If you're not in yet, press \"Log in with Telegram\" on the website again.";
-            default -> "Bu kirish so‘rovi allaqachon tasdiqlangan. Hali tizimga kirmagan bo‘lsangiz, saytda «Telegram orqali kirish» tugmasini qayta bosing.";
-        };
-    }
-
-    static String loginRequestExpired(String locale) {
-        return switch (locale) {
-            case "ru" -> "Эта ссылка для входа устарела. Обновите страницу входа и нажмите «Войти через Telegram» ещё раз — или отправьте /login, чтобы получить ссылку прямо здесь.";
-            case "en" -> "That sign-in link has expired. Reload the login page and press \"Log in with Telegram\" again — or send /login to get a link right here.";
-            default -> "Bu kirish havolasi eskirgan. Kirish sahifasini yangilab, «Telegram orqali kirish» tugmasini qayta bosing — yoki shu yerda havola olish uchun /login yuboring.";
+            case "ru" -> "Ваш код для входа: " + code + "\nДействует 5 минут, один раз. Если вы не запрашивали вход — просто проигнорируйте это сообщение.";
+            case "en" -> "Your sign-in code: " + code + "\nValid for 5 minutes, single use. If you didn't request this, just ignore it.";
+            default -> "Kirish kodingiz: " + code + "\n5 daqiqa, bir marta amal qiladi. Agar siz so‘ramagan bo‘lsangiz, shunchaki e’tiborsiz qoldiring.";
         };
     }
 

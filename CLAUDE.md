@@ -30,6 +30,106 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Auth 2b — "Log in with Telegram" by one-time code (replaces the deeplink handshake)
+
+Bulat's UX verdict on Auth 2 (2026-10-11): the `t.me` deeplink opened a
+new tab, bounced the user through the Telegram app, and then the
+original page changed under them with no explicit step. Replaced with
+the pattern Telegram itself uses: the user says who they are, the bot
+DMs a 6-digit code, they type it in. No new tab, no deeplink, and a
+successful code is an explicit "Sign in" click → redirect. Same on
+desktop (code arrives on the phone) and on the phone.
+
+Flow (V015 `telegram_login_code`; V013's `telegram_login_request` is
+dropped):
+
+1. Login page → **Log in with Telegram** → "Who is signing in?" —
+   username, email, or the E.164 phone linked at signup (separators
+   tolerated: `998 90 111-22-33`).
+2. `POST /api/v1/auth/telegram/login-codes {identifier}` →
+   `TelegramLoginCodeService.request`: resolve → `telegram_account`
+   with a `chat_id` → mint 6 digits (SecureRandom), store SHA-256, TTL
+   5 min (`chessedu.telegram.login-code-ttl`), `api.sendMessage(chatId,
+   loginCode(locale, code))`. **Always 200 with an id** — an unmatched
+   identifier gets a random id that never verifies, so the endpoint
+   can't enumerate accounts. **Cooldown 45 s**: a repeat request returns
+   the pending id without a second DM.
+3. Web keeps the id in an HttpOnly `tg_login_code` cookie; the card
+   shows "Check Telegram" + a numeric input.
+4. `POST /login-codes/{id}/verify {code}` → 401 wrong (attempt counted,
+   `noRollbackFor`), **max 5 attempts**, 410 expired/consumed/exhausted,
+   404 unknown id; success → `AuthService.issueSessionFor`, `last_seen_at`,
+   `consumed_at`. Web `setSession` + `/me` + role redirect.
+
+Files:
+
+- `apps/api/src/main/resources/db/migration/V015__telegram_login_code.sql`
+- `identity/model/TelegramLoginCode.java` (`MAX_ATTEMPTS = 5`,
+  `isUsable`), `identity/repo/TelegramLoginCodeRepository.java`
+  (`findFirstByUserIdOrderByCreatedAtDesc`); `TelegramAccountRepository.findByPhone`.
+- `identity/telegram/TelegramLoginCodeService.java` — unconditional;
+  takes `ObjectProvider<TelegramApiClient>` because the bot client only
+  exists when `chessedu.telegram.enabled=true` → otherwise 400
+  ("unavailable" in the UI).
+- `TelegramAuthController` — the two endpoints; DTOs
+  `TelegramLoginCodeRequest`, `TelegramLoginCodeView`,
+  `TelegramLoginCodeVerifyRequest`.
+- `TelegramBotMessages.loginCode(locale, code)`; `alreadyLinked` copy
+  mentions the code. `TelegramLoginBotHandler` keeps only `/login`
+  (fresh accept link); `TelegramBotWorker` no longer parses
+  `/start login_…`. `TelegramProperties.loginCodeTtl` (was
+  `loginRequestTtl`; yml key `login-code-ttl`, env
+  `CHESSEDU_TELEGRAM_LOGIN_CODE_TTL`).
+- **Removed**: `TelegramLoginRequest` entity/repo/service, the three
+  `TelegramLoginPoll*/RequestView` DTOs, `TelegramLoginRequestFlowIntegrationTest`.
+- `apps/web/src/app/[locale]/auth/login/actions.ts` —
+  `requestTelegramCodeAction` (sets the cookie), `verifyTelegramCodeAction`
+  (verify → session → redirect), `cancelTelegramCodeAction`; the
+  polling actions are gone. `telegram-login.tsx` — idle button → identifier
+  form → code form (`inputMode=numeric`, `autocomplete=one-time-code`,
+  spaces tolerated), Back / Start over; both steps are plain
+  `useActionState` forms.
+- i18n: `auth.login.telegram.*` rewritten (16 keys) in en/ru/uz →
+  **1004** leaf keys each.
+- `apps/api/src/test/.../telegram/TelegramLoginCodeFlowIntegrationTest.java`
+  — 6 tests with `@MockBean TelegramApiClient` capturing the DM: username
+  (normalised, spaced code tolerated, wrong attempt counted, `/me`,
+  410 on reuse); email + phone-with-separators resolve the same account;
+  unknown identifier → 200 but 404 on verify and no DM; cooldown → same
+  id, one DM; five wrong → 410 even for the right code; expired → 410.
+
+Verified: 19 backend tests green across LoginCode (6), Accept (5),
+Account (4), InvitationIssue (4); `tsc` clean. Browser verification of
+the new card pending an API restart on Bulat's side (V015 must apply).
+
+Deliberately scoped out:
+
+- **Rate limiting per IP / identifier** on `login-codes` beyond the
+  45 s per-user cooldown — add before prod (a bot DM per request is the
+  spam vector).
+- **Cleanup job** for old `telegram_login_code` rows.
+- **Login Widget** — still the nicest desktop UX once a prod domain
+  exists; the code flow stays as the fallback either way.
+
+How to check as a user:
+
+Needs the bot running and a Telegram-linked account (Bulat's →
+`tg-teacher-test@demo.local`, username `tg.teacher`).
+
+1. Log out → `/en/auth/login` → **Log in with Telegram** → type
+   `tg.teacher` (or the email, or the phone) → **Send code**.
+   Expected: the card becomes "Check Telegram"; the bot DMs
+   "Your sign-in code: 123456 …" within a second.
+2. Type the code (with or without a space) → **Sign in**. Expected:
+   `/en/admin` as the teacher. No new tab was opened at any point.
+3. Edge cases: a wrong code → "That code is not right" and the field
+   stays; five wrong codes → "no longer valid" + Start over; press Send
+   code twice quickly → one DM, same code works; type an unknown
+   username → the card still says "Check Telegram" (no account
+   probing) but no DM arrives; wait >5 min → "no longer valid".
+   With the bot disabled (`CHESSEDU_TELEGRAM_ENABLED=false`) → "not
+   available on this server".
+
 ### Auth 3 — Username + self-service password (account page)
 
 Third item of the 2026-10-09 auth roadmap: the "username + password"
