@@ -12,6 +12,11 @@ import java.util.UUID;
  * A 6-digit sign-in code the bot sent to a linked Telegram account (V015).
  * Only the code's SHA-256 is stored; the plaintext exists in one Telegram
  * message. Dies on consumption, expiry, or too many wrong attempts.
+ *
+ * <p>A row with a null {@code userId} is a decoy minted for an identifier that
+ * matched no Telegram-linked account: it behaves exactly like a real one
+ * (TTL, attempt counting, 401 / 410) but can never be verified, so the
+ * endpoints can't be used to probe which accounts exist.
  */
 @Entity
 @Table(name = "telegram_login_code")
@@ -23,7 +28,8 @@ public class TelegramLoginCode {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    /** Null on a decoy row (unmatched identifier) — such a row never verifies. See V016. */
+    @Column(name = "user_id")
     private UUID userId;
 
     @Column(name = "code_hash", nullable = false, length = 128)

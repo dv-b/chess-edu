@@ -87,9 +87,19 @@ public class TelegramLoginCodeService {
 
         Optional<TelegramAccount> account = resolveAccount(identifier);
         if (account.isEmpty() || account.get().getChatId() == null) {
-            // Same shape as a hit: random id, nothing stored, nothing sent.
-            log.info("Telegram login code requested for unmatched identifier");
-            return new TelegramLoginCodeView(UUID.randomUUID(), expires);
+            // Decoy: a real row with no user, so request AND verify behave
+            // exactly like a hit (TTL, attempts, 401 / 410) — it just never
+            // verifies. Nothing is sent anywhere.
+            TelegramLoginCode decoy = new TelegramLoginCode();
+            decoy.setId(UUID.randomUUID());
+            decoy.setUserId(null);
+            decoy.setCodeHash(hasher.hash(hasher.mint()));
+            decoy.setAttempts(0);
+            decoy.setCreatedAt(now);
+            decoy.setExpiresAt(expires);
+            codes.save(decoy);
+            log.info("Telegram login code requested for unmatched identifier (decoy {})", decoy.getId());
+            return new TelegramLoginCodeView(decoy.getId(), expires);
         }
         TelegramAccount acc = account.get();
 
@@ -132,7 +142,8 @@ public class TelegramLoginCodeService {
         }
 
         String code = rawCode == null ? "" : rawCode.replaceAll("\\s+", "");
-        if (!hasher.hash(code).equals(row.getCodeHash())) {
+        // A decoy row (no user) is always "wrong code" — see V016.
+        if (row.getUserId() == null || !hasher.hash(code).equals(row.getCodeHash())) {
             // Counted even though we throw — see noRollbackFor.
             row.setAttempts(row.getAttempts() + 1);
             codes.save(row);

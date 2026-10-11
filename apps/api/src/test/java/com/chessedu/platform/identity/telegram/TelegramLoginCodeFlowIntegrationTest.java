@@ -113,7 +113,8 @@ class TelegramLoginCodeFlowIntegrationTest {
             return u;
         });
         // Each test starts without a pending code (the cooldown would otherwise reuse one).
-        loginCodes.findAll().stream().filter(c -> c.getUserId().equals(user.getId())).forEach(loginCodes::delete);
+        // user-id-first: decoy rows from the unknown-identifier test have a null user.
+        loginCodes.findAll().stream().filter(c -> user.getId().equals(c.getUserId())).forEach(loginCodes::delete);
         clearInvocations(api);
     }
 
@@ -189,11 +190,22 @@ class TelegramLoginCodeFlowIntegrationTest {
         assertThat(loginCodes.findById(byPhone).orElseThrow().getUserId()).isEqualTo(user.getId());
     }
 
+    /**
+     * The decoy must be indistinguishable from a real row from the outside:
+     * no DM, 401 on wrong codes (attempt counted), 410 after five — never 404,
+     * never 200. Otherwise "does username X exist?" is one request away.
+     */
     @Test
     void unknownIdentifierLooksLikeAHitButNeverVerifies() throws Exception {
         UUID id = request("nobody.here");
         verify(api, never()).sendMessage(anyLong(), anyString());
-        assertThat(verifyCode(id, "123456").getResponse().getStatus()).isEqualTo(404);
+        TelegramLoginCode decoy = loginCodes.findById(id).orElseThrow();
+        assertThat(decoy.getUserId()).isNull();
+
+        for (int i = 0; i < TelegramLoginCode.MAX_ATTEMPTS; i++) {
+            assertThat(verifyCode(id, "123456").getResponse().getStatus()).isEqualTo(401);
+        }
+        assertThat(verifyCode(id, "123456").getResponse().getStatus()).isEqualTo(410);
     }
 
     @Test

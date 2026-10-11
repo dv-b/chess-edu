@@ -51,9 +51,12 @@ dropped):
    with a `chat_id` → mint 6 digits (SecureRandom), store SHA-256, TTL
    5 min (`chessedu.telegram.login-code-ttl`), `api.sendMessage(chatId,
    loginCode(locale, code))`. **Always 200 with an id** — an unmatched
-   identifier gets a random id that never verifies, so the endpoint
-   can't enumerate accounts. **Cooldown 45 s**: a repeat request returns
-   the pending id without a second DM.
+   identifier gets a **decoy row** (V016: `user_id` nullable, no DM)
+   that behaves exactly like a real one on verify (401 per wrong code,
+   410 after five) but never succeeds, so neither endpoint can
+   enumerate accounts. (First cut returned a random id — the verify
+   step then leaked 404 vs 401.) **Cooldown 45 s**: a repeat request
+   returns the pending id without a second DM.
 3. Web keeps the id in an HttpOnly `tg_login_code` cookie; the card
    shows "Check Telegram" + a numeric input.
 4. `POST /login-codes/{id}/verify {code}` → 401 wrong (attempt counted,
@@ -63,7 +66,8 @@ dropped):
 
 Files:
 
-- `apps/api/src/main/resources/db/migration/V015__telegram_login_code.sql`
+- `apps/api/src/main/resources/db/migration/V015__telegram_login_code.sql`,
+  `V016__telegram_login_code_decoy.sql`
 - `identity/model/TelegramLoginCode.java` (`MAX_ATTEMPTS = 5`,
   `isUsable`), `identity/repo/TelegramLoginCodeRepository.java`
   (`findFirstByUserIdOrderByCreatedAtDesc`); `TelegramAccountRepository.findByPhone`.
@@ -95,12 +99,18 @@ Files:
   — 6 tests with `@MockBean TelegramApiClient` capturing the DM: username
   (normalised, spaced code tolerated, wrong attempt counted, `/me`,
   410 on reuse); email + phone-with-separators resolve the same account;
-  unknown identifier → 200 but 404 on verify and no DM; cooldown → same
+  unknown identifier → decoy row, no DM, 401 ×5 then 410; cooldown → same
   id, one DM; five wrong → 410 even for the right code; expired → 410.
 
 Verified: 19 backend tests green across LoginCode (6), Accept (5),
-Account (4), InvitationIssue (4); `tsc` clean. Browser verification of
-the new card pending an API restart on Bulat's side (V015 must apply).
+Account (4), InvitationIssue (4); `tsc` clean. Browser: button →
+identifier form → Send code → "Check Telegram" → wrong code message;
+password form still signs in. **Gotcha found in the browser**: the
+Telegram block renders its own `<form>`s, and the login card used to
+*be* the password `<form>` — nested forms are dropped by the browser,
+so "Send code" did nothing. The card is now a `<div>` with the password
+form (`.auth-card__form { display: contents }`) and the Telegram forms
+as siblings. Don't put a form-rendering component inside a form.
 
 Deliberately scoped out:
 
@@ -125,8 +135,9 @@ Needs the bot running and a Telegram-linked account (Bulat's →
 3. Edge cases: a wrong code → "That code is not right" and the field
    stays; five wrong codes → "no longer valid" + Start over; press Send
    code twice quickly → one DM, same code works; type an unknown
-   username → the card still says "Check Telegram" (no account
-   probing) but no DM arrives; wait >5 min → "no longer valid".
+   username → the card still says "Check Telegram" and a wrong code
+   says "not right" exactly as for a real account (decoy row), but no
+   DM arrives; wait >5 min → "no longer valid".
    With the bot disabled (`CHESSEDU_TELEGRAM_ENABLED=false`) → "not
    available on this server".
 
