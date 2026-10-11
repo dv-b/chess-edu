@@ -11,13 +11,35 @@ with Telegram. Ports: API **7373**, web **3100**, Mailpit **8125**.
 > will be used for the **teacher**. To re-run a Telegram signup with the
 > same phone, unlink first (Phase 6).
 
+## Which database
+
+The API reads its datasource from `apps/api/src/main/resources/application-local.yml`.
+Two setups are in use; pick the matching `PSQL` once and every SQL step
+below works unchanged:
+
+```bash
+# A) Docker Postgres from docker-compose.yml (port 5433, user chessedu)
+PSQL="docker compose exec -T postgres psql -U chessedu -d chessedu"
+
+# B) Your own local Postgres (what application-local.yml points at today:
+#    localhost:5432, database chessedu, your OS user)
+PSQL="psql -h localhost -p 5432 -d chessedu"
+```
+
+Mailpit, Redis and MinIO still come from Docker either way, so
+`docker compose up -d` is needed in both setups.
+
 ## Phase 0 — Reset to "platform admin only"
 
-Stop the API if it is running (Ctrl+C in its terminal), then:
+Stop the API if it is running (Ctrl+C in its terminal), then wipe the
+database the API uses:
 
 ```bash
 cd ~/Working/Projects/hypothesis/chesshub/chess-edu-app
+# Setup A (Docker Postgres):
 docker compose down -v && docker compose up -d
+# Setup B (local Postgres):
+docker compose up -d && dropdb chessedu && createdb chessedu
 ```
 
 Start the API (Flyway recreates the schema, the `local` profile seeds the
@@ -32,7 +54,7 @@ In a second terminal, once `Started PlatformApplication` appears, turn
 the seeded school admin into the platform admin and drop the demo student:
 
 ```bash
-docker compose exec -T postgres psql -U chessedu -d chessedu <<'SQL'
+$PSQL <<'SQL'
 UPDATE app_user SET platform_role = 'PLATFORM_ADMIN', display_name = 'Platform Admin'
   WHERE email = 'admin@demo.local';
 DELETE FROM app_membership WHERE user_id = (SELECT id FROM app_user WHERE email = 'admin@demo.local');
@@ -64,7 +86,7 @@ step uses the API directly. Get a token and issue the invitation:
 TOKEN=$(curl -s -X POST localhost:7373/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"login":"admin@demo.local","password":"admin12345"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["accessToken"])')
-SCHOOL=$(docker compose exec -T postgres psql -U chessedu -d chessedu -tAc "select id from school where slug='demo'")
+SCHOOL=$($PSQL -tAc "select id from school where slug='demo'")
 curl -s -X POST localhost:7373/api/v1/admin/invitations \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d "{\"role\":\"SCHOOL_ADMIN\",\"email\":\"principal@demo.local\",\"displayName\":\"School Principal\",\"schoolId\":\"$SCHOOL\",\"preferredLocale\":\"en\"}"
@@ -121,8 +143,12 @@ Still signed in as the teacher:
 4. Log out. Sign in with `teacher.one` and the password. Expected:
    `/en/admin`. Log out. Sign in with `teacher.one@demo.local` and the
    same password. Expected: same.
-5. Log out. Press **Log in with Telegram** → type `teacher.one` (or the
-   email, or your phone) → **Send code**. Expected: the card says "Check
+5. Log out. Press **Log in with Telegram** → the card asks "Who is
+   signing in?". Type the **app** username you saved in step 2
+   (`teacher.one`), or the account email, or the phone you shared with
+   the bot (`+998…`, separators allowed). This is *not* your Telegram
+   @username — the bot never sees it; the server looks up the chat it
+   already knows. Press **Send code**. Expected: the card says "Check
    Telegram" and the bot DMs a 6-digit code within a second. Type it →
    **Sign in**. Expected: `/en/admin`. No new tab at any point.
 6. Log out. In the bot, send `/login`. Expected: a fresh
@@ -133,9 +159,11 @@ Still signed in as the teacher:
 
 Edge cases: a wrong code → "not right", the field stays; five wrong codes
 → "no longer valid" and Start over; press Send code twice quickly → one
-DM only; an unknown username → the card still says "Check Telegram" but
-nothing arrives (by design); wait 5+ minutes → "no longer valid". From a
-Telegram account that never signed up, `/login` → "not registered yet".
+DM only; an unknown username → the card still says "Check Telegram" and
+a wrong code says "not right" exactly as for a real account, but nothing
+arrives (by design — no account probing); wait 5+ minutes → "no longer
+valid". From a Telegram account that never signed up, `/login` → "not
+registered yet".
 
 ## Phase 4 — School admin invites a parent (email) and the parent adds a child
 
@@ -171,7 +199,7 @@ Signed in as anyone:
 To sign up again through the bot with your Telegram account:
 
 ```bash
-docker compose exec -T postgres psql -U chessedu -d chessedu -c \
+$PSQL -c \
   "DELETE FROM telegram_account WHERE telegram_id = (SELECT telegram_id FROM telegram_account ORDER BY linked_at DESC LIMIT 1)"
 ```
 
