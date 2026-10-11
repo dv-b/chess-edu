@@ -31,7 +31,11 @@ export function LoginForm({ locale }: { locale: string }) {
       <TopBar />
       <main className="container landing__body auth-stage">
         <div className="auth-stack">
-          <form className="auth-card" action={formAction} noValidate>
+          {/* The card is a <div>, not the <form>: the Telegram block below
+              carries its own forms, and HTML forbids nesting forms (the browser
+              silently drops the inner one, so its submit button does nothing). */}
+          <div className="auth-card">
+            <form className="auth-card__form" action={formAction} noValidate>
             <input type="hidden" name="locale" value={locale} />
             <h1 className="auth-card__title">{t("title")}</h1>
 
@@ -85,6 +89,7 @@ export function LoginForm({ locale }: { locale: string }) {
             >
               {pending ? t("submitting") : t("submit")}
             </button>
+            </form>
 
             <div className="auth-divider" aria-hidden="true">
               <span>{t("or")}</span>
@@ -99,7 +104,7 @@ export function LoginForm({ locale }: { locale: string }) {
                 <a href="mailto:hello@chess-edu.local">{t("contactSales")}</a>
               </span>
             </div>
-          </form>
+          </div>
 
           <div className="auth-role-strip" aria-hidden="true">
             <span className="auth-role-strip__dot" />
