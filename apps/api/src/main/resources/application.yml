@@ -126,3 +126,5 @@ chessedu:
     poll-timeout-seconds: ${CHESSEDU_TELEGRAM_POLL_TIMEOUT:50}
     # One-time bot/widget -> web handoff token TTL (ISO-8601 duration).
     ott-ttl: ${CHESSEDU_TELEGRAM_OTT_TTL:PT10M}
+    # "Log in with Telegram" one-time code lifetime (6-digit code the bot DMs).
+    login-code-ttl: ${CHESSEDU_TELEGRAM_LOGIN_CODE_TTL:PT5M}

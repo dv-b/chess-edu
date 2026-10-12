@@ -1,11 +1,77 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { issueInvitationAction, type IssueActionState } from "./actions";
+import type { SchoolOption } from "../school-picker";
 
 const INITIAL: IssueActionState = {};
+
+/**
+ * Shown instead of the form once a TELEGRAM invite is issued. The deeplink
+ * is the invitee's only way in (no email is sent for this channel), so it
+ * gets a copy button and stays on screen until the admin navigates away.
+ */
+function IssuedTelegramCard({
+  email,
+  displayName,
+  deeplink,
+  phone,
+  botUsername,
+  t,
+}: {
+  email: string;
+  displayName: string;
+  deeplink: string;
+  phone: string | null;
+  botUsername: string | null;
+  t: ReturnType<typeof useTranslations<"admin.invitations.new">>;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(deeplink);
+      setCopied(true);
+    } catch {
+      // Clipboard can be unavailable (http origin, permissions) — the
+      // read-only input below is still selectable by hand.
+    }
+  }
+
+  return (
+    <div className="auth-card">
+      <h1>{t("issuedTitle")}</h1>
+      {phone ? (
+        <>
+          {/* Phone-matched: nothing to forward. The bot finds the invitation
+              from the contact they share. The link below is only a fallback. */}
+          <p className="issued-steps">
+            {t("issuedByPhone", { name: displayName, bot: botUsername ?? "", phone })}
+          </p>
+          <p className="auth-meta">{t("issuedByPhoneFallback")}</p>
+        </>
+      ) : (
+        <p className="auth-meta">{t("issuedTelegram", { email })}</p>
+      )}
+
+      <div className="field">
+        <label htmlFor="deeplink">{t("deeplinkLabel")}</label>
+        <input id="deeplink" type="text" readOnly value={deeplink} onFocus={(e) => e.currentTarget.select()} />
+      </div>
+
+      <div className="auth-actions">
+        <button className="btn btn--primary" type="button" onClick={copy}>
+          {copied ? t("copied") : t("copy")}
+        </button>
+        <Link href="/admin/invitations" className="btn btn--ghost">
+          {t("backToList")}
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 /**
  * "Invite someone new" form. The role dropdown only offers the three roles
@@ -13,13 +79,37 @@ const INITIAL: IssueActionState = {};
  * PARENT) — STUDENT onboarding is deliberately routed through parent
  * invitations in M3, and PLATFORM_ADMIN is out of scope for this screen.
  */
-export function InviteForm({ locale }: { locale: string }) {
+export function InviteForm({
+  locale,
+  schools = [],
+  initialSchoolId = null,
+}: {
+  locale: string;
+  /** Non-empty only for platform admins, who must pick the tenant. */
+  schools?: SchoolOption[];
+  initialSchoolId?: string | null;
+}) {
   const t = useTranslations("admin.invitations.new");
   const [state, formAction, pending] = useActionState(
     issueInvitationAction,
     INITIAL,
   );
   const v = state.values ?? {};
+
+  const [channel, setChannel] = useState(v.deliveryChannel ?? "EMAIL");
+
+  if (state.issued) {
+    return (
+      <IssuedTelegramCard
+        email={state.issued.email}
+        displayName={state.issued.displayName}
+        deeplink={state.issued.deeplink}
+        phone={state.issued.phone}
+        botUsername={state.issued.botUsername}
+        t={t}
+      />
+    );
+  }
 
   return (
     <form className="auth-card" action={formAction} noValidate>
@@ -30,6 +120,20 @@ export function InviteForm({ locale }: { locale: string }) {
       {state.error ? (
         <div className="form-error" role="alert">
           {t(`error.${state.error}`)}
+          {state.detail ? <p className="form-error__detail">{state.detail}</p> : null}
+        </div>
+      ) : null}
+
+      {schools.length > 0 ? (
+        <div className="field">
+          <label htmlFor="schoolId">{t("schoolLabel")}</label>
+          <select id="schoolId" name="schoolId" defaultValue={v.schoolId ?? initialSchoolId ?? ""} required>
+            {schools.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.displayName}
+              </option>
+            ))}
+          </select>
         </div>
       ) : null}
 
@@ -85,6 +189,37 @@ export function InviteForm({ locale }: { locale: string }) {
           <option value="en">English</option>
         </select>
       </div>
+
+      <div className="field">
+        <label htmlFor="deliveryChannel">{t("channelLabel")}</label>
+        <select
+          id="deliveryChannel"
+          name="deliveryChannel"
+          value={channel}
+          onChange={(e) => setChannel(e.target.value)}
+        >
+          <option value="EMAIL">{t("channel.EMAIL")}</option>
+          <option value="TELEGRAM">{t("channel.TELEGRAM")}</option>
+        </select>
+        <p className="auth-meta">{t("channelHint")}</p>
+      </div>
+
+      {channel === "TELEGRAM" ? (
+        <div className="field">
+          <label htmlFor="phone">{t("phoneLabel")}</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="off"
+            placeholder="+998 90 123 45 67"
+            defaultValue={v.phone ?? ""}
+            maxLength={40}
+          />
+          <p className="auth-meta">{t("phoneHint")}</p>
+        </div>
+      ) : null}
 
       <div className="auth-actions">
         <button className="btn btn--primary" type="submit" disabled={pending}>

@@ -14,4 +14,7 @@ public interface TelegramAccountRepository extends JpaRepository<TelegramAccount
     Optional<TelegramAccount> findByUserId(UUID userId);
 
     boolean existsByTelegramId(long telegramId);
+
+    /** E.164 as stored (Telegram-verified at signup). */
+    Optional<TelegramAccount> findByPhone(String phone);
 }

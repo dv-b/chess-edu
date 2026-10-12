@@ -36,6 +36,48 @@ Email/password stays as a visible fallback on `/auth/login`.
   then E. The Login-Widget endpoint + button are deferred until a prod
   domain exists for `@BotFather /setdomain`.
 
+## Auth roadmap decisions (Bulat, 2026-10-09)
+
+Settled after the "signup/signin is incomplete" review — treat as locked:
+
+- **Two sign-in methods**: username + password, and Telegram. Telegram is
+  the focus now. "Username" becomes a real column (students have no real
+  email); login accepts username or email.
+- **"Recovery" = re-login after being away**, not password reset. Two
+  parts: (1) silent session refresh in the web app (the 14-day refresh
+  token is currently never used — sessions die at 30 min); (2) Telegram
+  re-login without a prod domain. First built as a deeplink + nonce
+  handshake (Auth 2), **replaced on 2026-10-11 by a one-time code** (Auth
+  2b) after UX review: user enters username / email / phone, the bot DMs
+  a 6-digit code, user types it in. No new tab, explicit sign-in step.
+  Login Widget may be added later as a nicer desktop option.
+- **Students are created by parents** (as now). Two coexisting models:
+  - **Younger: log in through the parent.** Child switcher issues an
+    "acting-as" access token (subject = child, actor = parent). Student app
+    works unchanged. **Acting-as is restricted to read-only plus submitting
+    homework and asking questions** — no profile/settings changes.
+  - **Older: own credentials.** Enabled by **parent or school admin**;
+    parent-set username/password or a parent-issued one-time bot link the
+    child taps with their own Telegram. **No age/policy gate — parent's
+    call.**
+- **One user, several roles** (teacher who is also a parent): the
+  one-membership-per-user constraint must go → refactor to multiple
+  memberships + role switching. Not in the current slice; design before
+  the student work.
+
+- **Telegram invitations are matched by phone** (2026-10-12): the admin
+  records the invitee's number; the invitee opens the bot from any link /
+  QR and shares their contact. Token deeplink stays as the fallback. See
+  CLAUDE.md "Telegram invitations matched by phone".
+
+Build order (agreed): 1 silent refresh ✅ → 2 Telegram re-login (one-time code, Auth 2b) ✅
+→ 3 username + set-password for Telegram users ✅ → 4 parent child
+switcher (acting-as) ⬜ NEXT → 5 student own credentials → later: Login
+Widget, email password reset, multi-role refactor. See CLAUDE.md "Auth 1"
+/ "Auth 2" / "Auth 3". Item 4 needs the multi-role design question
+answered first only if a parent can also be a teacher; acting-as itself
+doesn't touch memberships.
+
 ## Status
 
 - **Task A — schema + entities + repos** ✅ (V012 migration,
@@ -46,29 +88,32 @@ Email/password stays as a visible fallback on `/auth/login`.
   contact-share + `/cancel` handlers, OTT mint/redeem service, locale-aware
   bot copy). All under `apps/api/.../identity/telegram/`. See CLAUDE.md
   "Telegram Auth B".
-- **Task C — auth endpoints** ⬜ NEXT. `POST /api/v1/auth/telegram/accept`
-  redeems the OTT → JWT. The widget login endpoint
-  (`POST /api/v1/auth/telegram/login`, HMAC) is deferred to the
-  domain-ready phase.
-- **Task D — frontend** ⬜ (`/auth/accept` page; admin invitation
-  channel picker + funnel-state display; Login Widget button last).
-- **Task E — integration test + dev runbook + env docs** ⬜ (mock
-  Telegram at the HTTP level via the overridable `apiBaseUrl`).
+- **Task C — auth endpoints** ✅ `POST /api/v1/auth/telegram/accept`
+  redeems the OTT → JWT (`TelegramAuthService` → `AuthService.issueSessionFor`;
+  permit-all in `SecurityConfig`; 5-case `TelegramAcceptFlowIntegrationTest`).
+  The widget login endpoint (`POST /api/v1/auth/telegram/login`, HMAC) is
+  deferred to the domain-ready phase. See CLAUDE.md "Telegram Auth C".
+- **Task D — frontend** ✅ `/<locale>/auth/accept` page (auto-submitting
+  OTT redemption → cookies → role redirect); admin "Send via" picker,
+  one-time deeplink card after a Telegram issue, Channel column + bot
+  funnel note in the list. Backend: `deliveryChannel` on issue, channel /
+  `botState` / `botDeeplink` on the view. See CLAUDE.md "Telegram Auth D".
+  Login Widget button still deferred (prod domain).
+- **Task E — integration test + dev runbook + env docs** ⬜ NEXT (mock
+  Telegram at the HTTP level via the overridable `apiBaseUrl`; README
+  still says the API is on 8080 — it's 7373 — and doesn't mention
+  sourcing `.env` or the Java 21 requirement).
 
-## ⚠️ Not compile-verified
+## Build status
 
-A and B were written in Cowork's sandbox, which has **no Gradle / javac /
-internet**, so the backend has never been compiled. Before building on it:
+A and B were written in a sandbox without Gradle; **as of Task C they are
+compile-, boot- and test-verified locally** (Flyway V012 applies,
+Hibernate `validate` passes, Testcontainers suite green). Run Gradle with
+Java 21 — the machine's default `java` is 1.8:
 
 ```
-./gradlew :api:compileJava
+JAVA_HOME=~/Library/Java/JavaVirtualMachines/corretto-21.0.6/Contents/Home ./gradlew :api:compileJava
 ```
-
-Entity/repo references were checked by hand against the real sources
-(`UserRepository.findByEmail`, `Membership` setters,
-`TelegramAccountRepository.existsByTelegramId`, `ErrorCode.UNAUTHENTICATED`
-— there is no `INVALID_TOKEN` code). Boot once and confirm Flyway applies
-V012, then Hibernate `validate` maps the new entities cleanly.
 
 ## Blockers / needed from Bulat (for B/C/E runtime — not A)
 
@@ -79,34 +124,46 @@ V012, then Hibernate `validate` maps the new entities cleanly.
   Login-Widget half of C/D needs it; the whole signup flow is testable
   without it.
 
-## Task C — starting notes
+## Task E — starting notes
 
-`TelegramAuthTokenService.redeem(rawToken)` already exists and returns the
-`User`, throwing `AppException(UNAUTHENTICATED)` on any failure. So the
-accept controller is thin:
+Everything from the bot's `/start` to the web redirect is now real code,
+so E is about locking it down + making it runnable by someone new:
 
-- New `POST /api/v1/auth/telegram/accept` (public, no auth) taking
-  `{ ott }` → `redeem` → mint the JWT pair via the existing `AuthService`
-  token machinery, same shape `InvitationService.accept` returns
-  (`TokenResponse`). Reuse `AuthService.mintTokens` (it's private — either
-  add a package-private `issueTokensFor(User, http)` to `AuthService` or
-  mirror the ~12 lines, matching how `InvitationService` auto-logs-in).
-- Needs an IP/User-Agent/`HttpServletRequest` for the refresh-token row,
-  like the other auth endpoints.
-- Security: the accept endpoint must be on the permit-all list in
-  `SecurityConfig` (same as `/auth/login`, `/auth/invitations/**`).
+- **Mock-Telegram integration test.** Spin up a tiny HTTP server (JDK
+  `com.sun.net.httpserver` or MockWebServer if you'd rather add a test
+  dep) that answers `getUpdates` with a scripted `/start INV_<token>`
+  then a contact message, and records `sendMessage` bodies. Point
+  `chessedu.telegram.api-base-url` at it, `enabled=true`, and assert:
+  invitation → `AWAITING_CONTACT` → `COMPLETED`, user + membership +
+  `telegram_account` rows, the reply contains `/auth/accept?ott=`, and
+  that OTT redeems via `POST /auth/telegram/accept`. `TelegramBotWorker`
+  is `@Scheduled` — either call its poll method directly from the test
+  or wait with Awaitility.
+- **Dev runbook** (README or `docs/telegram-auth.md`): BotFather steps,
+  the five `CHESSEDU_TELEGRAM_*` vars, `set -a; source .env; set +a`
+  before `./gradlew :api:bootRun` (nothing loads `.env` automatically),
+  Java 21 via `JAVA_HOME`, API port **7373**, web port 3100, Mailpit
+  8125, and the "issue → copy deeplink → tap in Telegram → accept link"
+  loop. Fix the README's 8080.
+- **Env docs**: `.env.example` already documents the vars; add
+  `WEB_BASE_URL` to it if missing (the bot builds the accept link from
+  `chessedu.web.base-url`, default `http://localhost:3100`).
 
 ## File anchors
 
 - Telegram backend: `apps/api/src/main/java/com/chessedu/platform/identity/telegram/`
+  (`TelegramAuthController` + `TelegramAuthService` = the Task C web half;
+  test in `apps/api/src/test/.../identity/telegram/`).
 - Existing auth to mirror: `.../identity/auth/AuthService.java`,
   `AuthController.java`; `.../identity/invitation/InvitationService.java`
   (the `accept` → auto-login path is the closest template for C).
 - Config: `apps/api/src/main/resources/application.yml`
   (`chessedu.telegram.*`, kebab-case), `.env.example`.
-- Auth UI (Task D): `apps/web/src/app/[locale]/auth/login/`,
-  `apps/web/src/app/[locale]/auth/invitations/` (accept-page template).
-- i18n: `apps/web/messages/{en,ru,uz}.json` (917 keys each; keep parity;
+- Auth UI: `apps/web/src/app/[locale]/auth/accept/` (Telegram accept),
+  `apps/web/src/app/[locale]/auth/login/`, `apps/web/src/lib/home-for-role.ts`.
+- Admin invitations UI: `apps/web/src/app/[locale]/admin/invitations/`
+  (`page.tsx` list, `new/invite-form.tsx` + `new/actions.ts`).
+- i18n: `apps/web/messages/{en,ru,uz}.json` (946 keys each; keep parity;
   Russian `one/few/many/other`, Uzbek `one/other`).
 
 ## Standing conventions (from CLAUDE.md, worth re-flagging)

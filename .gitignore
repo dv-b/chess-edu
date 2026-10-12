@@ -38,3 +38,8 @@ hs_err_pid*
 
 # Docker volumes (local dev)
 .docker-data/
+
+# Python virtualenvs (used for local tooling only — the project has no Python code)
+.venv/
+.chess_edu_venv/
+__pycache__/

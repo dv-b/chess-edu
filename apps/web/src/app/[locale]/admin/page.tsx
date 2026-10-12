@@ -44,6 +44,7 @@ export default async function AdminDashboardPage({ params }: PageProps) {
   }
 
   const t = await getTranslations("admin.dashboard");
+  const tShell = await getTranslations("admin");
   const user = me.data;
   const displayRole = user.role ?? user.platformRole ?? "—";
 
@@ -68,6 +69,7 @@ export default async function AdminDashboardPage({ params }: PageProps) {
           <Link href="/admin/invitations" className="btn btn--ghost">
             {t("invitationsCta")}
           </Link>
+          <a href={`/${locale}/account`} className="btn btn--ghost">{tShell("account")}</a>
           <LogoutButton locale={locale} />
         </div>
       </header>

@@ -10,7 +10,9 @@ import com.chessedu.platform.identity.invitation.dto.AcceptInvitationRequest;
 import com.chessedu.platform.identity.invitation.dto.InvitationPreview;
 import com.chessedu.platform.identity.invitation.dto.InvitationView;
 import com.chessedu.platform.identity.invitation.dto.IssueInvitationRequest;
+import com.chessedu.platform.identity.model.BotState;
 import com.chessedu.platform.identity.model.Credentials;
+import com.chessedu.platform.identity.model.DeliveryChannel;
 import com.chessedu.platform.identity.model.Invitation;
 import com.chessedu.platform.identity.model.Membership;
 import com.chessedu.platform.identity.model.MembershipStatus;
@@ -24,6 +26,8 @@ import com.chessedu.platform.identity.repo.InvitationRepository;
 import com.chessedu.platform.identity.repo.MembershipRepository;
 import com.chessedu.platform.identity.repo.RefreshTokenRepository;
 import com.chessedu.platform.identity.repo.UserRepository;
+import com.chessedu.platform.identity.telegram.PhoneNumbers;
+import com.chessedu.platform.identity.telegram.TelegramProperties;
 import com.chessedu.platform.security.AuthenticatedUser;
 import com.chessedu.platform.security.JwtService;
 import com.chessedu.platform.security.PasswordService;
@@ -91,6 +95,7 @@ public class InvitationService {
     private final InvitationProperties invitationProps;
     private final SecurityProperties securityProps;
     private final WebProperties webProps;
+    private final TelegramProperties telegramProps;
 
     public InvitationService(InvitationRepository invitations,
                              UserRepository users,
@@ -104,7 +109,8 @@ public class InvitationService {
                              EmailService email,
                              InvitationProperties invitationProps,
                              SecurityProperties securityProps,
-                             WebProperties webProps) {
+                             WebProperties webProps,
+                             TelegramProperties telegramProps) {
         this.invitations = invitations;
         this.users = users;
         this.credentials = credentials;
@@ -118,6 +124,7 @@ public class InvitationService {
         this.invitationProps = invitationProps;
         this.securityProps = securityProps;
         this.webProps = webProps;
+        this.telegramProps = telegramProps;
     }
 
     // ========================================================================
@@ -142,6 +149,32 @@ public class InvitationService {
         }
 
         enforceCallerAuthority(actor, roleValue, targetSchoolId);
+
+        DeliveryChannel channel = req.deliveryChannel() == null
+                ? DeliveryChannel.EMAIL
+                : DeliveryChannel.valueOf(req.deliveryChannel());
+        if (channel == DeliveryChannel.TELEGRAM) {
+            // (Non-student only is already guaranteed: enforceCallerAuthority
+            // above forbids STUDENT invitations on every channel.)
+            if (telegramProps.botUsername() == null || telegramProps.botUsername().isBlank()) {
+                throw new AppException(ErrorCode.BAD_REQUEST,
+                        "Telegram bot is not configured (chessedu.telegram.bot-username)");
+            }
+        }
+
+        String phone = null;
+        if (req.phone() != null && !req.phone().isBlank()) {
+            phone = PhoneNumbers.normalize(req.phone());
+            if (phone == null) {
+                throw new AppException(ErrorCode.VALIDATION_FAILED,
+                        "Phone must be an international number like +998901234567");
+            }
+            boolean phonePending = invitations.findPendingByPhone(phone).stream()
+                    .anyMatch(i -> !i.isExpired(Instant.now()));
+            if (phonePending) {
+                throw AppException.conflict("A pending invitation already exists for this phone number");
+            }
+        }
 
         // Already a user? Block — they should use password-reset instead.
         if (users.findByEmail(normalizedEmail).isPresent()) {
@@ -170,16 +203,31 @@ public class InvitationService {
         invitation.setTokenHash(hasher.hash(rawToken));
         invitation.setIssuedAt(now);
         invitation.setExpiresAt(now.plus(invitationProps.ttl()));
+        invitation.setDeliveryChannel(channel);
+        invitation.setBotState(channel == DeliveryChannel.TELEGRAM ? BotState.PENDING : null);
+        invitation.setPhone(phone);
         invitations.save(invitation);
 
-        // Fire-and-forget email. Failures are logged but don't fail the request
-        // (the admin can re-send).
-        dispatchInvitationEmail(invitation, school, rawToken, req.preferredLocale(), actor);
+        String botDeeplink = null;
+        if (channel == DeliveryChannel.TELEGRAM) {
+            // No email: the admin forwards the deeplink themselves (typically
+            // in Telegram). Shown once — the raw token is never persisted.
+            botDeeplink = telegramDeeplink(rawToken);
+        } else {
+            // Fire-and-forget email. Failures are logged but don't fail the
+            // request (the admin can re-send).
+            dispatchInvitationEmail(invitation, school, rawToken, req.preferredLocale(), actor);
+        }
 
-        log.info("Invitation issued: id={} role={} schoolId={} email={} by={}",
-                invitation.getId(), roleValue, targetSchoolId, normalizedEmail, actor.userId());
+        log.info("Invitation issued: id={} role={} schoolId={} email={} channel={} by={}",
+                invitation.getId(), roleValue, targetSchoolId, normalizedEmail, channel, actor.userId());
 
-        return toView(invitation, school, now);
+        return toView(invitation, school, now, botDeeplink);
+    }
+
+    /** {@code https://t.me/<bot>?start=INV_<token>} — what the bot's /start handler expects. */
+    private String telegramDeeplink(String rawToken) {
+        return "https://t.me/" + telegramProps.botUsername() + "?start=INV_" + rawToken;
     }
 
     private UUID resolveTargetSchool(AuthenticatedUser actor, IssueInvitationRequest req, boolean isPlatformRole) {
@@ -437,6 +485,10 @@ public class InvitationService {
     }
 
     private InvitationView toView(Invitation inv, School school, Instant now) {
+        return toView(inv, school, now, null);
+    }
+
+    private InvitationView toView(Invitation inv, School school, Instant now, String botDeeplink) {
         boolean expired = inv.getAcceptedAt() == null && inv.isExpired(now);
         return new InvitationView(
                 inv.getId(),
@@ -449,7 +501,12 @@ public class InvitationService {
                 inv.getIssuedAt(),
                 inv.getExpiresAt(),
                 inv.getAcceptedAt(),
-                expired
+                expired,
+                inv.getDeliveryChannel() != null ? inv.getDeliveryChannel().name() : DeliveryChannel.EMAIL.name(),
+                inv.getBotState() != null ? inv.getBotState().name() : null,
+                botDeeplink,
+                inv.getPhone(),
+                inv.getDeliveryChannel() == DeliveryChannel.TELEGRAM ? telegramProps.botUsername() : null
         );
     }
 

@@ -11,6 +11,10 @@ import java.time.Duration;
  * worker bean isn't created at all, so normal dev boots, the test profile, and
  * CI never try to long-poll Telegram. Flip it on once a real bot token is set.
  *
+ * <p>{@code loginCodeTtl} is how long a "Log in with Telegram" one-time code
+ * (V015) stays valid: long enough to read it in Telegram and type it, short
+ * enough that a leaked chat is worthless by the time anyone reads it.
+ *
  * <p>{@code apiBaseUrl} is overridable so an integration test can point the
  * client at a mock HTTP server instead of {@code api.telegram.org}.
  */
@@ -21,7 +25,8 @@ public record TelegramProperties(
         String botUsername,
         String apiBaseUrl,
         Integer pollTimeoutSeconds,
-        Duration ottTtl) {
+        Duration ottTtl,
+        Duration loginCodeTtl) {
 
     public TelegramProperties {
         if (apiBaseUrl == null || apiBaseUrl.isBlank()) {
@@ -32,6 +37,9 @@ public record TelegramProperties(
         }
         if (ottTtl == null) {
             ottTtl = Duration.ofMinutes(10);
+        }
+        if (loginCodeTtl == null) {
+            loginCodeTtl = Duration.ofMinutes(5);
         }
     }
 

@@ -50,7 +50,7 @@
   "auth": {
     "login": {
       "title": "Sign in to your account",
-      "emailLabel": "Email",
+      "emailLabel": "Email or username",
       "passwordLabel": "Password",
       "submit": "Sign in",
       "submitting": "Signing in…",
@@ -65,9 +65,35 @@
         "rest": "for students, parents, teachers and admins."
       },
       "error": {
-        "invalid": "Invalid email or password.",
+        "invalid": "Invalid email, username or password.",
         "network": "Can't reach the server. Please try again.",
         "unknown": "Something went wrong. Please try again."
+      },
+      "or": "or",
+      "telegram": {
+        "button": "Log in with Telegram",
+        "hint": "For accounts registered through the Telegram bot. We'll send a one-time code to your Telegram.",
+        "askTitle": "Who is signing in?",
+        "askHint": "Enter your username, email or the phone number linked to Telegram.",
+        "identifierLabel": "Username, email or phone",
+        "identifierPlaceholder": "teacher.one or +998…",
+        "sendCode": "Send code",
+        "sending": "Sending…",
+        "codeTitle": "Check Telegram",
+        "codeHint": "If {identifier} is linked to Telegram, our bot just sent it a 6-digit code. It works once and expires in 5 minutes.",
+        "codeLabel": "Code from Telegram",
+        "verify": "Sign in",
+        "verifying": "Checking…",
+        "back": "Back",
+        "startOver": "Start over",
+        "error": {
+          "invalid": "Enter your username, email or phone.",
+          "wrongCode": "That code is not right. Check Telegram and try again.",
+          "expired": "That code is no longer valid. Request a new one.",
+          "unavailable": "Telegram sign-in is not available on this server right now.",
+          "network": "We couldn't reach the server. Check your connection and try again.",
+          "unknown": "Something went wrong. Try again."
+        }
       }
     },
     "invitation": {
@@ -94,6 +120,21 @@
           "network": "Can't reach the server. Please try again.",
           "unknown": "Something went wrong. Please try again."
         }
+      }
+    },
+    "telegramAccept": {
+      "title": "Signing you in…",
+      "subtitle": "Finishing your Telegram sign-in.",
+      "working": "One moment — we're setting up your session.",
+      "errorTitle": "This link has expired",
+      "retry": "Try again",
+      "retrying": "Trying…",
+      "backToLogin": "Back to login",
+      "error": {
+        "missing": "The sign-in link is incomplete. Open the link the bot sent you, or ask it for a new one with /start.",
+        "expired": "Sign-in links work once and only for a few minutes. Ask the bot for a new one with /start, or log in with your email and password.",
+        "network": "We couldn't reach the server. Check your connection and try again.",
+        "unknown": "Something went wrong. Try again, or log in with your email and password."
       }
     }
   },
@@ -783,7 +824,8 @@
         "issued": "Sent",
         "expires": "Expires",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "channel": "Channel"
       },
       "role": {
         "SCHOOL_ADMIN": "School admin",
@@ -819,9 +861,40 @@
           "unauthorised": "Your session has expired. Please sign in again.",
           "network": "Can't reach the server. Please try again.",
           "unknown": "Something went wrong. Please try again."
-        }
-      }
-    }
+        },
+        "channelLabel": "Send via",
+        "channelHint": "Email sends the accept link automatically. Telegram asks the invitee to open the bot — add their phone and there's nothing to forward.",
+        "channel": {
+          "EMAIL": "Email",
+          "TELEGRAM": "Telegram bot"
+        },
+        "issuedTitle": "Invitation ready",
+        "issuedTelegram": "No email was sent. Forward this link to {email} — it opens the bot, which verifies their phone number and signs them in. The link is shown only once.",
+        "deeplinkLabel": "Bot link",
+        "copy": "Copy link",
+        "copied": "Copied",
+        "backToList": "Back to invitations",
+        "schoolLabel": "School",
+        "phoneLabel": "Phone number (optional)",
+        "phoneHint": "If you add their phone, they just open the bot and share their contact — no link to forward. Leave empty to get a link instead.",
+        "issuedByPhone": "No email was sent. Tell {name} to open @{bot} in Telegram, press Start and share their contact. We'll match the number {phone} to this invitation.",
+        "issuedByPhoneFallback": "If they can't find the bot, you can also send them this link:"
+      },
+      "channel": {
+        "EMAIL": "Email",
+        "TELEGRAM": "Telegram"
+      },
+      "botState": {
+        "PENDING": "Link not opened yet",
+        "STARTED": "Opened the bot",
+        "AWAITING_CONTACT": "Waiting for phone number",
+        "COMPLETED": "Signed up via bot",
+        "CANCELLED": "Cancelled in the bot"
+      },
+      "schoolLabel": "School",
+      "noSchools": "No schools yet."
+    },
+    "account": "Account"
   },
   "parent": {
     "logout": "Log out",
@@ -857,7 +930,8 @@
         "network": "Can't reach the server. Please try again.",
         "unknown": "Something went wrong. Please try again."
       }
-    }
+    },
+    "account": "Account"
   },
   "student": {
     "qa": {
@@ -984,7 +1058,8 @@
       "questions": "Questions",
       "puzzles": "Puzzles",
       "classmates": "Classmates",
-      "tournaments": "Tournaments"
+      "tournaments": "Tournaments",
+      "account": "Account"
     },
     "questionsList": {
       "title": "Your questions",
@@ -1121,5 +1196,48 @@
     "loading": "Loading…",
     "error": "Something went wrong",
     "retry": "Retry"
+  },
+  "account": {
+    "title": "Sign-in settings",
+    "signedInAs": "Signed in as {name} ({email})",
+    "telegramLinked": "Telegram is linked to this account.",
+    "telegramNotLinked": "Telegram is not linked to this account.",
+    "back": "Back",
+    "saving": "Saving…",
+    "username": {
+      "title": "Username",
+      "hint": "A short name you can use instead of your email when signing in.",
+      "label": "Username",
+      "submit": "Save username",
+      "saved": "Username saved.",
+      "error": {
+        "invalid": "3–32 characters: letters, digits, dots or underscores.",
+        "taken": "That username is already taken.",
+        "unauthorised": "Your session has expired. Sign in again.",
+        "network": "We couldn't reach the server. Try again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    },
+    "password": {
+      "setTitle": "Set a password",
+      "setHint": "You signed up through Telegram. Add a password so you can also sign in with your email or username.",
+      "changeTitle": "Change password",
+      "changeHint": "Enter your current password, then the new one twice.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Repeat new password",
+      "rule": "At least 8 characters.",
+      "setSubmit": "Set password",
+      "changeSubmit": "Change password",
+      "saved": "Password saved.",
+      "error": {
+        "mismatch": "The two passwords don't match.",
+        "wrongCurrent": "The current password is incorrect.",
+        "invalid": "The new password must be 8–200 characters.",
+        "unauthorised": "Your session has expired. Sign in again.",
+        "network": "We couldn't reach the server. Try again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
   }
 }

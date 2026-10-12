@@ -30,6 +30,786 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Telegram invitations matched by phone (no link to forward)
+
+Bulat asked whether the bot could send the invite link itself. It
+can't — Telegram only lets a bot message someone who has already
+pressed Start — so the admin had to copy the deeplink and forward it.
+Chosen fix: record the invitee's phone on the invitation; the invitee
+opens the bot from any generic link / QR, presses Start, shares their
+contact, and the bot matches the pending invitation by the
+Telegram-verified number. The token deeplink stays as the fallback when
+the school has no number. A token invitation that carries a phone must
+also be redeemed by that phone (a forwarded link in the wrong hands
+stops there).
+
+Backend:
+
+- `apps/api/src/main/resources/db/migration/V017__invitation_phone.sql`
+  — `invitation.phone VARCHAR(32)` (E.164 CHECK) + partial index on
+  pending rows.
+- `identity/telegram/PhoneNumbers.java` — new shared `normalize()`
+  (was private to the signup service); the signup service delegates.
+- `IssueInvitationRequest.phone` (optional, separators tolerated →
+  normalised; 400 if unparseable; 409 if another pending unexpired
+  invitation already has the number). `InvitationView` gains `phone`
+  and `botUsername` (TELEGRAM only). `InvitationRepository.findPendingByPhone`.
+- `TelegramSignupService` — bare `/start` (or any non-`INV_` payload)
+  from an unlinked account now asks for the contact and remembers the
+  Telegram id in `awaitingPhoneLookup`; on the contact share it looks
+  up the newest pending, unexpired, TELEGRAM, non-student invitation
+  for that phone and completes signup exactly as the token path. Token
+  path: phone mismatch → `phoneMismatch` reply, still mid-signup.
+  `/cancel` clears the lookup too. Messages `askContactForLookup`,
+  `noInvitationForPhone`, `phoneMismatch`; `help` rewritten.
+- Tests: `TelegramInvitationIssueIntegrationTest` +2 (normalised phone
+  + botUsername; duplicate phone 409; bad phone 400);
+  `TelegramPhoneSignupIntegrationTest` (4, bot enabled with a
+  `@MockBean TelegramApiClient`): bare start → contact → invitation
+  accepted, user + telegram_account rows, accept link sent; no
+  invitation for the number → refused, nothing created; token invite +
+  wrong number → refused then right number completes; forwarded
+  contact card never matches.
+
+Frontend:
+
+- `admin/invitations/new/invite-form.tsx` — "Phone number (optional)"
+  field shown when Send via = Telegram bot (channel select is now
+  controlled state). "Invitation ready" card: with a phone it reads
+  "Tell {name} to open @{bot}, press Start and share their contact —
+  we'll match {phone}", with the deeplink demoted to a fallback;
+  without a phone, the old copy. `actions.ts` posts `phone`, and the
+  issued state carries `displayName`, `phone`, `botUsername`.
+- `admin/invitations/page.tsx` — phone shown under the email as a
+  `.pill-note`.
+- `globals.css` — `.issued-steps`. i18n: `admin.invitations.new.{phoneLabel,
+  phoneHint,issuedByPhone,issuedByPhoneFallback}`, `channelHint`
+  reworded → **1011** leaf keys each.
+
+Deliberately scoped out:
+
+- **QR code / printed poster** for the generic bot link — the card
+  shows `@bot`; a QR is a small follow-up if schools want a wall sign.
+- **"Send in Telegram" share button** for the fallback link
+  (`t.me/share/url`) — cheap, add if the fallback is used often.
+- **Bot DM to the admin** with the link — only works for admins who
+  signed up via Telegram; skipped for now.
+- **Matching email invitations by phone** — phone matching is Telegram
+  only; email invites keep their link.
+
+How to check as a user:
+
+1. Admin → Invitations → New invitation → Send via **Telegram bot** → a
+   **Phone number** field appears. Enter the invitee's number (your
+   own phone for a test; unlink first if it's already linked — test
+   plan Phase 6) → submit.
+   Expected: "Invitation ready" says to open `@e2e4_uz_bot`, press
+   Start and share the contact; the link is shown below as a fallback.
+   The list shows the number under the email.
+2. On the phone: open `@e2e4_uz_bot` (search it, no link needed) →
+   **Start** → the bot asks for your phone → tap **Share my phone
+   number** → "You're all set" + the accept link. Invitations list →
+   Accepted.
+3. Edge cases: a number with no invitation → "no invitation for this
+   phone number"; share the number for a token link issued to a
+   *different* number → "issued for a different phone number", then
+   the correct number completes it; the same number invited twice
+   while pending → 409 in the form; `call me maybe` as a phone → the
+   form's validation error with the backend's reason.
+
+### Platform admin: school picker on invitations + backend error detail
+
+Found while Bulat ran the e2e test plan: a platform admin (no
+membership) pressing "Send invitation" got only "Check the fields and
+try again". The backend had said exactly what was wrong — "schoolId is
+required when a platform admin invites a school user" — but the form
+mapped every 400 to the generic line, and the UI had no way to supply a
+school at all (the test plan had been using curl for that step).
+
+- `apps/api/.../tenancy/AdminSchoolController.java` — new
+  `GET /api/v1/admin/schools`, `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`,
+  returns `SchoolView(id, slug, displayName, status)` sorted by name.
+  `AdminSchoolListIntegrationTest` (2): platform admin sees the demo
+  school; school admin → 403.
+- `apps/web/src/app/[locale]/admin/invitations/school-picker.tsx` — new
+  client `<select>` that rewrites `?schoolId=` (`router.replace`).
+- `invitations/page.tsx` — fetches `/me`; for a platform admin also
+  fetches the schools, resolves `?schoolId` (defaults to the first
+  school), lists `?schoolId=…`, and the "New invitation" link carries it.
+  School admins see no picker — their school is implied, as before.
+- `invitations/new/page.tsx` + `invite-form.tsx` — same resolution; the
+  form renders a **School** select for platform admins and posts
+  `schoolId`; the success redirect keeps `?schoolId`.
+- `invitations/new/actions.ts` — `IssueActionState.detail` carries the
+  backend message for 400 / 403 / 409; the form shows it as
+  `.form-error__detail` under the generic copy.
+- i18n: `admin.invitations.{schoolLabel,noSchools}`,
+  `admin.invitations.new.schoolLabel` → **1007** leaf keys each.
+- `docs/auth-e2e-test-plan.md` — Phase 1 is now a UI step; the curl
+  path and the "known gap" note are gone.
+
+How to check as a user: sign in as a platform admin (test plan Phase 0),
+open `/en/admin/invitations` → a School select sits above the list;
+New invitation → the form has the same select; submit → redirect to the
+list for that school. As a school admin, neither select appears. Edge:
+with the bot username unset, a Telegram invite now says why under the
+red line.
+
+### Auth 2b — "Log in with Telegram" by one-time code (replaces the deeplink handshake)
+
+Bulat's UX verdict on Auth 2 (2026-10-11): the `t.me` deeplink opened a
+new tab, bounced the user through the Telegram app, and then the
+original page changed under them with no explicit step. Replaced with
+the pattern Telegram itself uses: the user says who they are, the bot
+DMs a 6-digit code, they type it in. No new tab, no deeplink, and a
+successful code is an explicit "Sign in" click → redirect. Same on
+desktop (code arrives on the phone) and on the phone.
+
+Flow (V015 `telegram_login_code`; V013's `telegram_login_request` is
+dropped):
+
+1. Login page → **Log in with Telegram** → "Who is signing in?" —
+   username, email, or the E.164 phone linked at signup (separators
+   tolerated: `998 90 111-22-33`).
+2. `POST /api/v1/auth/telegram/login-codes {identifier}` →
+   `TelegramLoginCodeService.request`: resolve → `telegram_account`
+   with a `chat_id` → mint 6 digits (SecureRandom), store SHA-256, TTL
+   5 min (`chessedu.telegram.login-code-ttl`), `api.sendMessage(chatId,
+   loginCode(locale, code))`. **Always 200 with an id** — an unmatched
+   identifier gets a **decoy row** (V016: `user_id` nullable, no DM)
+   that behaves exactly like a real one on verify (401 per wrong code,
+   410 after five) but never succeeds, so neither endpoint can
+   enumerate accounts. (First cut returned a random id — the verify
+   step then leaked 404 vs 401.) **Cooldown 45 s**: a repeat request
+   returns the pending id without a second DM.
+3. Web keeps the id in an HttpOnly `tg_login_code` cookie; the card
+   shows "Check Telegram" + a numeric input.
+4. `POST /login-codes/{id}/verify {code}` → 401 wrong (attempt counted,
+   `noRollbackFor`), **max 5 attempts**, 410 expired/consumed/exhausted,
+   404 unknown id; success → `AuthService.issueSessionFor`, `last_seen_at`,
+   `consumed_at`. Web `setSession` + `/me` + role redirect.
+
+Files:
+
+- `apps/api/src/main/resources/db/migration/V015__telegram_login_code.sql`,
+  `V016__telegram_login_code_decoy.sql`
+- `identity/model/TelegramLoginCode.java` (`MAX_ATTEMPTS = 5`,
+  `isUsable`), `identity/repo/TelegramLoginCodeRepository.java`
+  (`findFirstByUserIdOrderByCreatedAtDesc`); `TelegramAccountRepository.findByPhone`.
+- `identity/telegram/TelegramLoginCodeService.java` — unconditional;
+  takes `ObjectProvider<TelegramApiClient>` because the bot client only
+  exists when `chessedu.telegram.enabled=true` → otherwise 400
+  ("unavailable" in the UI).
+- `TelegramAuthController` — the two endpoints; DTOs
+  `TelegramLoginCodeRequest`, `TelegramLoginCodeView`,
+  `TelegramLoginCodeVerifyRequest`.
+- `TelegramBotMessages.loginCode(locale, code)`; `alreadyLinked` copy
+  mentions the code. `TelegramLoginBotHandler` keeps only `/login`
+  (fresh accept link); `TelegramBotWorker` no longer parses
+  `/start login_…`. `TelegramProperties.loginCodeTtl` (was
+  `loginRequestTtl`; yml key `login-code-ttl`, env
+  `CHESSEDU_TELEGRAM_LOGIN_CODE_TTL`).
+- **Removed**: `TelegramLoginRequest` entity/repo/service, the three
+  `TelegramLoginPoll*/RequestView` DTOs, `TelegramLoginRequestFlowIntegrationTest`.
+- `apps/web/src/app/[locale]/auth/login/actions.ts` —
+  `requestTelegramCodeAction` (sets the cookie), `verifyTelegramCodeAction`
+  (verify → session → redirect), `cancelTelegramCodeAction`; the
+  polling actions are gone. `telegram-login.tsx` — idle button → identifier
+  form → code form (`inputMode=numeric`, `autocomplete=one-time-code`,
+  spaces tolerated), Back / Start over; both steps are plain
+  `useActionState` forms.
+- i18n: `auth.login.telegram.*` rewritten (16 keys) in en/ru/uz →
+  **1004** leaf keys each.
+- `apps/api/src/test/.../telegram/TelegramLoginCodeFlowIntegrationTest.java`
+  — 6 tests with `@MockBean TelegramApiClient` capturing the DM: username
+  (normalised, spaced code tolerated, wrong attempt counted, `/me`,
+  410 on reuse); email + phone-with-separators resolve the same account;
+  unknown identifier → decoy row, no DM, 401 ×5 then 410; cooldown → same
+  id, one DM; five wrong → 410 even for the right code; expired → 410.
+
+Verified: 19 backend tests green across LoginCode (6), Accept (5),
+Account (4), InvitationIssue (4); `tsc` clean. Browser: button →
+identifier form → Send code → "Check Telegram" → wrong code message;
+password form still signs in. **Gotcha found in the browser**: the
+Telegram block renders its own `<form>`s, and the login card used to
+*be* the password `<form>` — nested forms are dropped by the browser,
+so "Send code" did nothing. The card is now a `<div>` with the password
+form (`.auth-card__form { display: contents }`) and the Telegram forms
+as siblings. Don't put a form-rendering component inside a form.
+
+Deliberately scoped out:
+
+- **Rate limiting per IP / identifier** on `login-codes` beyond the
+  45 s per-user cooldown — add before prod (a bot DM per request is the
+  spam vector).
+- **Cleanup job** for old `telegram_login_code` rows.
+- **Login Widget** — still the nicest desktop UX once a prod domain
+  exists; the code flow stays as the fallback either way.
+
+How to check as a user:
+
+Needs the bot running and a Telegram-linked account (Bulat's →
+`tg-teacher-test@demo.local`, username `tg.teacher`).
+
+1. Log out → `/en/auth/login` → **Log in with Telegram** → type
+   `tg.teacher` (or the email, or the phone) → **Send code**.
+   Expected: the card becomes "Check Telegram"; the bot DMs
+   "Your sign-in code: 123456 …" within a second.
+2. Type the code (with or without a space) → **Sign in**. Expected:
+   `/en/admin` as the teacher. No new tab was opened at any point.
+3. Edge cases: a wrong code → "That code is not right" and the field
+   stays; five wrong codes → "no longer valid" + Start over; press Send
+   code twice quickly → one DM, same code works; type an unknown
+   username → the card still says "Check Telegram" and a wrong code
+   says "not right" exactly as for a real account (decoy row), but no
+   DM arrives; wait >5 min → "no longer valid".
+   With the bot disabled (`CHESSEDU_TELEGRAM_ENABLED=false`) → "not
+   available on this server".
+
+### Auth 3 — Username + self-service password (account page)
+
+Third item of the 2026-10-09 auth roadmap: the "username + password"
+half of the two-method sign-in. Email stays the primary identity; a
+username is an optional second login identifier (students created by a
+parent have a synthetic internal email they never see, and Telegram
+users may want a password fallback). New `/<locale>/account` page lets
+any signed-in user pick a username and set or change a password — for a
+Telegram-signup user that's their first password, no "current" needed.
+
+Backend:
+
+- `apps/api/src/main/resources/db/migration/V014__username.sql` —
+  `app_user.username VARCHAR(32)` nullable, CHECK
+  `^[a-z0-9][a-z0-9_.]{2,31}$`, partial unique index on `lower(username)`.
+  No '@' allowed, so the login endpoint tells emails and usernames apart
+  by the presence of '@'.
+- `identity/model/User.java` — `username` field; `UserRepository` —
+  `findByUsername`, `existsByUsername`.
+- `identity/auth/dto/LoginRequest.java` — `login` (email **or**
+  username) + legacy `email` (still accepted, 15 existing tests post it)
+  + `password`; `identifier()` picks whichever is set; `@AssertTrue`
+  requires one.
+- `AuthService.login(identifier, …)` — `resolveByIdentifier`: contains
+  '@' → `findByEmail(normalizeEmail)`, else
+  `findByUsername(normalizeUsername)`. Same opaque "Invalid credentials".
+  `AuthService.me` now also returns `username`, `hasPassword`
+  (credentials row exists) and `telegramLinked`; `AuthService` gained a
+  `TelegramAccountRepository` dependency for that.
+- `identity/auth/AccountService.java` — new. `setUsername(userId, raw)`:
+  normalise → pattern (400 `VALIDATION_FAILED`) → case-insensitive
+  uniqueness (409; re-saving your own is fine). `setPassword(userId,
+  current, new)`: no credentials row → create one (first password, no
+  current check); row exists → `current` must match (401), then rehash +
+  reset `failed_attempts`/`locked_until`. Both return the fresh `MeResponse`.
+- `AuthController` — `PUT /api/v1/auth/account/username {username}`,
+  `PUT /api/v1/auth/account/password {currentPassword?, newPassword}`
+  (authenticated — under `/api/v1/**` → `.authenticated()`). DTOs
+  `SetUsernameRequest`, `SetPasswordRequest`.
+- `apps/api/src/test/.../auth/AccountFlowIntegrationTest.java` — 4 tests:
+  Telegram user (OTT session, no credentials) → `/me` shows
+  `hasPassword=false`/`telegramLinked=true` → password login impossible →
+  set username ("  Account.Tester_1 " → `account.tester_1`) → set first
+  password → login by username, by email, and via the legacy `email`
+  field → change needs correct current (401 on wrong/missing) → old
+  password dead, new works; uniqueness is case-insensitive (409) and
+  own-name re-save ok; six bad patterns → 400; no session → 401.
+
+Frontend:
+
+- `auth/login/login-form.tsx` — the field is now `login` (`type=text`,
+  `autocomplete=username`, label "Email or username"); `actions.ts`
+  posts `{login, password}` (reads `login`, falls back to `email`).
+- `apps/web/src/app/[locale]/account/{page,account-forms,actions}` —
+  new. Server page: session → `/me` → intro (name, email, Telegram
+  linked?) + Back to the role home (`homeForRole`) + two client forms.
+  Username form (HTML `pattern` mirrors the server rule; API normalises).
+  Password form: shows "Current password" only when `hasPassword`;
+  confirm check is client-side; after a successful first set the form
+  flips to "Change password" without a reload. Error keys:
+  `invalid | taken | unauthorised | network | unknown` and
+  `mismatch | wrongCurrent | invalid | unauthorised | network | unknown`.
+- "Account" link next to Log out in `admin/page.tsx`, `parent/page.tsx`
+  and `student/sidebar.tsx` (plain `<a href="/{locale}/account">` — the
+  page lives outside the shells).
+- `globals.css` — `.account-shell`, `.account-intro`, `.form-success`.
+- i18n: `account.*` (34 keys), `auth.login.emailLabel` → "Email or
+  username", `auth.login.error.invalid` reworded, `admin.account`,
+  `parent.account`, `student.nav.account` → **994** leaf keys each.
+
+Verified: `:api:test` AccountFlow 4/4, AuthFlow 3/3, TelegramAccept 5/5;
+`tsc` clean; CSS braces balanced. Browser, as the Telegram-only
+`tg-teacher-test` user (OTT session): `/en/account` showed "Set a
+password" with no current field → saved username `TG.Teacher` (stored
+`tg.teacher`) → set a password → form flipped to "Change password" →
+logged out → signed in with the username + that password → `/en/admin`.
+
+Deliberately scoped out:
+
+- **Revoking other sessions on password change** (`AuthService.logoutAll`
+  exists) — would also kill the current session's family; needs a
+  "keep this one" variant first.
+- **Username on invitation accept / Telegram signup** — users pick it on
+  the account page afterwards; optional by design.
+- **Email change** and **display name / locale edits** — the page is
+  sign-in settings only for now.
+- **Password reset by email** — still the "later" item on the roadmap;
+  this page covers the signed-in case only.
+
+How to check as a user:
+
+1. Sign in as any password user (`admin@demo.local / admin12345`) → the
+   dashboard header has **Account** next to Log out → `/en/account`.
+   Expected: "Signed in as …", "Telegram is not linked", a Username card
+   and a **Change password** card with a Current password field.
+2. Save a username (try `Admin.One` → saved as `admin.one`; try `ab` or
+   `has space` → inline validation error; try a name another user has →
+   "already taken").
+3. Log out, sign in with the username instead of the email → works. Both
+   work from now on.
+4. Telegram-only user: get a session via the bot (`/login` link) or an
+   SQL-minted OTT (Telegram Auth C, step 2), open `/en/account`.
+   Expected: **Set a password** card without a Current field. Set one →
+   card flips to Change password; log out → sign in with
+   email/username + password → their role home.
+5. Edge: Change password with a wrong current → "current password is
+   incorrect"; mismatched repeat → "don't match"; <8 chars → rule error.
+   Student sidebar and parent header also show Account.
+
+### Auth 2 — Telegram re-login (login-request handshake + bot `/login`)
+
+Second item of the 2026-10-09 auth roadmap. Until now a Telegram-signup
+user (no password) could never sign in again once their session ended.
+The Login Widget would fix that but needs a prod domain for `@BotFather
+/setdomain`. This slice adds a domain-free equivalent — the same pattern
+Telegram Desktop uses — plus a bot `/login` command for the same-device
+phone case.
+
+Handshake (V013 `telegram_login_request`):
+
+1. Login page "Log in with Telegram" → `POST /api/v1/auth/telegram/login-requests`
+   → `{id, clientSecret, deeplink, expiresAt}` (5-min TTL,
+   `chessedu.telegram.login-request-ttl`). Web keeps `id.clientSecret` in
+   an HttpOnly `tg_login_request` cookie; the client only sees the
+   `https://t.me/<bot>?start=login_<nonce>` deeplink.
+2. User opens the deeplink (same phone, or phone while the desktop waits).
+   Bot `/start login_<nonce>` from an **already-linked** Telegram id →
+   `TelegramLoginRequestService.complete` stamps `user_id` +
+   `completed_at` → bot replies "Sign-in confirmed, go back to your
+   browser". Unlinked account → "ask your school for an invitation".
+3. Web polls `POST /login-requests/{id}/poll {clientSecret}` every 2 s:
+   `PENDING` until step 2, then once `COMPLETED` + `TokenResponse`
+   (`AuthService.issueSessionFor`, `telegram_account.last_seen_at`
+   bumped, `consumed_at` stamped — single use). Poll action installs the
+   cookies and redirects by role, same tail as password login.
+
+Three secrets, three parties: nonce → Telegram (bot's only handle),
+client secret → browser cookie (only thing that turns a completed request
+into a session), id → plain handle. All stored as SHA-256. 404 unknown
+id, 401 wrong secret, 410 expired/consumed.
+
+Files:
+
+- `apps/api/src/main/resources/db/migration/V013__telegram_login_request.sql`
+- `apps/api/.../identity/model/TelegramLoginRequest.java`,
+  `.../identity/repo/TelegramLoginRequestRepository.java`
+- `apps/api/.../identity/telegram/TelegramLoginRequestService.java` —
+  **unconditional**: `create()`, `complete(nonce, telegramId, userId)` →
+  `CompleteOutcome {COMPLETED, NOT_FOUND, EXPIRED, ALREADY_COMPLETED}`,
+  `poll(id, secret, ip, ua)`.
+- `apps/api/.../identity/telegram/TelegramLoginBotHandler.java` —
+  `@ConditionalOnProperty`: `handleLoginStart` (`/start login_<nonce>`)
+  and `handleLoginCommand` (`/login` → mints an OTT via
+  `TelegramAuthTokenService` and replies with a fresh
+  `/<locale>/auth/accept?ott=` link). Both refresh the profile snapshot +
+  `last_seen_at`.
+- `TelegramBotWorker.java` — dispatch: `/start login_…` → login handler,
+  `/login` → login handler, everything else as before.
+- `TelegramBotMessages.java` — `loginNotLinked`, `loginConfirmed`,
+  `loginAlreadyConfirmed`, `loginRequestExpired`, `loginLink`; `alreadyLinked`
+  and `help` now point at `/login` and the website button.
+- `TelegramAuthController.java` — the two new endpoints (already under the
+  permit-all `/api/v1/auth/telegram/**`). DTOs in `telegram/dto/`:
+  `TelegramLoginRequestView`, `TelegramLoginPollRequest`,
+  `TelegramLoginPollResponse`.
+- `TelegramProperties.java` + `application.yml` — `loginRequestTtl`
+  (default PT5M, env `CHESSEDU_TELEGRAM_LOGIN_REQUEST_TTL`).
+- `apps/web/src/app/[locale]/auth/login/actions.ts` —
+  `startTelegramLoginAction` (sets the cookie, returns the deeplink),
+  `pollTelegramLoginAction(locale)` (cookie → poll → on COMPLETED
+  `setSession` + `/me` + redirect), `cancelTelegramLoginAction`.
+- `apps/web/src/app/[locale]/auth/login/telegram-login.tsx` — client
+  panel: idle button → "Confirm in Telegram" card with an "Open Telegram"
+  link (`target=_blank`, so popup blockers can't eat it) + Cancel; one
+  interval, non-overlapping polls (CAREFUL: the poll action is the one
+  that redirects — don't add a client-side redirect). Errors: `expired`
+  (timed out / consumed), `unavailable` (bot not configured → 400),
+  `network`, `unknown`.
+- `login-form.tsx` — "or" divider + the panel between Sign in and the
+  footer. `globals.css` — `.auth-divider`, `.auth-telegram*`.
+- i18n: `auth.login.or`, `auth.login.telegram.*` (12 keys) in en/ru/uz →
+  **958** leaf keys each.
+- `apps/api/src/test/.../telegram/TelegramLoginRequestFlowIntegrationTest.java`
+  — 5 tests: full handshake (PENDING → complete → COMPLETED tokens → `/me`
+  → 410 on re-poll → ALREADY_COMPLETED on re-confirm), wrong secret 401
+  (request stays usable), unknown id 404, expired 410 + EXPIRED, bogus
+  nonce NOT_FOUND.
+
+Verified: backend tests green (5 + the 5 accept tests); `tsc` clean; in
+the browser against the running stack: button → waiting card with a real
+`t.me/e2e4_uz_bot?start=login_…` link → completed the row by SQL (what
+the bot does) → next poll redirected to `/en/admin` logged in, row
+`consumed_at` set, API log "login request … consumed".
+
+Deliberately scoped out:
+
+- **Rate limiting** on `login-requests` creation and on bot `/start` per
+  Telegram id — rows are cheap and self-expiring, but add before prod.
+- **Cleanup job** for expired `telegram_login_request` rows.
+- **QR code** on the waiting card (desktop → phone camera) — the deeplink
+  text/link is enough for v1; add `qrcode` later if wanted.
+- **Login Widget** — still the nicer UX once a domain exists; it will
+  mint an OTT and reuse `/auth/accept`, and this handshake stays for the
+  cross-device case.
+
+How to check as a user:
+
+Needs the bot running (`.env` sourced) and a Telegram account that
+already signed up through the bot (Bulat's is linked to
+`tg-teacher-test@demo.local`).
+
+1. Log out, open `/en/auth/login`, press **Log in with Telegram**.
+   Expected: the card switches to "Confirm in Telegram" with an **Open
+   Telegram** button and Cancel.
+2. Press Open Telegram (or open the same link on your phone) → the bot
+   chat opens with Start → press it. Bot replies "Sign-in confirmed ✅".
+   Within ~2 s the browser tab redirects to `/en/admin` (teacher) —
+   no password typed anywhere.
+3. In the bot, send `/login`. Expected: a one-time
+   `http://localhost:3100/<locale>/auth/accept?ott=…` link; opening it
+   signs you in the same way (10-min TTL, single use).
+4. Edge cases:
+   - Press the button, wait >5 min, then press Start in the bot → bot
+     says the link expired; the page shows "timed out, try again".
+   - From a Telegram account that never signed up: `/start login_…` or
+     `/login` → "not registered yet, ask your school admin".
+   - Press Start twice → second reply "already confirmed".
+   - Cancel on the card → back to the idle button; the bot's later Start
+     still says confirmed, but nothing polls it, and the row expires.
+   - Stop the bot (`CHESSEDU_TELEGRAM_ENABLED=false`): the button still
+     creates a request (the endpoints are unconditional), but nobody
+     confirms it → times out. With `CHESSEDU_TELEGRAM_BOT_USERNAME`
+     unset → "not available on this server".
+
+### Auth 1 — Silent session refresh in the web app
+
+First item of the auth roadmap agreed with Bulat on 2026-10-09 (see
+`docs/telegram-auth-handoff.md` → "Auth roadmap decisions"). The API has
+issued a 14-day rotating refresh token since M2, but nothing in the web
+app ever called `/auth/refresh`, so every session died when the 30-minute
+access cookie expired. Now a session lasts as long as the user comes back
+within 14 days.
+
+Files:
+
+- `apps/web/src/middleware.ts` — wraps the next-intl middleware. If the
+  `session_access` cookie is absent but `session_refresh` is present, it
+  POSTs `/api/v1/auth/refresh` (forwarding User-Agent / X-Forwarded-For
+  for the refresh-token row) and answers **307 to the same URL** with the
+  new cookie pair, so the re-request renders with a valid session.
+  On failure it clears both cookies and lets the shell layouts bounce to
+  `/auth/login` as before. Why a self-redirect: Server Components read
+  cookies from the incoming request, and forwarding a rewritten cookie
+  header through next-intl's response would depend on Next internals.
+  **Single-flight guard** (CAREFUL): the backend's rotation treats a
+  re-presented refresh token as theft and revokes the family; a page load
+  fans out into parallel RSC requests that would all refresh with the
+  same old token. An in-memory `Map<token, Promise>` with a 15 s window
+  hands every concurrent caller the same result. Single web instance
+  (same assumption as the bot worker); multi-instance needs a reuse grace
+  window on the backend instead.
+- `apps/web/src/lib/session-cookies.ts` — new, dependency-free: cookie
+  names, lifetimes, `sessionCookieOptions`, and `accessCookieMaxAge(expiresIn)`
+  = backend `expiresIn` minus a 60 s safety margin, so the cookie always
+  dies *before* the JWT inside it (otherwise there's a window where the
+  cookie exists but every API call 401s → logout instead of refresh).
+- `apps/web/src/lib/session.ts` — imports the shared constants;
+  `setSession` takes optional `expiresIn`.
+- `auth/login/actions.ts`, `auth/accept/actions.ts`,
+  `auth/invitations/[token]/actions.ts` — pass `expiresIn` to `setSession`.
+
+Verified with curl against the running stack: refresh-only cookie →
+307 + both Set-Cookie (access Max-Age 1740); three concurrent requests
+with the same old token → all 307 with the *same* new refresh token;
+following with the new cookies → 200; the newest refresh still rotates at
+the API (family intact); a garbage refresh → both cookies cleared +
+redirect to `/en/auth/login`. `npx tsc --noEmit` clean. i18n untouched
+(946). No backend change.
+
+Deliberately scoped out:
+
+- **Backend reuse grace window** (accept the just-rotated token for ~30 s
+  and return the successor) — needed only for multi-instance web.
+- **Refreshing on a mid-request 401** — the 60 s cookie margin makes that
+  window practically unreachable; the 18 existing `session/logout` 401
+  handlers are unchanged.
+- **Idle timeout / "remember me"** — the refresh token is 14 d from each
+  rotation, so an active user stays in indefinitely; add an absolute cap
+  if product wants one.
+
+How to check as a user:
+
+1. Sign in at `/en/auth/login` (`admin@demo.local / admin12345`).
+2. In DevTools → Application → Cookies, delete only `session_access`
+   (keep `session_refresh`). Reload any admin page.
+   Expected: one 307 to the same URL in the Network tab, then the page
+   renders logged-in; both cookies are back with fresh expiries.
+3. Delete both cookies, reload → login page (unchanged behaviour).
+4. Edge: edit `session_refresh` to garbage, delete `session_access`,
+   reload → login page, and both cookies are gone.
+5. Edge: open two tabs, delete `session_access`, reload both at once →
+   both stay logged in (single-flight; without it the second tab would
+   have revoked the family and logged both out).
+
+### Telegram Auth D — `/auth/accept` page + admin channel picker & funnel state
+
+Fourth slice of the Telegram-auth umbrella: the frontend, plus the small
+backend piece it needed. The bot's deeplink now lands on a real page
+that signs the user in, and school admins can issue Telegram
+invitations (and watch the bot funnel) from the existing invitations
+screens. Login-Widget button still deferred (needs a prod domain).
+
+Backend (invitation issue/list, no schema change — V012 already had
+the columns):
+
+- `apps/api/.../identity/invitation/dto/IssueInvitationRequest.java` —
+  optional `deliveryChannel` (`@Pattern EMAIL|TELEGRAM`, null = EMAIL).
+- `apps/api/.../identity/invitation/dto/InvitationView.java` — adds
+  `deliveryChannel`, `botState` (null for EMAIL), and `botDeeplink`
+  (`https://t.me/<bot>?start=INV_<token>`; **only in the issue response
+  of a TELEGRAM invite, never in list views** — the raw token isn't
+  stored, so it can't be re-shown).
+- `apps/api/.../identity/invitation/InvitationService.java` — injects
+  `TelegramProperties`; on `TELEGRAM`: 400 if `bot-username` is blank,
+  sets `delivery_channel=TELEGRAM` + `bot_state=PENDING`, **skips the
+  email** and returns the deeplink via a new `toView(…, botDeeplink)`
+  overload. EMAIL path unchanged. (Student invites were already 403 on
+  every channel via `enforceCallerAuthority` — no extra guard.)
+- `apps/api/src/test/.../invitation/TelegramInvitationIssueIntegrationTest.java`
+  — 4 tests (pins `chessedu.telegram.bot-username` via
+  `@SpringBootTest(properties=…)`): TELEGRAM issue → deeplink whose
+  token hashes to the row, `PENDING`, list shows channel+state but no
+  deeplink; EMAIL default unchanged; STUDENT+TELEGRAM 403; bogus
+  channel 400.
+
+Frontend:
+
+- `apps/web/src/app/[locale]/auth/accept/{page,accept-form,actions}.tsx|ts`
+  — new. Page reads `?ott=`; missing → error card. Otherwise a client
+  form with hidden `ott` **auto-submits once on mount** (ref-guarded —
+  the OTT is single-use, so a strict-mode double effect must not fire
+  twice) to `acceptTelegramAction`: `POST /auth/telegram/accept` →
+  `setSession` cookies → `/auth/me` → `homeForRole` redirect
+  (parent/student/admin), identical tail to the password login. 401/400
+  → "expired" state (ask the bot `/start` again, or email/password
+  login); network/unknown → retry button. It stays a real `<form>` so a
+  blocked auto-submit leaves a working button.
+- `apps/web/src/lib/home-for-role.ts` — `homeForRole` extracted from
+  `auth/login/actions.ts` (a `"use server"` module can't export a sync
+  helper) and shared by both flows.
+- `apps/web/src/app/[locale]/admin/invitations/new/invite-form.tsx` +
+  `actions.ts` — "Send via" select (Email / Telegram bot) with a hint;
+  `deliveryChannel` validated + posted. On a TELEGRAM success the
+  action **returns `{issued:{email,deeplink}}` instead of redirecting**
+  (deliberately not round-tripping the token through a URL query); the
+  form swaps to an "Invitation ready" card with a read-only link input,
+  Copy button (clipboard API, graceful no-op if unavailable) and
+  back-to-list. EMAIL success redirects as before.
+- `apps/web/src/app/[locale]/admin/invitations/page.tsx` — new
+  "Channel" column; under the status pill a muted `.pill-note` with the
+  bot funnel step (`botState.*`) while a TELEGRAM invite is pending, or
+  if it was `CANCELLED` in the bot. `funnelOf()` helper.
+- `apps/web/src/app/globals.css` — `.pill-note` (small, muted, normal
+  case) next to the `.pill` block.
+- i18n: `auth.telegramAccept.*` (11 keys) and
+  `admin.invitations.{table.channel, channel.*, botState.*(5),
+  new.{channelLabel,channelHint,channel.*,issuedTitle,issuedTelegram,
+  deeplinkLabel,copy,copied,backToList}}` in en/ru/uz. **en=ru=uz=946**
+  leaf keys (was 917).
+
+Build verify: `./gradlew :api:compileJava :api:compileTestJava` clean;
+`:api:test --tests '*TelegramInvitationIssue*' --tests '*InvitationFlow*'
+--tests '*TelegramAccept*' --tests '*AuthFlow*'` all green (15 tests).
+`npx tsc --noEmit` clean. CSS braces balanced. Walked through in the
+browser against the running stack (accept page happy + used-token
+paths, Telegram invite issue → deeplink card, list columns).
+
+Deliberately scoped out:
+
+- **Login-Widget button** on `/auth/login` + its endpoint — domain-ready
+  phase.
+- **Re-showing a Telegram deeplink** — the raw token isn't stored, so
+  an admin who loses it must revoke + re-issue (same as email).
+- **Distinct "bot not configured" error in the admin form** — the
+  backend returns 400 with a clear message, but the form maps every
+  400 to the generic `invalid` copy. Fine for v1 (it's an operator
+  misconfiguration, and the backend log says exactly what's missing).
+- **Mock-Telegram end-to-end test** (bot `/start` → contact →
+  deeplink → accept page) — Task E.
+
+How to check as a user:
+
+Needs Postgres + backend (Java 21, `.env` sourced if you want the real
+bot) + web (`pnpm --filter web dev`, port 3100). API is on **7373**.
+
+1. Sign in as `admin@demo.local / admin12345` → `/<locale>/admin/invitations`
+   → "New invitation". Fill an email + name, role Teacher or Parent,
+   **Send via: Telegram bot** → submit.
+   Expected: no redirect — an "Invitation ready" card with a
+   `https://t.me/<bot>?start=INV_…` link, a working Copy button, and
+   "Back to invitations". (With `CHESSEDU_TELEGRAM_BOT_USERNAME` unset
+   you get the generic "check the form" error instead — set it in
+   `.env`.) Mailpit (`localhost:8125`) gets **no** new message.
+2. "Back to invitations": the new row shows Channel = Telegram, status
+   Pending, and "Link not opened yet" under the pill. Email rows show
+   Channel = Email and nothing extra.
+3. Send the link to yourself in Telegram and tap through the bot (see
+   Telegram Auth B's walkthrough). After the contact share, the list
+   row's note becomes "Signed up via bot" on refresh; the bot's reply
+   contains `http://localhost:3100/<locale>/auth/accept?ott=…`.
+4. Open that link in the browser where the web app runs.
+   Expected: a brief "Signing you in…" card, then a redirect to
+   `/<locale>/admin` (teacher/admin) or `/<locale>/parent` (parent),
+   logged in — no password ever set.
+5. Edge cases worth eyeballing:
+   - Open the same accept link again → "This link has expired" card
+     with "Back to login". Same for `/auth/accept?ott=garbage`.
+   - `/auth/accept` with no `ott` → the "link is incomplete" card.
+   - Without the bot: mint an OTT by SQL (see Telegram Auth C, step 2)
+     and open `/en/auth/accept?ott=<raw>` — same happy path.
+   - Issue a Telegram invite as a Parent role, tap through, and confirm
+     the accept redirect lands on `/parent`, not `/admin`.
+   - `/cancel` in the bot mid-flow → list note "Cancelled in the bot".
+
+### Telegram Auth C — OTT redemption endpoint (`POST /api/v1/auth/telegram/accept`)
+
+Third slice of the Telegram-auth umbrella: the web-side half of the
+bot → web handoff. The `/<locale>/auth/accept?ott=<token>` deeplink the
+bot sends (Task B) now has an endpoint to redeem against: the raw OTT
+goes in, a `TokenResponse` (access + refresh JWT pair, same shape as
+`/auth/login` and `/auth/invitations/accept`) comes out. Permit-all,
+no bot token needed — the redemption path runs on every instance even
+with the bot worker off. The Login-Widget endpoint
+(`POST /auth/telegram/login`, HMAC) stays deferred until a prod domain
+exists for `@BotFather /setdomain`.
+
+Also: **Telegram A + B are now compile- and boot-verified** (this slice
+was built locally with Gradle + Java 21 + Testcontainers; Flyway V012
+applies, Hibernate `validate` passes). The "not compile-verified"
+caveat from the handoff is closed.
+
+Files:
+
+- `apps/api/.../identity/auth/AuthService.java` — new public
+  `issueSessionFor(User, ip, userAgent)`: ACTIVE gate, `lastLoginAt`
+  stamp, membership lookup, fresh refresh-token family → `mintTokens`.
+  This is the "session for an externally-verified identity" primitive
+  the Login Widget will reuse; it avoids a third copy of the ~12-line
+  mint block (`AuthService.login` and `InvitationService.accept` each
+  have their own).
+- `apps/api/.../identity/telegram/TelegramAuthService.java` — new,
+  **unconditional** `@Service`. `accept(rawOtt, ip, ua)` =
+  `TelegramAuthTokenService.redeem` → bump `telegram_account.last_seen_at`
+  → `AuthService.issueSessionFor`. One `@Transactional` so a failed
+  issuance (user suspended after the bot minted the OTT) rolls back the
+  used-stamp — no used-but-no-session rows.
+- `apps/api/.../identity/telegram/TelegramAuthController.java` — new,
+  `@RequestMapping("/api/v1/auth/telegram")`, `POST /accept` with
+  `@Valid TelegramAcceptRequest` + `HttpServletRequest` for IP /
+  User-Agent (same extraction as `AuthController`).
+- `apps/api/.../identity/telegram/dto/TelegramAcceptRequest.java` —
+  `record(@NotBlank @Size(max=200) String ott)`.
+- `apps/api/.../security/SecurityConfig.java` — `/api/v1/auth/telegram/**`
+  added to the permit-all list (covers the future `/login` too).
+- `apps/api/src/test/.../identity/telegram/TelegramAcceptFlowIntegrationTest.java`
+  — 5 MockMvc tests: happy path (accept → `/me` shows TEACHER @ Demo
+  Chess School → refresh rotates → OTT single-use → `used_at`,
+  `last_login_at`, `last_seen_at` all stamped), unknown OTT 401, blank
+  OTT 400, expired OTT 401 (not stamped used), SUSPENDED user 401
+  (used-stamp rolled back). Seeds a password-less user + membership +
+  `telegram_account` directly; mints the OTT through
+  `TelegramAuthTokenService` exactly as the bot does.
+
+Error semantics: every token failure and the non-ACTIVE user return
+`401 UNAUTHENTICATED` with an opaque "Invalid token"/"Invalid
+credentials" message — no unknown/used/expired distinction, matching
+`AuthService.bad()`. Validation (blank/oversized `ott`) is the usual
+`400 VALIDATION_FAILED`.
+
+Build verify: `./gradlew :api:compileJava :api:compileTestJava` clean;
+`./gradlew :api:test --tests '*TelegramAcceptFlowIntegrationTest' --tests
+'*AuthFlowIntegrationTest'` green (Testcontainers Postgres, Docker
+required). Note the machine's default `java` is 1.8 — run Gradle with
+`JAVA_HOME` pointed at a 21 JDK (e.g. Corretto 21 under
+`~/Library/Java/JavaVirtualMachines/`). i18n untouched (en=ru=uz=917).
+
+Deliberately scoped out:
+
+- **Frontend** `/<locale>/auth/accept` page that reads `?ott=`, POSTs
+  it, stores the tokens the way `/auth/login` does, and redirects by
+  role — Task D. Until then the deeplink lands on a 404 in the web app;
+  verify with curl (below).
+- **Login-Widget endpoint** (`POST /auth/telegram/login`, HMAC against
+  the bot token, mints an OTT internally and calls the same
+  `TelegramAuthService` path) — domain-ready phase.
+- **Rate limiting** on `/auth/telegram/accept` — the OTT is 2×UUID
+  (~244 bits) with a 10-min TTL, so brute force isn't practical; the
+  endpoint inherits whatever rate limiting `/auth/login` gets later.
+- **Bot-level mock integration test** (mock Telegram HTTP server →
+  `/start` → contact → deeplink → accept) — Task E; this slice tests
+  from the minted OTT onward.
+
+How to check as a user:
+
+No bot token needed. Postgres + backend running (`docker compose up -d`,
+then `./gradlew :api:bootRun` with Java 21).
+
+1. Pick (or seed) an ACTIVE non-student user. The demo admin works:
+   ```sql
+   SELECT id FROM app_user WHERE email = 'admin@demo.local';
+   ```
+2. Mint an OTT the way the bot does. Simplest without the bot: run the
+   `TelegramAuthTokenService.mint(userId)` path by inserting a row
+   whose `token_hash` is the SHA-256 of a raw token you choose:
+   ```sql
+   INSERT INTO telegram_auth_token (id, user_id, token_hash, issued_at, expires_at)
+   VALUES (gen_random_uuid(), '<user id>',
+           encode(sha256('my-raw-ott'::bytea), 'hex'),
+           now(), now() + interval '10 minutes');
+   ```
+   (`TokenHasher.hash` is exactly hex-encoded SHA-256, so this matches
+   what `TelegramAuthTokenService.mint` would store.)
+3. Redeem it:
+   ```bash
+   curl -s -X POST http://localhost:8080/api/v1/auth/telegram/accept \
+     -H 'Content-Type: application/json' -d '{"ott":"my-raw-ott"}'
+   ```
+   Expected: `200` with `accessToken` / `refreshToken` / `tokenType:
+   Bearer` / `expiresIn`. Then `curl -H "Authorization: Bearer <access>"
+   http://localhost:8080/api/v1/auth/me` returns the user with their
+   role and school.
+4. Edge cases worth eyeballing:
+   - Repeat step 3 with the same OTT → `401 UNAUTHENTICATED`
+     (single-use); `SELECT used_at FROM telegram_auth_token` is set.
+   - `{"ott":"garbage"}` → `401`; `{"ott":""}` → `400 VALIDATION_FAILED`.
+   - `UPDATE telegram_auth_token SET expires_at = now() - interval '1
+     minute'` on a fresh row → `401`, and `used_at` stays NULL.
+   - `UPDATE app_user SET status = 'SUSPENDED'` on the user, fresh OTT
+     → `401`, and `used_at` stays NULL (rolled back). Set the user back
+     to `ACTIVE` afterwards.
+   - With the bot enabled (see Telegram Auth B's walkthrough), the
+     deeplink the bot sends now redeems end-to-end via curl of the
+     `ott` query param.
+
 ### Telegram Auth B — Bot worker (RestClient long-poll + signup funnel)
 
 Second slice of the Telegram-auth umbrella. Adds the bot worker that

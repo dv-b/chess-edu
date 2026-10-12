@@ -37,6 +37,14 @@ public class Invitation {
     @Column(name = "display_name", nullable = false, length = 160)
     private String displayName;
 
+    /**
+     * E.164 phone the admin recorded for a Telegram invitation (V017). When
+     * set, the bot can match the invitee by the contact they share — no link
+     * to forward — and a token-based signup must share this same number.
+     */
+    @Column(name = "phone", length = 32)
+    private String phone;
+
     @Column(name = "invited_by")
     private UUID invitedBy;
 
@@ -92,6 +100,9 @@ public class Invitation {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }

@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { TopBar } from "@/components/top-bar";
 import { loginAction, type LoginActionState } from "./actions";
+import { TelegramLogin } from "./telegram-login";
 
 const INITIAL: LoginActionState = {};
 
@@ -30,7 +31,11 @@ export function LoginForm({ locale }: { locale: string }) {
       <TopBar />
       <main className="container landing__body auth-stage">
         <div className="auth-stack">
-          <form className="auth-card" action={formAction} noValidate>
+          {/* The card is a <div>, not the <form>: the Telegram block below
+              carries its own forms, and HTML forbids nesting forms (the browser
+              silently drops the inner one, so its submit button does nothing). */}
+          <div className="auth-card">
+            <form className="auth-card__form" action={formAction} noValidate>
             <input type="hidden" name="locale" value={locale} />
             <h1 className="auth-card__title">{t("title")}</h1>
 
@@ -41,12 +46,14 @@ export function LoginForm({ locale }: { locale: string }) {
             ) : null}
 
             <div className="field">
-              <label htmlFor="email">{t("emailLabel")}</label>
+              <label htmlFor="login">{t("emailLabel")}</label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="login"
+                name="login"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 placeholder="you@school.uz"
                 required
                 defaultValue={state.email ?? ""}
@@ -82,6 +89,13 @@ export function LoginForm({ locale }: { locale: string }) {
             >
               {pending ? t("submitting") : t("submit")}
             </button>
+            </form>
+
+            <div className="auth-divider" aria-hidden="true">
+              <span>{t("or")}</span>
+            </div>
+
+            <TelegramLogin locale={locale} />
 
             <div className="auth-footer">
               <a href="#">{t("forgotPassword")}</a>
@@ -90,7 +104,7 @@ export function LoginForm({ locale }: { locale: string }) {
                 <a href="mailto:hello@chess-edu.local">{t("contactSales")}</a>
               </span>
             </div>
-          </form>
+          </div>
 
           <div className="auth-role-strip" aria-hidden="true">
             <span className="auth-role-strip__dot" />

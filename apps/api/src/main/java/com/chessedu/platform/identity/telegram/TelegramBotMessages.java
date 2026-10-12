@@ -61,9 +61,59 @@ final class TelegramBotMessages {
 
     static String alreadyLinked(String locale, String baseUrl) {
         return switch (locale) {
-            case "ru" -> "Этот аккаунт Telegram уже привязан. Войдите на сайте: " + baseUrl;
-            case "en" -> "This Telegram account is already linked. Sign in on the website: " + baseUrl;
-            default -> "Bu Telegram hisobi allaqachon bog‘langan. Saytda tizimga kiring: " + baseUrl;
+            case "ru" -> "Этот аккаунт Telegram уже привязан. Отправьте /login, чтобы получить ссылку для входа, или нажмите «Войти через Telegram» на сайте — я пришлю код: " + baseUrl;
+            case "en" -> "This Telegram account is already linked. Send /login to get a sign-in link, or press \"Log in with Telegram\" on the website and I'll send you a code: " + baseUrl;
+            default -> "Bu Telegram hisobi allaqachon bog‘langan. Kirish havolasini olish uchun /login yuboring yoki saytda «Telegram orqali kirish» tugmasini bosing — kod yuboraman: " + baseUrl;
+        };
+    }
+
+    // ---- repeat sign-in (/login and the web one-time code) ------------------
+
+    static String loginNotLinked(String locale) {
+        return switch (locale) {
+            case "ru" -> "Этот аккаунт Telegram ещё не зарегистрирован. Попросите администратора школы прислать приглашение.";
+            case "en" -> "This Telegram account isn't registered yet. Ask your school admin for an invitation.";
+            default -> "Bu Telegram hisobi hali ro‘yxatdan o‘tmagan. Maktab administratoridan taklifnoma so‘rang.";
+        };
+    }
+
+    static String loginCode(String locale, String code) {
+        return switch (locale) {
+            case "ru" -> "Ваш код для входа: " + code + "\nДействует 5 минут, один раз. Если вы не запрашивали вход — просто проигнорируйте это сообщение.";
+            case "en" -> "Your sign-in code: " + code + "\nValid for 5 minutes, single use. If you didn't request this, just ignore it.";
+            default -> "Kirish kodingiz: " + code + "\n5 daqiqa, bir marta amal qiladi. Agar siz so‘ramagan bo‘lsangiz, shunchaki e’tiborsiz qoldiring.";
+        };
+    }
+
+    static String loginLink(String locale, String deeplink) {
+        return switch (locale) {
+            case "ru" -> "Нажмите, чтобы войти (ссылка одноразовая, действует 10 минут):\n" + deeplink;
+            case "en" -> "Tap to sign in (one-time link, valid for 10 minutes):\n" + deeplink;
+            default -> "Kirish uchun bosing (bir martalik havola, 10 daqiqa amal qiladi):\n" + deeplink;
+        };
+    }
+
+    static String askContactForLookup(String locale) {
+        return switch (locale) {
+            case "ru" -> "Здравствуйте! Чтобы найти ваше приглашение, поделитесь номером телефона кнопкой ниже.";
+            case "en" -> "Hi! To find your invitation, share your phone number with the button below.";
+            default -> "Salom! Taklifnomangizni topish uchun quyidagi tugma orqali telefon raqamingizni ulashing.";
+        };
+    }
+
+    static String noInvitationForPhone(String locale) {
+        return switch (locale) {
+            case "ru" -> "Для этого номера нет приглашения. Попросите администратора школы пригласить вас по этому номеру, либо откройте ссылку-приглашение, если она у вас есть.";
+            case "en" -> "There's no invitation for this phone number. Ask your school admin to invite this number, or open your invite link if you have one.";
+            default -> "Bu telefon raqami uchun taklifnoma yo‘q. Maktab administratoridan shu raqamga taklifnoma yuborishini so‘rang yoki taklif havolangiz bo‘lsa, uni oching.";
+        };
+    }
+
+    static String phoneMismatch(String locale) {
+        return switch (locale) {
+            case "ru" -> "Это приглашение выписано на другой номер телефона. Попросите администратора проверить номер.";
+            case "en" -> "This invitation was issued for a different phone number. Ask your school admin to check the number.";
+            default -> "Bu taklifnoma boshqa telefon raqamiga berilgan. Administratordan raqamni tekshirishini so‘rang.";
         };
     }
 
@@ -141,9 +191,9 @@ final class TelegramBotMessages {
 
     static String help(String locale) {
         return switch (locale) {
-            case "ru" -> "Откройте ссылку-приглашение от администратора, чтобы начать. Чтобы отменить — /cancel.";
-            case "en" -> "Open the invite link from your admin to begin. Send /cancel to abort.";
-            default -> "Boshlash uchun administratordan olgan taklif havolasini oching. Bekor qilish uchun /cancel yuboring.";
+            case "ru" -> "Новый пользователь? Отправьте /start и поделитесь номером телефона — мы найдём ваше приглашение. Уже зарегистрированы? Отправьте /login, чтобы получить ссылку для входа. Отменить регистрацию — /cancel.";
+            case "en" -> "New here? Send /start and share your phone number — we'll find your invitation. Already registered? Send /login to get a sign-in link. Send /cancel to abort a sign-up.";
+            default -> "Yangi foydalanuvchimisiz? /start yuboring va telefon raqamingizni ulashing — taklifnomangizni topamiz. Allaqachon ro‘yxatdan o‘tganmisiz? Kirish havolasi uchun /login yuboring. Ro‘yxatdan o‘tishni bekor qilish — /cancel.";
         };
     }
 }

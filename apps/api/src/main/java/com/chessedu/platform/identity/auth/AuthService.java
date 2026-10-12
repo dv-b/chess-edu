@@ -13,6 +13,7 @@ import com.chessedu.platform.identity.model.UserStatus;
 import com.chessedu.platform.identity.repo.CredentialsRepository;
 import com.chessedu.platform.identity.repo.MembershipRepository;
 import com.chessedu.platform.identity.repo.RefreshTokenRepository;
+import com.chessedu.platform.identity.repo.TelegramAccountRepository;
 import com.chessedu.platform.identity.repo.UserRepository;
 import com.chessedu.platform.security.JwtService;
 import com.chessedu.platform.security.PasswordService;
@@ -65,6 +66,7 @@ public class AuthService {
     private final JwtService jwt;
     private final TokenHasher hasher;
     private final SecurityProperties props;
+    private final TelegramAccountRepository telegramAccounts;
 
     public AuthService(UserRepository users,
                        CredentialsRepository credentials,
@@ -74,7 +76,9 @@ public class AuthService {
                        PasswordService passwords,
                        JwtService jwt,
                        TokenHasher hasher,
-                       SecurityProperties props) {
+                       SecurityProperties props,
+                       TelegramAccountRepository telegramAccounts) {
+        this.telegramAccounts = telegramAccounts;
         this.users = users;
         this.credentials = credentials;
         this.memberships = memberships;
@@ -90,10 +94,14 @@ public class AuthService {
     // Login
     // ========================================================================
 
+    /**
+     * {@code identifier} is an email or a username (V014): anything with an
+     * '@' is treated as an email, everything else as a username. Both are
+     * normalised the same way they're stored (trimmed, lower-cased).
+     */
     @Transactional
-    public TokenResponse login(String email, String rawPassword, String ip, String userAgent) {
-        String normalized = normalizeEmail(email);
-        User user = users.findByEmail(normalized)
+    public TokenResponse login(String identifier, String rawPassword, String ip, String userAgent) {
+        User user = resolveByIdentifier(identifier)
                 .orElseThrow(() -> bad("Invalid credentials"));
 
         if (user.getStatus() != UserStatus.ACTIVE) {
@@ -129,6 +137,38 @@ public class AuthService {
         Membership membership = memberships.findByUserId(user.getId()).orElse(null);
         UUID familyId = UUID.randomUUID();
         return mintTokens(user, membership, familyId, ip, userAgent);
+    }
+
+    // ========================================================================
+    // Session issuance for externally-verified identities
+    // ========================================================================
+
+    /**
+     * Mint a fresh JWT pair for a user whose identity was already verified by
+     * another channel (Telegram OTT redemption today; the Login Widget later).
+     * Same post-login shape as {@link #login}: status gate, last-login stamp,
+     * membership lookup, new refresh-token family. No credentials involved —
+     * Telegram-signup users have no password row at all.
+     */
+    @Transactional
+    public TokenResponse issueSessionFor(User user, String ip, String userAgent) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            log.info("Session issuance blocked — user {} status={}", user.getId(), user.getStatus());
+            throw bad("Invalid credentials");
+        }
+        user.setLastLoginAt(Instant.now());
+        users.save(user);
+
+        Membership membership = memberships.findByUserId(user.getId()).orElse(null);
+        return mintTokens(user, membership, UUID.randomUUID(), ip, userAgent);
+    }
+
+    private Optional<User> resolveByIdentifier(String identifier) {
+        if (identifier == null || identifier.isBlank()) return Optional.empty();
+        String trimmed = identifier.trim();
+        return trimmed.contains("@")
+                ? users.findByEmail(normalizeEmail(trimmed))
+                : users.findByUsername(normalizeUsername(trimmed));
     }
 
     private void registerFailure(Credentials creds) {
@@ -238,12 +278,15 @@ public class AuthService {
         return new MeResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getUsername(),
                 user.getDisplayName(),
                 user.getPreferredLocale(),
                 membership.map(Membership::getSchoolId).orElse(null),
                 school.map(School::getDisplayName).orElse(null),
                 membership.map(Membership::getRole).orElse(null),
-                user.getPlatformRole()
+                user.getPlatformRole(),
+                credentials.findByUserId(userId).isPresent(),
+                telegramAccounts.findByUserId(userId).isPresent()
         );
     }
 
@@ -287,6 +330,12 @@ public class AuthService {
     public static String normalizeEmail(String email) {
         if (email == null) return null;
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /** Canonical username form: trimmed and lower-cased, matching the V014 CHECK + lower() index. */
+    public static String normalizeUsername(String username) {
+        if (username == null) return null;
+        return username.trim().toLowerCase(Locale.ROOT);
     }
 
     private static AppException bad(String message) {

@@ -8,11 +8,16 @@ import java.util.UUID;
 public record MeResponse(
         UUID userId,
         String email,
+        /** Optional second login identifier (V014); null until the user picks one. */
+        String username,
         String displayName,
         String preferredLocale,
         UUID schoolId,
         String schoolName,
         Role role,
-        PlatformRole platformRole
+        PlatformRole platformRole,
+        /** False for Telegram-signup users until they set one on the account page. */
+        boolean hasPassword,
+        boolean telegramLinked
 ) {
 }

@@ -904,6 +904,101 @@ button {
   border-color: color-mix(in oklch, var(--ink-muted), transparent 70%);
 }
 
+/* Secondary line under a .pill (e.g. the Telegram bot-funnel step in the
+   invitations list). Plain small muted text — deliberately NOT the
+   uppercase, letter-spaced .auth-meta, which is too loud inside a table cell. */
+/* The password form inside the login card. `display: contents` keeps the
+   card's own layout (gaps, widths) applying to the form's children as if the
+   form weren't there — the <form> exists only so the Telegram block can have
+   its own forms as siblings instead of (invalid) nested ones. */
+.auth-card__form {
+  display: contents;
+}
+
+/* "Log in with Telegram" block on the login card + the divider above it. */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 12px;
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line, color-mix(in oklch, var(--ink-muted), transparent 70%));
+}
+
+.auth-telegram {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.auth-telegram__start,
+.auth-telegram__open {
+  width: 100%;
+}
+.auth-telegram__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Platform-admin school picker on the invitations list; secondary line
+   inside a form error carrying the backend's own message. */
+.school-picker {
+  max-width: 360px;
+  margin-bottom: 16px;
+}
+.form-error__detail {
+  margin: 6px 0 0;
+  font-size: var(--fs-sm);
+  opacity: 0.85;
+}
+
+/* "Invitation ready" card: the plain-prose instruction for phone-matched
+   Telegram invites (deliberately not the uppercase .auth-meta — it's the
+   main content, not a caption). */
+.issued-steps {
+  margin: 0 0 8px;
+  font-size: var(--fs-md, 15px);
+  line-height: 1.5;
+}
+
+/* /account page: intro block above the two auth-card forms. */
+.account-shell {
+  flex-direction: column;
+  gap: 16px;
+}
+.account-intro {
+  width: min(100%, 440px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.account-intro h1 {
+  margin: 0;
+}
+.form-success {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in oklch, #2f7d4d, var(--paper) 85%);
+  color: #2f7d4d;
+  font-size: var(--fs-sm);
+}
+
+.pill-note {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
 /* --- Filter bar (members, future admin lists) --- */
 
 .filter-bar {

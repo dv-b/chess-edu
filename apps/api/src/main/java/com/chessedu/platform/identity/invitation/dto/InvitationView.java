@@ -18,6 +18,20 @@ public record InvitationView(
         Instant issuedAt,
         Instant expiresAt,
         Instant acceptedAt,
-        boolean expired
+        boolean expired,
+        /** {@code EMAIL} | {@code TELEGRAM}. */
+        String deliveryChannel,
+        /** Bot-funnel state for TELEGRAM invites; null for EMAIL. */
+        String botState,
+        /**
+         * {@code https://t.me/<bot>?start=INV_<token>} — present ONLY in the
+         * issue response of a TELEGRAM invite (the raw token is never stored),
+         * never in list views. The admin forwards it to the invitee.
+         */
+        String botDeeplink,
+        /** E.164 phone recorded for phone-matched Telegram invites; null otherwise. */
+        String phone,
+        /** The bot's @username (no '@') for TELEGRAM invites, so the UI can say "open @bot". */
+        String botUsername
 ) {
 }

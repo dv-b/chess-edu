@@ -7,37 +7,30 @@
  * `cookies()` API.
  *
  * Cookie names are namespaced with `session_` so we can add other app cookies
- * later without colliding.
+ * later without colliding. Names, lifetimes and options live in
+ * `session-cookies.ts` so `middleware.ts` (which silently refreshes expired
+ * sessions) can share them without importing `next/headers`.
  */
 
 import { cookies } from "next/headers";
-
-const ACCESS = "session_access";
-const REFRESH = "session_refresh";
-
-// Match the backend's JWT TTLs from application.yml (30m access / 14d refresh).
-// These are just cookie lifetimes; the JWT itself carries its own `exp`.
-const ACCESS_MAX_AGE_SECONDS = 60 * 30;
-const REFRESH_MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
+import {
+  ACCESS_COOKIE as ACCESS,
+  REFRESH_COOKIE as REFRESH,
+  REFRESH_MAX_AGE_SECONDS,
+  accessCookieMaxAge,
+  sessionCookieOptions as cookieOptions,
+} from "@/lib/session-cookies";
 
 export type Session = {
   accessToken: string;
   refreshToken: string;
+  /** Seconds until the access token expires, as reported by the backend. */
+  expiresIn?: number;
 };
 
-function cookieOptions(maxAge: number) {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge,
-  };
-}
-
-export async function setSession({ accessToken, refreshToken }: Session) {
+export async function setSession({ accessToken, refreshToken, expiresIn }: Session) {
   const store = await cookies();
-  store.set(ACCESS, accessToken, cookieOptions(ACCESS_MAX_AGE_SECONDS));
+  store.set(ACCESS, accessToken, cookieOptions(accessCookieMaxAge(expiresIn)));
   store.set(REFRESH, refreshToken, cookieOptions(REFRESH_MAX_AGE_SECONDS));
 }
 

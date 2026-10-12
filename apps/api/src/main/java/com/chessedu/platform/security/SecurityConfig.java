@@ -52,7 +52,8 @@ public class SecurityConfig {
                                          "/api/v1/auth/refresh",
                                          "/api/v1/auth/logout",
                                          "/api/v1/auth/password-reset/**",
-                                         "/api/v1/auth/invitations/**").permitAll()
+                                         "/api/v1/auth/invitations/**",
+                                         "/api/v1/auth/telegram/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/ping").permitAll()
                         // --- Authenticated + role-gated ---
                         // Teachers need to see the schedule (patterns + sessions)

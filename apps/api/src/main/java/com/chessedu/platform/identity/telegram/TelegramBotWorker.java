@@ -39,11 +39,13 @@ public class TelegramBotWorker {
 
     private final TelegramApiClient api;
     private final TelegramSignupService signup;
+    private final TelegramLoginBotHandler login;
     private final AtomicLong offset = new AtomicLong(0);
 
-    public TelegramBotWorker(TelegramApiClient api, TelegramSignupService signup) {
+    public TelegramBotWorker(TelegramApiClient api, TelegramSignupService signup, TelegramLoginBotHandler login) {
         this.api = api;
         this.signup = signup;
+        this.login = login;
     }
 
     @Scheduled(fixedDelayString = "${chessedu.telegram.poll-delay-ms:1000}")
@@ -86,6 +88,8 @@ public class TelegramBotWorker {
                     ? text.substring("/start".length()).trim()
                     : null;
             signup.handleStart(msg, (payload == null || payload.isBlank()) ? null : payload);
+        } else if (text.equals("/login")) {
+            login.handleLoginCommand(msg);
         } else if (text.equals("/cancel")) {
             signup.handleCancel(msg);
         } else {
