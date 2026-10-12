@@ -28,6 +28,10 @@ public record InvitationView(
          * issue response of a TELEGRAM invite (the raw token is never stored),
          * never in list views. The admin forwards it to the invitee.
          */
-        String botDeeplink
+        String botDeeplink,
+        /** E.164 phone recorded for phone-matched Telegram invites; null otherwise. */
+        String phone,
+        /** The bot's @username (no '@') for TELEGRAM invites, so the UI can say "open @bot". */
+        String botUsername
 ) {
 }

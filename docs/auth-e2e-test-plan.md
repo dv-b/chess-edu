@@ -109,24 +109,31 @@ Issue the same email again via curl → HTTP 409.
 Signed in as the school admin:
 
 1. Invitations → **New invitation** → role Teacher, any email (for example
-   `teacher.one@demo.local`), name, **Send via: Telegram bot** → Send.
-   Expected: no redirect; an "Invitation ready" card with a
-   `https://t.me/<bot>?start=INV_…` link and a Copy button. Mailpit gets
-   **no** new email.
-2. Back to invitations. Expected: the row shows Channel `Telegram`,
-   status `Pending`, note "Link not opened yet".
-3. Send the link to your phone (paste it into Saved Messages). Tap it →
-   the bot greets you with a "Share my phone number" button → tap →
-   confirm. Expected: "You're all set" plus a
+   `teacher.one@demo.local`), name, **Send via: Telegram bot**. A **Phone
+   number** field appears — enter your own mobile number (the one on
+   your Telegram account, e.g. `+998 90 123 45 67`) → Send.
+   Expected: no redirect; an "Invitation ready" card telling you to have
+   the invitee open `@e2e4_uz_bot`, press Start and share their contact.
+   A bot link is shown underneath only as a fallback. Mailpit gets **no**
+   new email.
+2. Back to invitations. Expected: the row shows Channel `Telegram`, your
+   number under the email, status `Pending`, note "Link not opened yet".
+3. On your phone: open Telegram, search **@e2e4_uz_bot**, press
+   **Start** (no link needed). The bot asks for your phone → tap
+   **Share my phone number** → confirm. Expected: "You're all set" plus a
    `http://localhost:3100/<locale>/auth/accept?ott=…` link.
-4. Reload the invitations list. Expected: status `Accepted`, note gone
-   (the funnel reached COMPLETED).
+4. Reload the invitations list. Expected: status `Accepted`, note gone.
 5. Log out of the admin. On the Mac, open the accept link from the bot
    (copy it from Telegram Desktop or type it). Expected: a short "Signing
    you in" card, then `/en/admin` as the teacher. No password was ever set.
 
+Fallback path (no phone): leave the Phone field empty → the card shows
+the per-invite link to forward; tapping it on the phone runs the same
+contact share and matches by the token instead.
+
 Edge cases: open the accept link a second time → "This link has
-expired". Tap the invitation link again on the phone → "already used".
+expired". Press Start again after signing up → "already linked". Share a
+number that has no invitation → "no invitation for this phone number".
 
 ## Phase 3 — Teacher: account page, username, password, both sign-in methods
 

@@ -187,6 +187,64 @@ class TelegramInvitationIssueIntegrationTest {
     }
 
     @Test
+    void telegramInviteWithPhoneIsNormalisedAndCarriesBotUsername() throws Exception {
+        String adminAccess = login();
+
+        MvcResult issued = mvc.perform(post("/api/v1/admin/invitations")
+                        .header("Authorization", "Bearer " + adminAccess)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "PARENT",
+                                  "email": "%s",
+                                  "displayName": "TG Invitee",
+                                  "deliveryChannel": "TELEGRAM",
+                                  "phone": "998 (90) 555-66-77"
+                                }""".formatted(INVITEE_EMAIL)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phone").value("+998905556677"))
+                .andExpect(jsonPath("$.botUsername").value("kingside_test_bot"))
+                .andExpect(jsonPath("$.botDeeplink").isNotEmpty())
+                .andReturn();
+        UUID id = UUID.fromString(mapper.readTree(issued.getResponse().getContentAsString()).get("id").asText());
+        assertThat(invitations.findById(id).orElseThrow().getPhone()).isEqualTo("+998905556677");
+
+        // A second pending invitation for the same number is refused (even for another email).
+        mvc.perform(post("/api/v1/admin/invitations")
+                        .header("Authorization", "Bearer " + adminAccess)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "PARENT",
+                                  "email": "tg-invitee-2@demo.local",
+                                  "displayName": "Someone Else",
+                                  "deliveryChannel": "TELEGRAM",
+                                  "phone": "+998905556677"
+                                }"""))
+                .andExpect(status().isConflict());
+        invitations.findAll().stream()
+                .filter(i -> "tg-invitee-2@demo.local".equalsIgnoreCase(i.getEmail()))
+                .forEach(invitations::delete);
+    }
+
+    @Test
+    void unparseablePhoneIsRejected() throws Exception {
+        String adminAccess = login();
+        mvc.perform(post("/api/v1/admin/invitations")
+                        .header("Authorization", "Bearer " + adminAccess)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "PARENT",
+                                  "email": "%s",
+                                  "displayName": "TG Invitee",
+                                  "deliveryChannel": "TELEGRAM",
+                                  "phone": "call me maybe"
+                                }""".formatted(INVITEE_EMAIL)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void unknownChannelFailsValidation() throws Exception {
         String adminAccess = login();
 

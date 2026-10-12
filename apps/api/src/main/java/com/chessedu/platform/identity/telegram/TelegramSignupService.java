@@ -30,8 +30,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 
 /**
  * The bot-driven signup funnel: {@code /start INV_<token>} → "Share Contact" →
@@ -65,11 +65,16 @@ public class TelegramSignupService {
 
     private static final String START_PREFIX = "INV_";
     private static final String PLATFORM_ADMIN_ROLE = "PLATFORM_ADMIN";
-    /** Same E.164 shape the telegram_account CHECK constraint enforces. */
-    private static final Pattern E164 = Pattern.compile("^\\+[1-9][0-9]{6,15}$");
 
-    /** telegramId → invitationId for users mid-signup, awaiting the contact share. */
+    /** telegramId → invitationId for users mid-signup via a token link, awaiting the contact share. */
     private final ConcurrentHashMap<Long, UUID> awaitingContact = new ConcurrentHashMap<>();
+
+    /**
+     * telegramIds mid-signup via the phone path (bare /start, no token): the
+     * invitation is only known once they share their contact. Same
+     * single-instance caveat as {@link #awaitingContact}.
+     */
+    private final Set<Long> awaitingPhoneLookup = ConcurrentHashMap.newKeySet();
 
     private final InvitationRepository invitations;
     private final UserRepository users;
@@ -115,9 +120,16 @@ public class TelegramSignupService {
             return;
         }
         if (payload == null || !payload.startsWith(START_PREFIX)) {
-            api.sendMessage(chatId, TelegramBotMessages.startInvalidToken(locale));
+            // No token: phone-matched signup. The admin recorded the invitee's
+            // number on the invitation; the contact share tells us who this is.
+            awaitingContact.remove(tgId);
+            awaitingPhoneLookup.add(tgId);
+            api.sendContactRequest(chatId,
+                    TelegramBotMessages.askContactForLookup(locale),
+                    TelegramBotMessages.shareContactButton(locale));
             return;
         }
+        awaitingPhoneLookup.remove(tgId);
 
         String rawToken = payload.substring(START_PREFIX.length());
         Invitation invite = invitations.findByTokenHash(hasher.hash(rawToken)).orElse(null);
@@ -167,7 +179,8 @@ public class TelegramSignupService {
         String locale = TelegramBotMessages.resolveLocale(from.languageCode());
 
         UUID invitationId = awaitingContact.get(tgId);
-        if (invitationId == null) {
+        boolean byPhone = invitationId == null && awaitingPhoneLookup.contains(tgId);
+        if (invitationId == null && !byPhone) {
             api.sendMessage(chatId, TelegramBotMessages.contactWithoutStart(locale));
             return;
         }
@@ -180,18 +193,43 @@ public class TelegramSignupService {
         }
 
         Instant now = Instant.now();
-        Invitation invite = invitations.findById(invitationId).orElse(null);
-        if (invite == null || invite.isAccepted() || invite.isExpired(now)) {
-            awaitingContact.remove(tgId);
-            api.sendMessage(chatId, TelegramBotMessages.startExpired(locale));
-            return;
-        }
-
         String phone = normalizePhone(contact.phoneNumber());
         if (phone == null) {
             awaitingContact.remove(tgId);
+            awaitingPhoneLookup.remove(tgId);
             api.sendMessage(chatId, TelegramBotMessages.badPhone(locale));
             return;
+        }
+
+        Invitation invite;
+        if (byPhone) {
+            // Newest pending, unexpired, Telegram-channel, non-student invitation for this number.
+            invite = invitations.findPendingByPhone(phone).stream()
+                    .filter(i -> i.getDeliveryChannel() == DeliveryChannel.TELEGRAM)
+                    .filter(i -> !i.isExpired(now))
+                    .filter(i -> !Role.STUDENT.name().equals(i.getRole()))
+                    .findFirst()
+                    .orElse(null);
+            if (invite == null) {
+                awaitingPhoneLookup.remove(tgId);
+                api.sendMessage(chatId, TelegramBotMessages.noInvitationForPhone(locale));
+                return;
+            }
+            awaitingPhoneLookup.remove(tgId);
+            log.info("Telegram signup matched invitation {} by phone", invite.getId());
+        } else {
+            invite = invitations.findById(invitationId).orElse(null);
+            if (invite == null || invite.isAccepted() || invite.isExpired(now)) {
+                awaitingContact.remove(tgId);
+                api.sendMessage(chatId, TelegramBotMessages.startExpired(locale));
+                return;
+            }
+            // A token invitation that carries a phone must be redeemed by that
+            // phone — a forwarded link in the wrong hands stops here.
+            if (invite.getPhone() != null && !invite.getPhone().equals(phone)) {
+                api.sendMessage(chatId, TelegramBotMessages.phoneMismatch(locale));
+                return;
+            }
         }
 
         String email = AuthService.normalizeEmail(invite.getEmail());
@@ -268,9 +306,12 @@ public class TelegramSignupService {
         long chatId = msg.chat().id();
         String locale = TelegramBotMessages.resolveLocale(from.languageCode());
 
+        boolean wasPhoneLookup = awaitingPhoneLookup.remove(tgId);
         UUID invitationId = awaitingContact.remove(tgId);
         if (invitationId == null) {
-            api.sendMessage(chatId, TelegramBotMessages.nothingToCancel(locale));
+            api.sendMessage(chatId, wasPhoneLookup
+                    ? TelegramBotMessages.cancelled(locale)
+                    : TelegramBotMessages.nothingToCancel(locale));
             return;
         }
         invitations.findById(invitationId).ifPresent(inv -> {
@@ -301,13 +342,6 @@ public class TelegramSignupService {
      * gracefully rather than hit a 500 on insert).
      */
     static String normalizePhone(String raw) {
-        if (raw == null) {
-            return null;
-        }
-        String digits = raw.replaceAll("[\\s()\\-]", "");
-        if (!digits.startsWith("+")) {
-            digits = "+" + digits;
-        }
-        return E164.matcher(digits).matches() ? digits : null;
+        return PhoneNumbers.normalize(raw);
     }
 }

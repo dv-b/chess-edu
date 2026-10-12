@@ -40,4 +40,15 @@ public interface InvitationRepository extends JpaRepository<Invitation, UUID> {
             + "and i.schoolId is null "
             + "and i.acceptedAt is null")
     Optional<Invitation> findPendingPlatformByEmail(@Param("email") String email);
+
+    /**
+     * Pending (unaccepted) invitations recorded with this E.164 phone, newest
+     * first. The bot matches a shared contact against these; the issue path
+     * uses it to refuse a second pending invitation for the same number.
+     */
+    @Query("select i from Invitation i "
+            + "where i.phone = :phone "
+            + "and i.acceptedAt is null "
+            + "order by i.issuedAt desc")
+    List<Invitation> findPendingByPhone(@Param("phone") String phone);
 }

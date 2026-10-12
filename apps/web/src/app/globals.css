@@ -960,6 +960,15 @@ button {
   opacity: 0.85;
 }
 
+/* "Invitation ready" card: the plain-prose instruction for phone-matched
+   Telegram invites (deliberately not the uppercase .auth-meta — it's the
+   main content, not a caption). */
+.issued-steps {
+  margin: 0 0 8px;
+  font-size: var(--fs-md, 15px);
+  line-height: 1.5;
+}
+
 /* /account page: intro block above the two auth-card forms. */
 .account-shell {
   flex-direction: column;

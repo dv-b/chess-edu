@@ -863,7 +863,7 @@
           "unknown": "Something went wrong. Please try again."
         },
         "channelLabel": "Send via",
-        "channelHint": "Email sends the accept link automatically. Telegram gives you a bot link to forward yourself — no email is sent.",
+        "channelHint": "Email sends the accept link automatically. Telegram asks the invitee to open the bot — add their phone and there's nothing to forward.",
         "channel": {
           "EMAIL": "Email",
           "TELEGRAM": "Telegram bot"
@@ -874,7 +874,11 @@
         "copy": "Copy link",
         "copied": "Copied",
         "backToList": "Back to invitations",
-        "schoolLabel": "School"
+        "schoolLabel": "School",
+        "phoneLabel": "Phone number (optional)",
+        "phoneHint": "If you add their phone, they just open the bot and share their contact — no link to forward. Leave empty to get a link instead.",
+        "issuedByPhone": "No email was sent. Tell {name} to open @{bot} in Telegram, press Start and share their contact. We'll match the number {phone} to this invitation.",
+        "issuedByPhoneFallback": "If they can't find the bot, you can also send them this link:"
       },
       "channel": {
         "EMAIL": "Email",

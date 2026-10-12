@@ -65,6 +65,11 @@ Settled after the "signup/signin is incomplete" review — treat as locked:
   memberships + role switching. Not in the current slice; design before
   the student work.
 
+- **Telegram invitations are matched by phone** (2026-10-12): the admin
+  records the invitee's number; the invitee opens the bot from any link /
+  QR and shares their contact. Token deeplink stays as the fallback. See
+  CLAUDE.md "Telegram invitations matched by phone".
+
 Build order (agreed): 1 silent refresh ✅ → 2 Telegram re-login (one-time code, Auth 2b) ✅
 → 3 username + set-password for Telegram users ✅ → 4 parent child
 switcher (acting-as) ⬜ NEXT → 5 student own credentials → later: Login

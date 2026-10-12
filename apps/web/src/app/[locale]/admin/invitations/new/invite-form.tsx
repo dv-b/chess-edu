@@ -15,11 +15,17 @@ const INITIAL: IssueActionState = {};
  */
 function IssuedTelegramCard({
   email,
+  displayName,
   deeplink,
+  phone,
+  botUsername,
   t,
 }: {
   email: string;
+  displayName: string;
   deeplink: string;
+  phone: string | null;
+  botUsername: string | null;
   t: ReturnType<typeof useTranslations<"admin.invitations.new">>;
 }) {
   const [copied, setCopied] = useState(false);
@@ -37,7 +43,18 @@ function IssuedTelegramCard({
   return (
     <div className="auth-card">
       <h1>{t("issuedTitle")}</h1>
-      <p className="auth-meta">{t("issuedTelegram", { email })}</p>
+      {phone ? (
+        <>
+          {/* Phone-matched: nothing to forward. The bot finds the invitation
+              from the contact they share. The link below is only a fallback. */}
+          <p className="issued-steps">
+            {t("issuedByPhone", { name: displayName, bot: botUsername ?? "", phone })}
+          </p>
+          <p className="auth-meta">{t("issuedByPhoneFallback")}</p>
+        </>
+      ) : (
+        <p className="auth-meta">{t("issuedTelegram", { email })}</p>
+      )}
 
       <div className="field">
         <label htmlFor="deeplink">{t("deeplinkLabel")}</label>
@@ -79,11 +96,16 @@ export function InviteForm({
   );
   const v = state.values ?? {};
 
+  const [channel, setChannel] = useState(v.deliveryChannel ?? "EMAIL");
+
   if (state.issued) {
     return (
       <IssuedTelegramCard
         email={state.issued.email}
+        displayName={state.issued.displayName}
         deeplink={state.issued.deeplink}
+        phone={state.issued.phone}
+        botUsername={state.issued.botUsername}
         t={t}
       />
     );
@@ -173,13 +195,31 @@ export function InviteForm({
         <select
           id="deliveryChannel"
           name="deliveryChannel"
-          defaultValue={v.deliveryChannel ?? "EMAIL"}
+          value={channel}
+          onChange={(e) => setChannel(e.target.value)}
         >
           <option value="EMAIL">{t("channel.EMAIL")}</option>
           <option value="TELEGRAM">{t("channel.TELEGRAM")}</option>
         </select>
         <p className="auth-meta">{t("channelHint")}</p>
       </div>
+
+      {channel === "TELEGRAM" ? (
+        <div className="field">
+          <label htmlFor="phone">{t("phoneLabel")}</label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="off"
+            placeholder="+998 90 123 45 67"
+            defaultValue={v.phone ?? ""}
+            maxLength={40}
+          />
+          <p className="auth-meta">{t("phoneHint")}</p>
+        </div>
+      ) : null}
 
       <div className="auth-actions">
         <button className="btn btn--primary" type="submit" disabled={pending}>

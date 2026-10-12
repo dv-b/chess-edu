@@ -41,6 +41,14 @@ public record IssueInvitationRequest(
          * for the admin to forward. Telegram is for non-student roles only.
          */
         @Pattern(regexp = "EMAIL|TELEGRAM")
-        String deliveryChannel
+        String deliveryChannel,
+
+        /**
+         * Optional E.164 phone (separators tolerated). For a TELEGRAM invite it
+         * lets the bot match the invitee by the contact they share, so the
+         * admin has nothing to forward. Stored normalised; 400 if unparseable.
+         */
+        @Size(max = 40)
+        String phone
 ) {
 }

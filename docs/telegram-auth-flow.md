@@ -129,6 +129,15 @@ sequenceDiagram
 
 ### Phase 2 — Bot signup (Telegram)
 
+*Two ways in.* With a **phone recorded on the invitation** (the default
+the admin UI steers to), the invitee opens the bot from any generic
+link or QR, presses Start, and the bot matches the pending invitation by
+the Telegram-verified number they share — nothing to forward. Without a
+phone, the admin forwards the per-invite `t.me/<bot>?start=INV_<token>`
+link and the steps below apply; if that invitation also carries a phone,
+the shared contact must match it.
+
+
 6. **Bot worker long-polls** `getUpdates` in a `@Scheduled(fixedDelay)` loop, one HTTP call per cycle, read timeout = poll timeout + 15 s. Offset is in memory → single instance for now.
 7. **`/start INV_<raw>` arrives.** The worker strips the `INV_` prefix, hashes the token, loads the invitation and validates: TELEGRAM channel, not accepted, not expired, non-student role, and that this `telegram_id` isn't already linked to a user.
    *Comment:* every failure has its own polite reply (uz / ru / en from the user's Telegram `language_code`), and nothing is written.

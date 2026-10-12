@@ -26,6 +26,7 @@ import com.chessedu.platform.identity.repo.InvitationRepository;
 import com.chessedu.platform.identity.repo.MembershipRepository;
 import com.chessedu.platform.identity.repo.RefreshTokenRepository;
 import com.chessedu.platform.identity.repo.UserRepository;
+import com.chessedu.platform.identity.telegram.PhoneNumbers;
 import com.chessedu.platform.identity.telegram.TelegramProperties;
 import com.chessedu.platform.security.AuthenticatedUser;
 import com.chessedu.platform.security.JwtService;
@@ -161,6 +162,20 @@ public class InvitationService {
             }
         }
 
+        String phone = null;
+        if (req.phone() != null && !req.phone().isBlank()) {
+            phone = PhoneNumbers.normalize(req.phone());
+            if (phone == null) {
+                throw new AppException(ErrorCode.VALIDATION_FAILED,
+                        "Phone must be an international number like +998901234567");
+            }
+            boolean phonePending = invitations.findPendingByPhone(phone).stream()
+                    .anyMatch(i -> !i.isExpired(Instant.now()));
+            if (phonePending) {
+                throw AppException.conflict("A pending invitation already exists for this phone number");
+            }
+        }
+
         // Already a user? Block — they should use password-reset instead.
         if (users.findByEmail(normalizedEmail).isPresent()) {
             throw AppException.conflict("A user with that email already exists");
@@ -190,6 +205,7 @@ public class InvitationService {
         invitation.setExpiresAt(now.plus(invitationProps.ttl()));
         invitation.setDeliveryChannel(channel);
         invitation.setBotState(channel == DeliveryChannel.TELEGRAM ? BotState.PENDING : null);
+        invitation.setPhone(phone);
         invitations.save(invitation);
 
         String botDeeplink = null;
@@ -488,7 +504,9 @@ public class InvitationService {
                 expired,
                 inv.getDeliveryChannel() != null ? inv.getDeliveryChannel().name() : DeliveryChannel.EMAIL.name(),
                 inv.getBotState() != null ? inv.getBotState().name() : null,
-                botDeeplink
+                botDeeplink,
+                inv.getPhone(),
+                inv.getDeliveryChannel() == DeliveryChannel.TELEGRAM ? telegramProps.botUsername() : null
         );
     }
 

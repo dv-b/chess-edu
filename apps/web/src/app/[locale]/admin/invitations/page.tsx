@@ -19,6 +19,8 @@ type InvitationView = {
   acceptedAt: string | null;
   expired: boolean;
   deliveryChannel?: "EMAIL" | "TELEGRAM";
+  /** E.164 phone on phone-matched Telegram invites; absent otherwise. */
+  phone?: string;
   /** Bot-funnel state for TELEGRAM invites; absent (Jackson drops nulls) for EMAIL. */
   botState?: "PENDING" | "STARTED" | "AWAITING_CONTACT" | "COMPLETED" | "CANCELLED";
 };
@@ -129,7 +131,10 @@ export default async function AdminInvitationsPage({ params, searchParams }: Pag
                 const status = statusOf(inv);
                 return (
                   <tr key={inv.id}>
-                    <td>{inv.email}</td>
+                    <td>
+                      {inv.email}
+                      {inv.phone != null ? <span className="pill-note">{inv.phone}</span> : null}
+                    </td>
                     <td>{inv.displayName}</td>
                     <td>{translateRole(t, inv.role)}</td>
                     <td>{t(`channel.${inv.deliveryChannel ?? "EMAIL"}`)}</td>

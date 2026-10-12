@@ -863,7 +863,7 @@
           "unknown": "Xatolik yuz berdi. Qayta urinib ko‘ring."
         },
         "channelLabel": "Yuborish usuli",
-        "channelHint": "Email havolani avtomatik yuboradi. Telegram esa bot havolasini beradi — uni o‘zingiz yuborasiz, xat jo‘natilmaydi.",
+        "channelHint": "Email havolani avtomatik yuboradi. Telegram foydalanuvchidan botni ochishni so‘raydi — raqamini kiriting, shunda hech narsa yuborish shart emas.",
         "channel": {
           "EMAIL": "Email",
           "TELEGRAM": "Telegram-bot"
@@ -874,7 +874,11 @@
         "copy": "Havolani nusxalash",
         "copied": "Nusxalandi",
         "backToList": "Taklifnomalar ro‘yxatiga",
-        "schoolLabel": "Maktab"
+        "schoolLabel": "Maktab",
+        "phoneLabel": "Telefon raqami (ixtiyoriy)",
+        "phoneHint": "Raqamini kiritsangiz, u botni ochib kontaktini ulashsa bas — havola yuborish shart emas. Havola olish uchun bo‘sh qoldiring.",
+        "issuedByPhone": "Xat yuborilmadi. {name}ga Telegramda @{bot} botini ochib, «Start» bosib, kontaktini ulashishni ayting. {phone} raqamini shu taklifnomaga moslaymiz.",
+        "issuedByPhoneFallback": "Botni topa olmasa, bu havolani ham yuborishingiz mumkin:"
       },
       "channel": {
         "EMAIL": "Email",

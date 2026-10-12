@@ -93,6 +93,30 @@ final class TelegramBotMessages {
         };
     }
 
+    static String askContactForLookup(String locale) {
+        return switch (locale) {
+            case "ru" -> "Здравствуйте! Чтобы найти ваше приглашение, поделитесь номером телефона кнопкой ниже.";
+            case "en" -> "Hi! To find your invitation, share your phone number with the button below.";
+            default -> "Salom! Taklifnomangizni topish uchun quyidagi tugma orqali telefon raqamingizni ulashing.";
+        };
+    }
+
+    static String noInvitationForPhone(String locale) {
+        return switch (locale) {
+            case "ru" -> "Для этого номера нет приглашения. Попросите администратора школы пригласить вас по этому номеру, либо откройте ссылку-приглашение, если она у вас есть.";
+            case "en" -> "There's no invitation for this phone number. Ask your school admin to invite this number, or open your invite link if you have one.";
+            default -> "Bu telefon raqami uchun taklifnoma yo‘q. Maktab administratoridan shu raqamga taklifnoma yuborishini so‘rang yoki taklif havolangiz bo‘lsa, uni oching.";
+        };
+    }
+
+    static String phoneMismatch(String locale) {
+        return switch (locale) {
+            case "ru" -> "Это приглашение выписано на другой номер телефона. Попросите администратора проверить номер.";
+            case "en" -> "This invitation was issued for a different phone number. Ask your school admin to check the number.";
+            default -> "Bu taklifnoma boshqa telefon raqamiga berilgan. Administratordan raqamni tekshirishini so‘rang.";
+        };
+    }
+
     static String askContact(String locale, String displayName) {
         return switch (locale) {
             case "ru" -> "Здравствуйте, " + displayName + "! Чтобы завершить регистрацию, нажмите кнопку ниже и поделитесь номером телефона.";
@@ -167,9 +191,9 @@ final class TelegramBotMessages {
 
     static String help(String locale) {
         return switch (locale) {
-            case "ru" -> "Новый пользователь? Откройте ссылку-приглашение от администратора. Уже зарегистрированы? Отправьте /login, чтобы получить ссылку для входа. Отменить регистрацию — /cancel.";
-            case "en" -> "New here? Open the invite link from your admin. Already registered? Send /login to get a sign-in link. Send /cancel to abort a sign-up.";
-            default -> "Yangi foydalanuvchimisiz? Administratordan olgan taklif havolasini oching. Allaqachon ro‘yxatdan o‘tganmisiz? Kirish havolasi uchun /login yuboring. Ro‘yxatdan o‘tishni bekor qilish — /cancel.";
+            case "ru" -> "Новый пользователь? Отправьте /start и поделитесь номером телефона — мы найдём ваше приглашение. Уже зарегистрированы? Отправьте /login, чтобы получить ссылку для входа. Отменить регистрацию — /cancel.";
+            case "en" -> "New here? Send /start and share your phone number — we'll find your invitation. Already registered? Send /login to get a sign-in link. Send /cancel to abort a sign-up.";
+            default -> "Yangi foydalanuvchimisiz? /start yuboring va telefon raqamingizni ulashing — taklifnomangizni topamiz. Allaqachon ro‘yxatdan o‘tganmisiz? Kirish havolasi uchun /login yuboring. Ro‘yxatdan o‘tishni bekor qilish — /cancel.";
         };
     }
 }

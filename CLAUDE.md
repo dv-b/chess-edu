@@ -30,6 +30,93 @@ Keep entries in reverse-chronological order (newest first).
 
 ## Completed tasks
 
+### Telegram invitations matched by phone (no link to forward)
+
+Bulat asked whether the bot could send the invite link itself. It
+can't — Telegram only lets a bot message someone who has already
+pressed Start — so the admin had to copy the deeplink and forward it.
+Chosen fix: record the invitee's phone on the invitation; the invitee
+opens the bot from any generic link / QR, presses Start, shares their
+contact, and the bot matches the pending invitation by the
+Telegram-verified number. The token deeplink stays as the fallback when
+the school has no number. A token invitation that carries a phone must
+also be redeemed by that phone (a forwarded link in the wrong hands
+stops there).
+
+Backend:
+
+- `apps/api/src/main/resources/db/migration/V017__invitation_phone.sql`
+  — `invitation.phone VARCHAR(32)` (E.164 CHECK) + partial index on
+  pending rows.
+- `identity/telegram/PhoneNumbers.java` — new shared `normalize()`
+  (was private to the signup service); the signup service delegates.
+- `IssueInvitationRequest.phone` (optional, separators tolerated →
+  normalised; 400 if unparseable; 409 if another pending unexpired
+  invitation already has the number). `InvitationView` gains `phone`
+  and `botUsername` (TELEGRAM only). `InvitationRepository.findPendingByPhone`.
+- `TelegramSignupService` — bare `/start` (or any non-`INV_` payload)
+  from an unlinked account now asks for the contact and remembers the
+  Telegram id in `awaitingPhoneLookup`; on the contact share it looks
+  up the newest pending, unexpired, TELEGRAM, non-student invitation
+  for that phone and completes signup exactly as the token path. Token
+  path: phone mismatch → `phoneMismatch` reply, still mid-signup.
+  `/cancel` clears the lookup too. Messages `askContactForLookup`,
+  `noInvitationForPhone`, `phoneMismatch`; `help` rewritten.
+- Tests: `TelegramInvitationIssueIntegrationTest` +2 (normalised phone
+  + botUsername; duplicate phone 409; bad phone 400);
+  `TelegramPhoneSignupIntegrationTest` (4, bot enabled with a
+  `@MockBean TelegramApiClient`): bare start → contact → invitation
+  accepted, user + telegram_account rows, accept link sent; no
+  invitation for the number → refused, nothing created; token invite +
+  wrong number → refused then right number completes; forwarded
+  contact card never matches.
+
+Frontend:
+
+- `admin/invitations/new/invite-form.tsx` — "Phone number (optional)"
+  field shown when Send via = Telegram bot (channel select is now
+  controlled state). "Invitation ready" card: with a phone it reads
+  "Tell {name} to open @{bot}, press Start and share their contact —
+  we'll match {phone}", with the deeplink demoted to a fallback;
+  without a phone, the old copy. `actions.ts` posts `phone`, and the
+  issued state carries `displayName`, `phone`, `botUsername`.
+- `admin/invitations/page.tsx` — phone shown under the email as a
+  `.pill-note`.
+- `globals.css` — `.issued-steps`. i18n: `admin.invitations.new.{phoneLabel,
+  phoneHint,issuedByPhone,issuedByPhoneFallback}`, `channelHint`
+  reworded → **1011** leaf keys each.
+
+Deliberately scoped out:
+
+- **QR code / printed poster** for the generic bot link — the card
+  shows `@bot`; a QR is a small follow-up if schools want a wall sign.
+- **"Send in Telegram" share button** for the fallback link
+  (`t.me/share/url`) — cheap, add if the fallback is used often.
+- **Bot DM to the admin** with the link — only works for admins who
+  signed up via Telegram; skipped for now.
+- **Matching email invitations by phone** — phone matching is Telegram
+  only; email invites keep their link.
+
+How to check as a user:
+
+1. Admin → Invitations → New invitation → Send via **Telegram bot** → a
+   **Phone number** field appears. Enter the invitee's number (your
+   own phone for a test; unlink first if it's already linked — test
+   plan Phase 6) → submit.
+   Expected: "Invitation ready" says to open `@e2e4_uz_bot`, press
+   Start and share the contact; the link is shown below as a fallback.
+   The list shows the number under the email.
+2. On the phone: open `@e2e4_uz_bot` (search it, no link needed) →
+   **Start** → the bot asks for your phone → tap **Share my phone
+   number** → "You're all set" + the accept link. Invitations list →
+   Accepted.
+3. Edge cases: a number with no invitation → "no invitation for this
+   phone number"; share the number for a token link issued to a
+   *different* number → "issued for a different phone number", then
+   the correct number completes it; the same number invited twice
+   while pending → 409 in the form; `call me maybe` as a phone → the
+   form's validation error with the backend's reason.
+
 ### Platform admin: school picker on invitations + backend error detail
 
 Found while Bulat ran the e2e test plan: a platform admin (no

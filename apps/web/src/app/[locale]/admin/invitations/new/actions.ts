@@ -34,16 +34,21 @@ export type IssueActionState = {
     preferredLocale?: string;
     deliveryChannel?: string;
     schoolId?: string;
+    phone?: string;
   };
   /**
    * Set (instead of redirecting) after a TELEGRAM invite is issued: the
-   * backend sends no email for that channel, so the admin has to forward the
-   * bot deeplink themselves. It's shown once — the raw token isn't stored
+   * backend sends no email for that channel. With a phone recorded the
+   * invitee just opens the bot and shares their contact; without one the
+   * admin forwards the deeplink. Shown once — the raw token isn't stored
    * anywhere, and we deliberately don't round-trip it through a URL query.
    */
   issued?: {
     email: string;
+    displayName: string;
     deeplink: string;
+    phone: string | null;
+    botUsername: string | null;
   };
 };
 
@@ -51,6 +56,8 @@ type IssuedView = {
   id: string;
   deliveryChannel?: string;
   botDeeplink?: string;
+  phone?: string;
+  botUsername?: string;
 };
 
 function normalizeLocale(value: FormDataEntryValue | null): AppLocale {
@@ -80,8 +87,9 @@ export async function issueInvitationAction(
   const deliveryChannel = String(formData.get("deliveryChannel") ?? "EMAIL");
   // Only present when the form rendered the platform-admin school picker.
   const schoolId = String(formData.get("schoolId") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
 
-  const values = { email, displayName, role, preferredLocale, deliveryChannel, schoolId };
+  const values = { email, displayName, role, preferredLocale, deliveryChannel, schoolId, phone };
 
   if (!email || !displayName || !isRole(role) || !isChannel(deliveryChannel)) {
     return { error: "invalid", values };
@@ -102,6 +110,7 @@ export async function issueInvitationAction(
       preferredLocale: preferredLocale || undefined,
       deliveryChannel,
       schoolId: schoolId || undefined,
+      phone: phone || undefined,
     }),
   });
 
@@ -124,7 +133,15 @@ export async function issueInvitationAction(
 
   // Jackson drops nulls, so a missing deeplink arrives as undefined.
   if (deliveryChannel === "TELEGRAM" && result.data.botDeeplink != null) {
-    return { issued: { email, deeplink: result.data.botDeeplink } };
+    return {
+      issued: {
+        email,
+        displayName,
+        deeplink: result.data.botDeeplink,
+        phone: result.data.phone ?? null,
+        botUsername: result.data.botUsername ?? null,
+      },
+    };
   }
 
   redirect({
